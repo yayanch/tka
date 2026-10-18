@@ -176,16 +176,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {currentUser ? (
             <div className="flex items-center gap-2.5">
-              {currentUser.role !== 'siswa' && (
-                <div 
-                  className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80"
-                >
-                  <span className="text-[10px] text-slate-400">Role:</span>
-                  <span className={currentUser.role === 'admin' ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-emerald-600 dark:text-emerald-400 font-bold'}>
-                    {currentUser.role === 'admin' ? 'Admin' : 'Guru'}
-                  </span>
-                </div>
-              )}
 
               <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-1 pr-2">
                 {currentUser.avatarUrl ? (

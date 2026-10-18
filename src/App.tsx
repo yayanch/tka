@@ -8,6 +8,7 @@ import { ProgressStatsView } from './components/ProgressStatsView';
 import { LearningMaterialView } from './components/LearningMaterialView';
 import { TeacherDashboardView } from './components/TeacherDashboardView';
 import { UserManagementView } from './components/UserManagementView';
+import { ScrollToTop } from './components/ScrollToTop';
 import { AuthModal } from './components/AuthModal';
 import { AccountSettingsModal } from './components/AccountSettingsModal';
 import { HeroSettingsModal } from './components/HeroSettingsModal';
@@ -924,6 +925,9 @@ export default function App() {
           </div>
         )}
       </main>
+
+      {/* Floating Scroll To Top Button */}
+      <ScrollToTop />
 
       {/* Auth Modal (Form & Google Sign-In with mandatory 6-digit Email Verification) */}
       <AuthModal
