@@ -341,3 +341,25 @@ export async function fetchLoginLogs(): Promise<any[]> {
   return [];
 }
 
+export async function fetchQuestionBank(): Promise<any[]> {
+  const data = await safeFetch('/api/teacher/question-bank');
+  if (data && data.success) return data.questions || [];
+  return [];
+}
+
+export async function addCustomQuestion(questionData: any): Promise<{ success: boolean; question?: any; message?: string }> {
+  const result = await safeFetch('/api/teacher/question-bank/add', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(questionData),
+  });
+  return result;
+}
+
+export async function deleteCustomQuestion(questionId: string): Promise<{ success: boolean; message?: string }> {
+  const result = await safeFetch(`/api/teacher/question-bank/${questionId}`, {
+    method: 'DELETE',
+  });
+  return result;
+}
+

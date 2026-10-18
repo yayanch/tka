@@ -8,6 +8,7 @@ import { ProgressStatsView } from './components/ProgressStatsView';
 import { LearningMaterialView } from './components/LearningMaterialView';
 import { TeacherDashboardView } from './components/TeacherDashboardView';
 import { UserManagementView } from './components/UserManagementView';
+import { QuestionBankView } from './components/QuestionBankView';
 import { ScrollToTop } from './components/ScrollToTop';
 import { AuthModal } from './components/AuthModal';
 import { AccountSettingsModal } from './components/AccountSettingsModal';
@@ -129,8 +130,11 @@ const parseHashToState = (hash: string, fallbackTab: AppTab = 'home'): AppHistor
   if (path === 'modul' || path === 'dashboard') {
     return { tab: 'dashboard' };
   }
-  if (path === 'materi' || path === 'learning' || path === 'bank-soal' || path === 'bank') {
+  if (path === 'materi' || path === 'learning') {
     return { tab: 'dashboard' };
+  }
+  if (path === 'bank-soal' || path === 'bank') {
+    return { tab: 'bank', bankWeek: validWeek || 0 };
   }
   if (path === 'statistik' || path === 'stats') {
     return { tab: 'stats' };
@@ -913,6 +917,20 @@ export default function App() {
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 onSelectWeek={(w) => setLearningSelectedWeek(w)}
+              />
+            )}
+
+            {currentTab === 'bank' && (
+              <QuestionBankView
+                initialWeekId={bankSelectedWeek}
+                bookmarkedIds={userProgress.bookmarkedQuestionIds}
+                onToggleBookmark={handleToggleBookmark}
+                onStartExam={(weekId, mode) => handleStartWeekSession(weekId, mode)}
+                onBack={() => {
+                  setCurrentTab('dashboard');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                onSelectWeek={(w) => setBankSelectedWeek(w)}
               />
             )}
 

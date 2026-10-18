@@ -39,6 +39,7 @@ const memoryStore = {
   examSessions: [] as any[],
   emailLogs: [] as any[],
   loginLogs: [] as any[],
+  questionBank: [] as any[],
 };
 
 // Track real-time online presence heartbeats (email -> timestamp)
@@ -643,6 +644,20 @@ async function initDatabase() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
     await conn.query(`
+      CREATE TABLE IF NOT EXISTS question_bank (
+        id VARCHAR(64) PRIMARY KEY,
+        week INT NOT NULL,
+        type VARCHAR(50) NOT NULL,
+        kompetensi VARCHAR(255) NOT NULL,
+        sub_kompetensi VARCHAR(255) NOT NULL,
+        kasus TEXT NOT NULL,
+        options TEXT NOT NULL,
+        correct_answer VARCHAR(255) NOT NULL,
+        pembahasan TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    await conn.query(`
       CREATE TABLE IF NOT EXISTS users (
         id VARCHAR(64) PRIMARY KEY,
         nama_lengkap VARCHAR(255) NOT NULL,
@@ -758,6 +773,12 @@ async function initDatabase() {
 
     const [dbLoginLogs]: any = await conn.query('SELECT * FROM login_logs ORDER BY created_at DESC');
     memoryStore.loginLogs = dbLoginLogs || [];
+
+    const [dbQBank]: any = await conn.query('SELECT * FROM question_bank ORDER BY created_at DESC');
+    memoryStore.questionBank = (dbQBank || []).map((q: any) => ({
+      ...q,
+      options: typeof q.options === 'string' ? JSON.parse(q.options) : q.options,
+    }));
 
     conn.release();
     console.log('[Database] MySQL tables verified and memory store synchronized successfully.');
@@ -1756,6 +1777,87 @@ app.get('/api/teacher/login-logs', async (_req: Request, res: Response) => {
     return res.json({ success: true, logs: loginLogs });
   } catch (err: any) {
     return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Question Bank Management Endpoints
+app.get('/api/teacher/question-bank', async (_req: Request, res: Response) => {
+  try {
+    let questions = memoryStore.questionBank;
+    if (isMySqlConnected && pool) {
+      const [rows]: any = await pool.query('SELECT * FROM question_bank ORDER BY created_at DESC');
+      if (rows && rows.length > 0) {
+        questions = rows.map((r: any) => ({
+          id: r.id,
+          week: r.week,
+          type: r.type,
+          kompetensi: r.kompetensi,
+          subKompetensi: r.sub_kompetensi,
+          kasus: r.kasus,
+          options: typeof r.options === 'string' ? JSON.parse(r.options) : r.options,
+          correctAnswer: r.correct_answer,
+          pembahasan: r.pembahasan,
+          createdAt: r.created_at,
+        }));
+      }
+    }
+    return res.json({ success: true, questions });
+  } catch (err: any) {
+    console.error('Fetch question bank error:', err);
+    return res.json({ success: true, questions: memoryStore.questionBank });
+  }
+});
+
+app.post('/api/teacher/question-bank/add', async (req: Request, res: Response) => {
+  try {
+    const { week, type, kompetensi, subKompetensi, kasus, options, correctAnswer, pembahasan } = req.body;
+    if (!kasus || week === undefined) {
+      return res.status(400).json({ success: false, message: 'Data soal tidak lengkap.' });
+    }
+
+    const id = `custom_q_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const optionsJson = JSON.stringify(options || []);
+
+    if (isMySqlConnected && pool) {
+      await pool.query(
+        `INSERT INTO question_bank (id, week, type, kompetensi, sub_kompetensi, kasus, options, correct_answer, pembahasan)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, Number(week), type || 'PG', kompetensi || 'Kompetensi TJKT', subKompetensi || 'Sub-Kompetensi', kasus, optionsJson, correctAnswer || 'A', pembahasan || 'Pembahasan terperinci']
+      );
+    }
+
+    const newQuestion = {
+      id,
+      week: Number(week),
+      type: type || 'PG',
+      kompetensi: kompetensi || 'Kompetensi TJKT',
+      subKompetensi: subKompetensi || 'Sub-Kompetensi',
+      kasus,
+      options: options || [],
+      correctAnswer: correctAnswer || 'A',
+      pembahasan: pembahasan || 'Pembahasan terperinci',
+      createdAt: new Date().toISOString(),
+    };
+
+    memoryStore.questionBank.unshift(newQuestion);
+    return res.json({ success: true, question: newQuestion });
+  } catch (err: any) {
+    console.error('Add custom question error:', err);
+    return res.status(500).json({ success: false, message: err.message || 'Gagal menambahkan soal.' });
+  }
+});
+
+app.delete('/api/teacher/question-bank/:id', async (req: Request, res: Response) => {
+  try {
+    const qId = req.params.id;
+    if (isMySqlConnected && pool) {
+      await pool.query('DELETE FROM question_bank WHERE id = ?', [qId]);
+    }
+    memoryStore.questionBank = memoryStore.questionBank.filter((q: any) => q.id !== qId);
+    return res.json({ success: true });
+  } catch (err: any) {
+    console.error('Delete question error:', err);
+    return res.status(500).json({ success: false, message: err.message });
   }
 });
 
