@@ -453,7 +453,7 @@ export default function App() {
     setCurrentUser(user);
     setStoredUser(user);
     setIsAuthModalOpen(false);
-    const destinationTab: AppTab = user.role === 'admin' ? 'home' : 'dashboard';
+    const destinationTab: AppTab = 'home';
     setCurrentTab(destinationTab);
     navigateState({ tab: destinationTab, isAuthOpen: false }, { replace: true });
   };
@@ -716,7 +716,7 @@ export default function App() {
     if (window.history.length > 1) {
       window.history.back();
     } else {
-      handleSelectTab(currentUserRef.current?.role === 'admin' ? 'home' : 'dashboard');
+      handleSelectTab('home');
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [handleSelectTab]);
