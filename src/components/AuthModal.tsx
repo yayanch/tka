@@ -392,7 +392,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       type="text"
                       value={asalSekolah}
                       onChange={(e) => setAsalSekolah(e.target.value)}
-                      placeholder="Contoh: SMKN 1 Cimahi / SMKN 2 Bandung"
+                      placeholder="isi dengan nama sekolah anda"
                       className="w-full pl-10 pr-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
                       required
                     />
@@ -409,7 +409,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="nama.siswa@smk.belajar.id"
+                      placeholder="akun email anda yang aktif"
                       className="w-full pl-10 pr-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
                       required
                     />
@@ -534,7 +534,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="nama@smk.belajar.id"
+                      placeholder="akun email anda yang aktif"
                       className="w-full pl-10 pr-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
                       required
                     />

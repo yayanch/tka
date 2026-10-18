@@ -22,9 +22,6 @@ import {
   Mail,
   UserCheck,
   AlertTriangle,
-  Send,
-  MailCheck,
-  MailX,
   AlertCircle,
   Trash2,
   Shield,
@@ -39,10 +36,7 @@ import {
 import { TeacherClassOverview, TeacherStudentSummary, UserProfile } from '../types/auth';
 import { 
   fetchTeacherOverview, 
-  resendVerificationCode, 
-  deleteStudentAccount, 
-  deleteEmailLog, 
-  clearAllEmailLogs 
+  deleteStudentAccount
 } from '../services/api';
 
 interface TeacherDashboardViewProps {
@@ -66,8 +60,8 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
   const [selectedSchool, setSelectedSchool] = useState('all');
   const [selectedStudent, setSelectedStudent] = useState<TeacherStudentSummary | null>(null);
 
-  // Active section state: 'grades' (Rekapitulasi Nilai), 'users' (Daftar Pengguna), 'emails' (Riwayat & Monitoring Email)
-  const [activeSection, setActiveSection] = useState<'grades' | 'users' | 'emails'>('grades');
+  // Active section state: 'grades' (Rekapitulasi Nilai), 'users' (Daftar Pengguna)
+  const [activeSection, setActiveSection] = useState<'grades' | 'users'>('grades');
 
   // Pagination states
   const [studentPage, setStudentPage] = useState(1);
@@ -78,15 +72,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState<'all' | 'siswa' | 'guru' | 'admin'>('all');
   const [userVerificationFilter, setUserVerificationFilter] = useState<'all' | 'verified' | 'unverified'>('all');
-
-  // State for Email Delivery History / SMTP Logs
-  const [emailSearchQuery, setEmailSearchQuery] = useState('');
-  const [emailStatusFilter, setEmailStatusFilter] = useState<'all' | 'sent' | 'bounced_or_failed'>('all');
-  const [emailPage, setEmailPage] = useState(1);
-  const [resendingEmail, setResendingEmail] = useState<string | null>(null);
   const [actionFeedback, setActionFeedback] = useState<string | null>(null);
-  const [testEmailAddress, setTestEmailAddress] = useState('');
-  const [isSendingTest, setIsSendingTest] = useState(false);
 
   // Dropdown Action Menu state
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
@@ -105,31 +91,6 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isActionMenuOpen]);
-
-  // Filtered Email Logs
-  const filteredEmailLogs = useMemo(() => {
-    if (!data?.emailLogs) return [];
-    return data.emailLogs.filter(log => {
-      const matchSearch = 
-        log.recipientEmail.toLowerCase().includes(emailSearchQuery.toLowerCase()) ||
-        (log.recipientName && log.recipientName.toLowerCase().includes(emailSearchQuery.toLowerCase())) ||
-        (log.subject && log.subject.toLowerCase().includes(emailSearchQuery.toLowerCase())) ||
-        (log.errorMessage && log.errorMessage.toLowerCase().includes(emailSearchQuery.toLowerCase()));
-
-      const matchFilter = 
-        emailStatusFilter === 'all' ||
-        (emailStatusFilter === 'sent' && log.status === 'sent') ||
-        (emailStatusFilter === 'bounced_or_failed' && (log.status === 'bounced' || log.status === 'failed'));
-
-      return matchSearch && matchFilter;
-    });
-  }, [data?.emailLogs, emailSearchQuery, emailStatusFilter]);
-
-  // Apply email log pagination
-  const paginatedEmailLogs = useMemo(() => {
-    const start = (emailPage - 1) * ITEMS_PER_PAGE;
-    return filteredEmailLogs.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredEmailLogs, emailPage]);
 
 
   const schoolOptions = useMemo(() => {
@@ -273,35 +234,6 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
     }
   };
 
-  // Delete single email log
-  const handleDeleteEmailLog = async (logId: string) => {
-    if (!window.confirm('Apakah Anda yakin ingin menghapus catatan log email ini?')) return;
-    setActionFeedback(null);
-    const res = await deleteEmailLog(logId);
-    if (res.success) {
-      setActionFeedback('Log email berhasil dihapus.');
-      await loadData();
-    } else {
-      setActionFeedback(`Gagal menghapus log email: ${res.message || 'Terjadi kesalahan'}`);
-    }
-  };
-
-  // Clear all email logs
-  const handleClearAllEmailLogs = async () => {
-    if (!window.confirm('Apakah Anda yakin ingin membersihkan SEMUA riwayat log email? Action ini tidak dapat dibatalkan.')) return;
-    setActionFeedback(null);
-    const res = await clearAllEmailLogs();
-    if (res.success) {
-      setActionFeedback('Seluruh log email berhasil dibersihkan.');
-      await loadData();
-    } else {
-      setActionFeedback(`Gagal membersihkan log email: ${res.message || 'Terjadi kesalahan'}`);
-    }
-  };
-
-
-
-
   const formatDate = (isoString: string) => {
     try {
       const d = new Date(isoString);
@@ -315,50 +247,6 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
       });
     } catch {
       return isoString;
-    }
-  };
-
-  const handleResendForStudent = async (recipientEmail: string) => {
-    setResendingEmail(recipientEmail);
-    setActionFeedback(null);
-    try {
-      const res = await resendVerificationCode(recipientEmail);
-      if (res.message) {
-        setActionFeedback(`[${recipientEmail}] ${res.message}`);
-      } else {
-        setActionFeedback(`Kode verifikasi berhasil dikirim ulang ke ${recipientEmail}`);
-      }
-      await loadData();
-    } catch (err: any) {
-      setActionFeedback(`Gagal mengirim ke ${recipientEmail}: ${err.message}`);
-    } finally {
-      setResendingEmail(null);
-    }
-  };
-
-  const handleSendTestEmail = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!testEmailAddress.trim()) return;
-    setIsSendingTest(true);
-    setActionFeedback(null);
-    try {
-      const response = await fetch('/api/auth/test-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: testEmailAddress.trim() }),
-      });
-      const result = await response.json();
-      if (result.success) {
-        setActionFeedback(`Email uji coba berhasil dikirim ke ${testEmailAddress.trim()}`);
-        setTestEmailAddress('');
-      } else {
-        setActionFeedback(`Uji pengiriman gagal: ${result.error || result.message}`);
-      }
-      await loadData();
-    } catch (err: any) {
-      setActionFeedback(`Uji pengiriman gagal: ${err.message}`);
-    } finally {
-      setIsSendingTest(false);
     }
   };
 
@@ -602,7 +490,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
             <span className="text-xs text-slate-500 font-medium">Klik kartu untuk beralih bagian</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* KARTU 1: Rekapitulasi Nilai Siswa */}
             <div 
               onClick={() => setActiveSection('grades')}
@@ -731,72 +619,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
               </div>
             </div>
 
-            {/* KARTU 3: Riwayat & Monitoring Email OTP */}
-            <div 
-              onClick={() => setActiveSection('emails')}
-              className={`bg-white dark:bg-slate-900 border rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4 cursor-pointer transition-all ${
-                activeSection === 'emails'
-                  ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/20 dark:bg-emerald-950/20'
-                  : 'border-slate-200 dark:border-slate-800 hover:border-emerald-400'
-              }`}
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
-                    Monitoring Email
-                  </span>
-                  {activeSection === 'emails' ? (
-                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-900/60 px-2 py-0.5 rounded-full">
-                      ● Aktif
-                    </span>
-                  ) : (
-                    <span className="text-xs font-mono font-bold text-emerald-600 flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3" />
-                      <span>SMTP Ready</span>
-                    </span>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl border border-emerald-200 dark:border-emerald-800/80">
-                    <span className="text-[10px] text-emerald-800 dark:text-emerald-300 block font-medium">Terkirim</span>
-                    <span className="text-base font-black text-emerald-600 dark:text-emerald-400">
-                      {data?.emailLogs?.filter(l => l.status === 'sent').length || 0}
-                    </span>
-                  </div>
-                  <div className="p-2.5 bg-rose-50 dark:bg-rose-950/40 rounded-xl border border-rose-200 dark:border-rose-800/80">
-                    <span className="text-[10px] text-rose-800 dark:text-rose-300 block font-medium">Gagal / Bounce</span>
-                    <span className="text-base font-black text-rose-600 dark:text-rose-400">
-                      {data?.emailLogs?.filter(l => l.status === 'bounced' || l.status === 'failed').length || 0}
-                    </span>
-                  </div>
-                </div>
-
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Pantau riwayat pengiriman kode OTP verifikasi, deteksi kegagalan MX, dan uji coba pengiriman.
-                </p>
-              </div>
-
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveSection('emails');
-                  }}
-                  className={`w-full py-2 px-3 text-xs font-extrabold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
-                    activeSection === 'emails'
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
-                  }`}
-                >
-                  <Mail className="w-3.5 h-3.5" />
-                  <span>{activeSection === 'emails' ? 'Sedang Ditampilkan' : 'Buka Monitoring Email'}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* KARTU 4: Kustomisasi & Ekspor */}
+            {/* KARTU 3: Kustomisasi Platform & Ekspor */}
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4 hover:border-amber-400 transition-all">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -881,23 +704,6 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                 activeSection === 'users' ? 'bg-white/20 text-white' : 'bg-purple-50 dark:bg-purple-950 text-purple-600 dark:text-purple-400'
               }`}>
                 {filteredUsersList.length} Akun
-              </span>
-            </button>
-
-            <button
-              onClick={() => setActiveSection('emails')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                activeSection === 'emails'
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-white/60 dark:bg-slate-900/40 hover:bg-white dark:hover:bg-slate-900'
-              }`}
-            >
-              <MailCheck className="w-4 h-4" />
-              <span>3. Riwayat & Monitoring Email</span>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
-                activeSection === 'emails' ? 'bg-white/20 text-white' : 'bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400'
-              }`}>
-                {filteredEmailLogs.length} Log
               </span>
             </button>
           </div>
@@ -1264,9 +1070,9 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                                 <span>Terverifikasi</span>
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-0.5 rounded-full">
+                              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-full">
                                 <Clock className="w-3 h-3" />
-                                <span>Pending OTP</span>
+                                <span>Terdaftar</span>
                               </span>
                             )}
                           </td>
@@ -1277,17 +1083,6 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
 
                           <td className="py-3 px-3 text-right whitespace-nowrap">
                             <div className="flex items-center justify-end gap-1.5">
-                              {!usr.isVerified && (
-                                <button
-                                  onClick={() => handleResendForStudent(usr.email)}
-                                  disabled={resendingEmail === usr.email}
-                                  className="px-2 py-1 text-[10px] font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-                                  title="Kirim Ulang Kode OTP Verifikasi"
-                                >
-                                  OTP
-                                </button>
-                              )}
-
                               <button
                                 onClick={() => setSelectedStudent(usr)}
                                 className="px-2 py-1 text-[10px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
@@ -1316,234 +1111,6 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
         </section>
       )}
 
-      {/* ========================================================================= */}
-      {/* TABEL RIWAYAT PENGIRIMAN EMAIL VERIFIKASI (SMTP DELIVERY LOGS)            */}
-      {/* RULE: "monitoring email hanya untuk admin"                                 */}
-      {/* ========================================================================= */}
-      {isAdmin && (
-        <section id="section-emails" className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden space-y-6 p-6 sm:p-8">
-          {/* Section Header */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-xs font-semibold text-blue-600 dark:text-blue-400">
-                <MailCheck className="w-4 h-4" />
-                <span>Monitoring Infrastruktur Email (Khusus Admin)</span>
-              </div>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
-                Riwayat & Monitoring Pengiriman Email Verifikasi
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-                Lacak status pengiriman email OTP, verifikasi kendala bouncing/gagal, dan hapus/bersihkan log email.
-              </p>
-            </div>
-
-            {/* Quick Metrics Cards & Clear All */}
-            <div className="flex items-center gap-3 shrink-0">
-              <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 rounded-2xl text-center min-w-[90px]">
-                <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 block uppercase">
-                  Terkirim
-                </span>
-                <span className="text-lg font-black font-mono text-emerald-600 dark:text-emerald-400">
-                  {data?.emailLogs?.filter(l => l.status === 'sent').length || 0}
-                </span>
-              </div>
-
-              <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 rounded-2xl text-center min-w-[90px]">
-                <span className="text-[10px] font-bold text-rose-800 dark:text-rose-300 block uppercase">
-                  Gagal
-                </span>
-                <span className="text-lg font-black font-mono text-rose-600 dark:text-rose-400">
-                  {data?.emailLogs?.filter(l => l.status === 'bounced' || l.status === 'failed').length || 0}
-                </span>
-              </div>
-
-              <button
-                onClick={handleClearAllEmailLogs}
-                className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 cursor-pointer transition-colors"
-                title="Bersihkan Seluruh Log Email"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Bersihkan Log</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Controls Bar: Search + Filter Tabs + Test Email Form */}
-          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-            {/* Search Input */}
-            <div className="relative w-full lg:max-w-xs">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text"
-                value={emailSearchQuery}
-                onChange={(e) => setEmailSearchQuery(e.target.value)}
-                placeholder="Cari email, nama, atau error..."
-                className="w-full pl-10 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
-              />
-            </div>
-
-            {/* Segmented Filter Buttons */}
-            <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl shrink-0">
-              <button
-                onClick={() => setEmailStatusFilter('all')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg cursor-pointer transition-colors ${
-                  emailStatusFilter === 'all'
-                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                }`}
-              >
-                Semua ({data?.emailLogs?.length || 0})
-              </button>
-              <button
-                onClick={() => setEmailStatusFilter('sent')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg cursor-pointer transition-colors ${
-                  emailStatusFilter === 'sent'
-                    ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                }`}
-              >
-                Terkirim ({data?.emailLogs?.filter(l => l.status === 'sent').length || 0})
-              </button>
-              <button
-                onClick={() => setEmailStatusFilter('bounced_or_failed')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg cursor-pointer transition-colors ${
-                  emailStatusFilter === 'bounced_or_failed'
-                    ? 'bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                }`}
-              >
-                Gagal ({data?.emailLogs?.filter(l => l.status === 'bounced' || l.status === 'failed').length || 0})
-              </button>
-            </div>
-
-            {/* Test Email Form */}
-            <form onSubmit={handleSendTestEmail} className="flex items-center gap-2 w-full lg:w-auto shrink-0">
-              <input
-                type="email"
-                value={testEmailAddress}
-                onChange={(e) => setTestEmailAddress(e.target.value)}
-                placeholder="Uji email..."
-                className="py-2 px-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white w-full lg:w-48"
-              />
-              <button
-                type="submit"
-                disabled={isSendingTest || !testEmailAddress.trim()}
-                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-xl shrink-0 cursor-pointer transition-colors"
-              >
-                <Send className="w-3.5 h-3.5" />
-                <span>{isSendingTest ? 'Menguji...' : 'Uji Kirim'}</span>
-              </button>
-            </form>
-          </div>
-
-          {/* Email Logs Table */}
-          <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
-                <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white font-bold border-b border-slate-200 dark:border-slate-700">
-                  <tr>
-                    <th className="py-3 px-4">Waktu Pengiriman</th>
-                    <th className="py-3 px-4">Penerima & Nama Siswa</th>
-                    <th className="py-3 px-4">Subjek Pesan</th>
-                    <th className="py-3 px-3 text-center">Status Delivery</th>
-                    <th className="py-3 px-4">Detail Kendala</th>
-                    <th className="py-3 px-3 text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-sans">
-                  {paginatedEmailLogs.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="py-10 text-center text-slate-400">
-                        Tidak ada catatan pengiriman email yang sesuai dengan filter.
-                      </td>
-                    </tr>
-                  ) : (
-                    paginatedEmailLogs.map((log) => {
-                      const isSent = log.status === 'sent';
-                      const isBounced = log.status === 'bounced';
-
-                      return (
-                        <tr 
-                          key={log.id}
-                          className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
-                        >
-                          <td className="py-3 px-4 text-slate-500 font-mono text-[11px] whitespace-nowrap">
-                            {formatDate(log.sentAt)}
-                          </td>
-
-                          <td className="py-3 px-4">
-                            <div className="font-bold text-slate-900 dark:text-white">
-                              {log.recipientName || 'Siswa'}
-                            </div>
-                            <div className="text-[11px] text-slate-500 font-mono">
-                              {log.recipientEmail}
-                            </div>
-                          </td>
-
-                          <td className="py-3 px-4 text-slate-600 dark:text-slate-300 text-xs font-medium max-w-xs truncate">
-                            {log.subject}
-                          </td>
-
-                          <td className="py-3 px-3 text-center whitespace-nowrap">
-                            {isSent ? (
-                              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 px-2.5 py-1 rounded-lg">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                <span>TERKIRIM (OK)</span>
-                              </span>
-                            ) : isBounced ? (
-                              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-rose-700 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 px-2.5 py-1 rounded-lg">
-                                <MailX className="w-3.5 h-3.5 text-rose-600" />
-                                <span>BOUNCED</span>
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-700 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 px-2.5 py-1 rounded-lg">
-                                <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-                                <span>GAGAL (ERROR)</span>
-                              </span>
-                            )}
-                          </td>
-
-                          <td className="py-3 px-4 max-w-sm">
-                            {log.errorMessage ? (
-                              <span className="text-[11px] font-mono text-rose-600 dark:text-rose-400 bg-rose-50/70 dark:bg-rose-950/30 p-1.5 rounded-md block leading-tight border border-rose-100 dark:border-rose-900/40">
-                                {log.errorMessage}
-                              </span>
-                            ) : (
-                              <span className="text-slate-400 text-[11px]">Berhasil diterima MX server tanpa eror.</span>
-                            )}
-                          </td>
-
-                          <td className="py-3 px-3 text-right whitespace-nowrap">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                onClick={() => handleResendForStudent(log.recipientEmail)}
-                                disabled={resendingEmail === log.recipientEmail}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 rounded-lg cursor-pointer transition-colors disabled:opacity-50"
-                              >
-                                <RotateCcw className={`w-3 h-3 ${resendingEmail === log.recipientEmail ? 'animate-spin' : ''}`} />
-                                <span>{resendingEmail === log.recipientEmail ? 'Kirim...' : 'Kirim Ulang'}</span>
-                              </button>
-
-                              <button
-                                onClick={() => handleDeleteEmailLog(log.id)}
-                                title="Hapus Log Email Ini"
-                                className="p-1 text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg cursor-pointer transition-colors"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-              <Pagination currentPage={emailPage} totalItems={filteredEmailLogs.length} onPageChange={setEmailPage} label="catatan email" />
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* Modal: Lembar Hasil / Rapor Kompetensi Siswa */}
       {selectedStudent && (

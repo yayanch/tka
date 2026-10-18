@@ -274,22 +274,7 @@ export async function deleteStudentAccount(userIdOrEmail: string): Promise<{ suc
   return result;
 }
 
-export async function deleteEmailLog(logId: string): Promise<{ success: boolean; message?: string }> {
-  const result = await safeFetch('/api/teacher/delete-email-log', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ logId }),
-  });
-  return result;
-}
 
-export async function clearAllEmailLogs(): Promise<{ success: boolean; message?: string }> {
-  const result = await safeFetch('/api/teacher/clear-email-logs', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-  });
-  return result;
-}
 
 export async function resetRemoteUserProgress(email: string, userId?: string): Promise<{ success: boolean }> {
   const result = await safeFetch('/api/teacher/reset-progress', {
