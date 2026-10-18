@@ -23,7 +23,9 @@ import {
   ChevronUp,
   FileCheck,
   Image as ImageIcon,
-  Database
+  Database,
+  Mail,
+  Send
 } from 'lucide-react';
 
 interface SessionResultViewProps {
@@ -132,6 +134,11 @@ export const SessionResultView: React.FC<SessionResultViewProps> = ({
                 <Database className="w-3 h-3 text-blue-500" />
                 <span>Terekam di MySQL</span>
               </span>
+              <span aria-hidden="true">·</span>
+              <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-900/60">
+                <Mail className="w-3 h-3 text-emerald-500" />
+                <span>Notifikasi Email Terkirim</span>
+              </span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
@@ -228,6 +235,26 @@ export const SessionResultView: React.FC<SessionResultViewProps> = ({
               {mcmaCorrect} / {mcmaItems.length} Sempurna
             </p>
           </div>
+        </div>
+
+        {/* Callout Info Email Notification */}
+        <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-blue-50/80 via-indigo-50/60 to-blue-50/80 dark:from-blue-950/30 dark:via-indigo-950/20 dark:to-blue-950/30 border border-blue-200/80 dark:border-blue-900/60 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
+              <Mail className="w-4 h-4" />
+            </div>
+            <div className="text-xs">
+              <span className="font-bold text-slate-900 dark:text-white block">
+                Notifikasi Hasil Ujian Dikirim ke Email
+              </span>
+              <span className="text-slate-600 dark:text-slate-300">
+                Ringkasan nilai &amp; tautan langsung pembahasan modul minggu ini telah dikirimkan secara otomatis ke alamat email akun siswa.
+              </span>
+            </div>
+          </div>
+          <span className="shrink-0 text-[10px] font-extrabold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/60 px-2.5 py-1 rounded-full border border-blue-200 dark:border-blue-800">
+            Auto-Email Active
+          </span>
         </div>
 
         {/* Global Action Buttons */}

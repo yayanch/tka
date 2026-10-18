@@ -19,7 +19,8 @@ import {
   BrandingConfig, 
   DEFAULT_BRANDING_CONFIG, 
   getStoredBrandingConfig, 
-  saveStoredBrandingConfig 
+  saveStoredBrandingConfig,
+  applyBrandingToDOM
 } from '../utils/brandingStorage';
 import { fetchBrandingConfig, saveBrandingConfigToDB } from '../services/settingsSync';
 

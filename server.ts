@@ -384,6 +384,165 @@ async function sendVerificationEmail(
   }
 }
 
+async function sendExamNotificationEmail(payload: {
+  toEmail: string;
+  recipientName: string;
+  title: string;
+  weekId: number;
+  score: number;
+  correctCount: number;
+  totalQuestions: number;
+  timeSpentSeconds: number;
+  isCompetent: boolean;
+  originUrl?: string;
+}): Promise<{ sent: boolean; message: string }> {
+  const {
+    toEmail,
+    recipientName,
+    title,
+    weekId,
+    score,
+    correctCount,
+    totalQuestions,
+    timeSpentSeconds,
+    isCompetent,
+    originUrl,
+  } = payload;
+
+  const statusTag = isCompetent ? 'TUNTAS' : 'BELUM TUNTAS';
+  const subject = `[TKA SMK TJKT] Hasil Ujian: ${title} (${statusTag} - Skor ${score.toFixed(0)})`;
+
+  const baseUrl = originUrl || process.env.APP_URL || 'https://ais-dev-r5q6gnojwhmtpajacqgiqh-569002245145.asia-east1.run.app';
+  const discussionUrl = `${baseUrl}/#materi?week=${weekId}`;
+  const bankSoalUrl = `${baseUrl}/#bank-soal?week=${weekId}`;
+
+  const minutes = Math.floor(timeSpentSeconds / 60);
+  const seconds = timeSpentSeconds % 60;
+  const timeFormatted = minutes > 0 ? `${minutes} menit ${seconds} detik` : `${seconds} detik`;
+  const accuracyPercent = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+  const dateStr = new Date().toLocaleDateString('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  const transporter = getEmailTransporter();
+
+  const htmlContent = `
+    <div style="font-family: 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.08);">
+      <div style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #0284c7 100%); padding: 36px 28px; text-align: center; color: #ffffff;">
+        <div style="display: inline-block; padding: 6px 16px; background-color: rgba(255,255,255,0.18); border-radius: 30px; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px;">
+          Laporan Hasil Asesmen Ujian
+        </div>
+        <h1 style="margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -0.5px; line-height: 1.2;">TKA SMK TJKT</h1>
+        <p style="margin: 8px 0 0 0; font-size: 13px; opacity: 0.95; font-weight: 500;">
+          Teknik Jaringan Komputer & Telekomunikasi
+        </p>
+      </div>
+
+      <div style="padding: 32px 28px; color: #1e293b;">
+        <h2 style="font-size: 19px; font-weight: 800; margin-top: 0; color: #0f172a; margin-bottom: 8px;">
+          Halo, ${recipientName || 'Siswa TKA SMK TJKT'}! 👋
+        </h2>
+        <p style="font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 24px;">
+          Selamat! Sesi pengerjaan ujian untuk <strong>${title} (Modul Minggu ke-${weekId})</strong> telah selesai disimpan. Berikut adalah rincian capaian nilai Anda:
+        </p>
+
+        <div style="background: ${isCompetent ? 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)' : 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)'}; border: 2px solid ${isCompetent ? '#10b981' : '#f59e0b'}; border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 28px;">
+          <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: ${isCompetent ? '#047857' : '#b45309'}; margin-bottom: 6px;">
+            NILAI AKHIR ASESMEN
+          </div>
+          <div style="font-size: 48px; font-weight: 900; color: ${isCompetent ? '#065f46' : '#92400e'}; line-height: 1; margin-bottom: 12px;">
+            ${score.toFixed(1)} <span style="font-size: 20px; font-weight: 700; color: #64748b;">/ 100</span>
+          </div>
+          <div style="display: inline-block; padding: 6px 18px; border-radius: 20px; font-size: 13px; font-weight: 800; background-color: ${isCompetent ? '#10b981' : '#f59e0b'}; color: #ffffff;">
+            ${isCompetent ? '🎉 STATUS: TUNTAS / KOMPETEN (≥75)' : '⚠️ STATUS: BELUM TUNTAS (<75)'}
+          </div>
+        </div>
+
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px 20px; margin-bottom: 28px;">
+          <div style="font-size: 13px; font-weight: 800; color: #334155; margin-bottom: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+            📊 Detail Performa Pengerjaan
+          </div>
+          
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <tr>
+              <td style="padding: 8px 0; color: #64748b; font-weight: 500;">Modul Ujian:</td>
+              <td style="padding: 8px 0; text-align: right; font-weight: 700; color: #0f172a;">Modul Minggu ${weekId}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #64748b; font-weight: 500;">Jawaban Benar:</td>
+              <td style="padding: 8px 0; text-align: right; font-weight: 700; color: #16a34a;">${correctCount} dari ${totalQuestions} soal (${accuracyPercent}%)</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #64748b; font-weight: 500;">Durasi Pengerjaan:</td>
+              <td style="padding: 8px 0; text-align: right; font-weight: 700; color: #0f172a;">${timeFormatted}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #64748b; font-weight: 500;">Waktu Selesai:</td>
+              <td style="padding: 8px 0; text-align: right; font-weight: 600; color: #64748b;">${dateStr}</td>
+            </tr>
+          </table>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 28px;">
+          <p style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 16px;">
+            Pelajari kembali pembahasan lengkap dan kunci jawaban soal modul ini melalui tautan di bawah:
+          </p>
+          <a href="${discussionUrl}" style="display: block; width: 100%; box-sizing: border-box; padding: 14px 24px; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 800; border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(37,99,235,0.25); margin-bottom: 10px;">
+            📖 Buka Pembahasan & Materi Modul Minggu ${weekId}
+          </a>
+          <a href="${bankSoalUrl}" style="display: block; width: 100%; box-sizing: border-box; padding: 12px 24px; background-color: #f1f5f9; color: #334155; text-decoration: none; font-size: 13px; font-weight: 700; border-radius: 12px; text-align: center; border: 1px solid #cbd5e1;">
+            📝 Latihan Soal Tambahan di Bank Soal
+          </a>
+        </div>
+
+        <div style="background-color: #f0f9ff; border-left: 4px solid #0284c7; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px;">
+          <p style="margin: 0; font-size: 12px; color: #0369a1; line-height: 1.5;">
+            💡 <strong>Tips Belajar:</strong> Jika nilai belum tuntas (<75), Anda dapat mengulang sesi pengerjaan ujian atau melatih kembali soal-soal salah di fitur Drill Soal Salah.
+          </p>
+        </div>
+      </div>
+
+      <div style="background-color: #f8fafc; padding: 20px 28px; border-top: 1px solid #f1f5f9; text-align: center; font-size: 12px; color: #94a3b8; line-height: 1.5;">
+        Email ini dikirimkan secara otomatis oleh <strong>Portal TKA SMK TJKT</strong>.<br/>
+        © ${new Date().getFullYear()} TKA SMK TJKT — Platform Asesmen Mandiri & Terpadu Keahlian TJKT.
+      </div>
+    </div>
+  `;
+
+  if (!transporter) {
+    console.warn(`[Email Service] SMTP configuration missing. Simulating exam notification email to ${toEmail}`);
+    await recordEmailLog(toEmail, recipientName, subject, 'sent', 'Simulasi notifikasi hasil ujian (SMTP belum terkonfigurasi)');
+    return {
+      sent: false,
+      message: 'SMTP belum terkonfigurasi, notifikasi dicatat dalam log email simulasi.',
+    };
+  }
+
+  try {
+    const fromAddress = process.env.SMTP_FROM || `"TKA SMK TJKT" <${process.env.SMTP_USER}>`;
+    const info = await transporter.sendMail({
+      from: fromAddress,
+      to: toEmail,
+      subject,
+      text: `Halo ${recipientName}, nilai Anda untuk ${title} adalah ${score.toFixed(1)}/100 (${statusTag}). Pembahasan modul: ${discussionUrl}`,
+      html: htmlContent,
+    });
+
+    console.log(`[Email Service] Exam result email sent to ${toEmail}. MessageId: ${info.messageId}`);
+    await recordEmailLog(toEmail, recipientName, subject, 'sent');
+    return { sent: true, message: `Email notifikasi hasil ujian dikirim ke ${toEmail}` };
+  } catch (error: any) {
+    console.error(`[Email Service] Error sending exam result email to ${toEmail}:`, error.message);
+    await recordEmailLog(toEmail, recipientName, subject, 'failed', error.message || 'Gagal mengirim email');
+    return { sent: false, message: error.message || 'Gagal pengiriman email' };
+  }
+}
+
 async function initDatabase() {
   try {
     pool = mysql.createPool(dbConfig);
@@ -1064,9 +1223,65 @@ app.post('/api/exams/save-session', async (req: Request, res: Response) => {
     // Always keep memoryStore in sync
     memoryStore.examSessions.unshift(sessionRecord);
 
-    return res.json({ success: true, sessionId });
+    // Send automatic email notification to student
+    let emailResult = { sent: false, message: 'Email tidak dikirim untuk akun tamu tanpa email valid' };
+    if (sessionRecord.user_email && sessionRecord.user_email !== 'guest@smk.belajar.id') {
+      const originUrl = req.headers.origin || (req.headers.host ? `http://${req.headers.host}` : undefined);
+      emailResult = await sendExamNotificationEmail({
+        toEmail: sessionRecord.user_email,
+        recipientName: sessionRecord.user_name,
+        title: sessionRecord.title,
+        weekId: sessionRecord.week_id,
+        score: sessionRecord.score,
+        correctCount: sessionRecord.correct_count,
+        totalQuestions: sessionRecord.total_questions,
+        timeSpentSeconds: sessionRecord.time_spent_seconds,
+        isCompetent: sessionRecord.is_competent === 1,
+        originUrl,
+      });
+    }
+
+    return res.json({ 
+      success: true, 
+      sessionId,
+      emailNotificationSent: emailResult.sent,
+      emailNotificationMessage: emailResult.message
+    });
   } catch (err: any) {
     console.error('Save exam error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// Endpoint untuk uji coba langsung pengiriman notifikasi email hasil ujian
+app.post('/api/exams/test-notification-email', async (req: Request, res: Response) => {
+  try {
+    const { email, name, weekId, score } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email wajib diisi' });
+
+    const targetWeek = parseInt(weekId, 10) || 1;
+    const targetScore = parseFloat(score) || 85.0;
+    const originUrl = req.headers.origin || (req.headers.host ? `http://${req.headers.host}` : undefined);
+
+    const emailResult = await sendExamNotificationEmail({
+      toEmail: email.trim(),
+      recipientName: name || 'Siswa Penguji',
+      title: `Modul Uji Coba Minggu ${targetWeek}`,
+      weekId: targetWeek,
+      score: targetScore,
+      correctCount: Math.round((targetScore / 100) * 50),
+      totalQuestions: 50,
+      timeSpentSeconds: 1800,
+      isCompetent: targetScore >= 75,
+      originUrl,
+    });
+
+    return res.json({
+      success: true,
+      sent: emailResult.sent,
+      message: emailResult.message,
+    });
+  } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }
 });
