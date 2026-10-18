@@ -284,3 +284,17 @@ export async function resetRemoteUserProgress(email: string, userId?: string): P
   });
   return result;
 }
+
+export async function updateUserRole(data: {
+  userId?: string;
+  email?: string;
+  newRole: 'siswa' | 'guru' | 'admin';
+}): Promise<{ success: boolean; message?: string }> {
+  const result = await safeFetch('/api/teacher/update-role', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return result;
+}
+

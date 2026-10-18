@@ -498,7 +498,7 @@ export const ProgressStatsView: React.FC<ProgressStatsViewProps> = ({
             </div>
 
             {/* Official Report Card Body */}
-            <div className="space-y-6 text-slate-900 font-sans">
+            <div className="space-y-6 text-slate-900">
               {/* Kop Surat Sekolah */}
               <div className="text-center pb-4 border-b-2 border-slate-900 space-y-1">
                 <h2 className="text-lg sm:text-xl font-black uppercase tracking-wide">

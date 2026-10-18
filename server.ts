@@ -780,19 +780,19 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
     if (isMySqlConnected && pool) {
       const [rows]: any = await pool.query('SELECT * FROM users WHERE email = ?', [cleanEmail]);
       if (!rows || rows.length === 0) {
-        return res.status(404).json({ error: 'Akun dengan email ini belum terdaftar. Silakan daftar terlebih dahulu.' });
+        return res.status(401).json({ error: 'Email/Username atau Kata Sandi salah. Silakan periksa kembali.' });
       }
       user = rows[0];
     } else {
       user = memoryStore.users.get(cleanEmail);
       if (!user) {
-        return res.status(404).json({ error: 'Akun dengan email ini belum terdaftar. Silakan daftar terlebih dahulu.' });
+        return res.status(401).json({ error: 'Email/Username atau Kata Sandi salah. Silakan periksa kembali.' });
       }
     }
 
     // Verify password if set
     if (user.password_hash && password && user.password_hash !== password) {
-      return res.status(401).json({ error: 'Kata sandi salah. Silakan periksa kembali kata sandi Anda.' });
+      return res.status(401).json({ error: 'Email/Username atau Kata Sandi salah. Silakan periksa kembali.' });
     }
 
     // Auto-verify if needed (OTP is no longer required)
@@ -1180,6 +1180,40 @@ async function deleteStudentHandler(req: Request, res: Response) {
 
 app.post('/api/teacher/delete-student', deleteStudentHandler);
 app.delete('/api/teacher/student/:userId', deleteStudentHandler);
+
+app.post('/api/teacher/update-role', async (req: Request, res: Response) => {
+  try {
+    const { userId, email, newRole } = req.body;
+    if (!newRole || !['siswa', 'guru', 'admin'].includes(newRole)) {
+      return res.status(400).json({ success: false, error: 'Role tidak valid' });
+    }
+
+    if (isMySqlConnected && pool) {
+      try {
+        await pool.query(
+          'UPDATE users SET role = ? WHERE id = ? OR email = ?',
+          [newRole, userId || '', email || '']
+        );
+      } catch (dbErr: any) {
+        console.error('[Database] Error updating user role in MySQL:', dbErr);
+      }
+    }
+
+    for (const [key, u] of memoryStore.users.entries()) {
+      if (
+        (userId && (u.id === userId || u.email === userId || key.toLowerCase() === userId.toLowerCase())) ||
+        (email && (key.toLowerCase() === email.toLowerCase() || u.email?.toLowerCase() === email.toLowerCase()))
+      ) {
+        u.role = newRole;
+      }
+    }
+
+    return res.json({ success: true, message: `Role pengguna berhasil diubah menjadi ${newRole}` });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 
 // ---------------------------------------------------------------------------
 // Teacher / Instructor Portal Endpoints (Rekap Nilai & Analisis Kelas)

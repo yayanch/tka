@@ -68,8 +68,11 @@ export function applyBrandingToDOM(config: BrandingConfig): void {
 
     // Apply font style
     if (config.fontStyle) {
-      document.documentElement.className = document.documentElement.className.replace(/font-(sans|serif|mono|inter|poppins|roboto)/g, '').trim();
+      const allFontClasses = ['font-sans', 'font-serif', 'font-mono', 'font-inter', 'font-poppins', 'font-roboto', 'font-jakarta', 'font-outfit'];
+      document.documentElement.classList.remove(...allFontClasses);
       document.documentElement.classList.add(config.fontStyle);
+      document.body.classList.remove(...allFontClasses);
+      document.body.classList.add(config.fontStyle);
     }
   } catch (e) {
     console.error('Error applying branding to DOM:', e);

@@ -10,15 +10,16 @@ import {
   Settings,
   Sun,
   Moon,
-  Phone
+  Phone,
+  Users
 } from 'lucide-react';
 import { UserProfile } from '../types/auth';
 import { Theme } from '../utils/theme';
 import { BrandingConfig, getStoredBrandingConfig } from '../utils/brandingStorage';
 
 interface NavbarProps {
-  currentTab: 'home' | 'dashboard' | 'learning' | 'bank' | 'stats' | 'teacher';
-  onSelectTab: (tab: 'home' | 'dashboard' | 'learning' | 'bank' | 'stats' | 'teacher') => void;
+  currentTab: 'home' | 'dashboard' | 'learning' | 'bank' | 'stats' | 'teacher' | 'users';
+  onSelectTab: (tab: 'home' | 'dashboard' | 'learning' | 'bank' | 'stats' | 'teacher' | 'users') => void;
   currentUser: UserProfile | null;
   onOpenAuth: (mode: 'register' | 'login') => void;
   onLogout: () => void;
@@ -116,18 +117,32 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>Progres Belajar</span>
             </button>
 
-            {currentUser.role === 'admin' && (
-              <button
-                onClick={() => onSelectTab('teacher')}
-                className={`flex items-center gap-1.5 py-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
-                  currentTab === 'teacher'
-                    ? 'text-blue-600 dark:text-blue-400 font-semibold border-b-2 border-blue-600 dark:border-blue-400'
-                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                <GraduationCap className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <span>Rekap Nilai Siswa</span>
-              </button>
+            {(currentUser.role === 'admin' || currentUser.role === 'guru') && (
+              <>
+                <button
+                  onClick={() => onSelectTab('teacher')}
+                  className={`flex items-center gap-1.5 py-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                    currentTab === 'teacher'
+                      ? 'text-blue-600 dark:text-blue-400 font-semibold border-b-2 border-blue-600 dark:border-blue-400'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <GraduationCap className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <span>Rekap Nilai Siswa</span>
+                </button>
+
+                <button
+                  onClick={() => onSelectTab('users')}
+                  className={`flex items-center gap-1.5 py-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                    currentTab === 'users'
+                      ? 'text-purple-600 dark:text-purple-400 font-semibold border-b-2 border-purple-600 dark:border-purple-400'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Users className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  <span>Daftar Pengguna</span>
+                </button>
+              </>
             )}
 
             <button
@@ -266,16 +281,28 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             Progres
           </button>
-          {currentUser.role === 'admin' && (
-            <button
-              onClick={() => onSelectTab('teacher')}
-              className={`py-1 px-2 whitespace-nowrap cursor-pointer flex items-center gap-1 ${
-                currentTab === 'teacher' ? 'text-blue-600 font-bold' : 'text-emerald-600'
-              }`}
-            >
-              <GraduationCap className="w-3.5 h-3.5" />
-              <span>Rekap Guru</span>
-            </button>
+          {(currentUser.role === 'admin' || currentUser.role === 'guru') && (
+            <>
+              <button
+                onClick={() => onSelectTab('teacher')}
+                className={`py-1 px-2 whitespace-nowrap cursor-pointer flex items-center gap-1 ${
+                  currentTab === 'teacher' ? 'text-blue-600 font-bold' : 'text-emerald-600'
+                }`}
+              >
+                <GraduationCap className="w-3.5 h-3.5" />
+                <span>Rekap Nilai</span>
+              </button>
+
+              <button
+                onClick={() => onSelectTab('users')}
+                className={`py-1 px-2 whitespace-nowrap cursor-pointer flex items-center gap-1 ${
+                  currentTab === 'users' ? 'text-purple-600 font-bold' : 'text-purple-600'
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>Pengguna</span>
+              </button>
+            </>
           )}
 
           <button

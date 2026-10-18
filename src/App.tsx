@@ -7,6 +7,7 @@ import { SessionResultView } from './components/SessionResultView';
 import { ProgressStatsView } from './components/ProgressStatsView';
 import { LearningMaterialView } from './components/LearningMaterialView';
 import { TeacherDashboardView } from './components/TeacherDashboardView';
+import { UserManagementView } from './components/UserManagementView';
 import { AuthModal } from './components/AuthModal';
 import { AccountSettingsModal } from './components/AccountSettingsModal';
 import { HeroSettingsModal } from './components/HeroSettingsModal';
@@ -55,7 +56,7 @@ import {
 } from './utils/storage';
 import { calculateSessionSummary } from './utils/scoring';
 
-export type AppTab = 'home' | 'dashboard' | 'learning' | 'bank' | 'stats' | 'teacher';
+export type AppTab = 'home' | 'dashboard' | 'learning' | 'bank' | 'stats' | 'teacher' | 'users';
 
 export interface AppHistoryState {
   tab: AppTab;
@@ -98,6 +99,8 @@ const tabToHash = (
       return '#statistik';
     case 'teacher':
       return '#guru';
+    case 'users':
+      return '#pengguna';
     default:
       return '#home';
   }
@@ -131,6 +134,9 @@ const parseHashToState = (hash: string, fallbackTab: AppTab = 'home'): AppHistor
   }
   if (path === 'guru' || path === 'teacher' || path === 'admin') {
     return { tab: 'teacher' };
+  }
+  if (path === 'pengguna' || path === 'users' || path === 'daftar-pengguna') {
+    return { tab: 'users' };
   }
 
   return { tab: fallbackTab };
@@ -754,7 +760,7 @@ export default function App() {
   }, [refreshProgress]);
 
   return (
-    <div className="min-h-screen bg-slate-50/60 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-blue-500 selection:text-white flex flex-col">
+    <div className={`min-h-screen bg-slate-50/60 dark:bg-slate-950 text-slate-900 dark:text-slate-100 ${brandingConfig.fontStyle || 'font-sans'} selection:bg-blue-500 selection:text-white flex flex-col`}>
       {/* Top Navbar */}
       <Navbar
         currentTab={currentTab}
@@ -896,6 +902,23 @@ export default function App() {
                 currentUser={currentUser} 
                 onRefresh={refreshProgress} 
                 onOpenHeroSettings={() => setIsHeroSettingsOpen(true)}
+                onOpenContactSettings={() => setIsContactSettingsOpen(true)}
+                onOpenBrandingSettings={() => setIsBrandingSettingsOpen(true)}
+                onNavigateToUsers={() => {
+                  setCurrentTab('users');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+              />
+            )}
+
+            {currentTab === 'users' && (
+              <UserManagementView
+                currentUser={currentUser}
+                onRefresh={refreshProgress}
+                onNavigateToTeacher={() => {
+                  setCurrentTab('teacher');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
               />
             )}
           </div>

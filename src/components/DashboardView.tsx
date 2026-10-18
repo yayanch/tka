@@ -620,77 +620,70 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       )}
 
       {/* ========================================================================= */}
-      {/* INTERACTIVE STUDENT QUICK CARDS (KARTU CEPAT SISWA) & STATISTIK            */}
-      {/* (HANYA DITAMPILKAN DI BERANDA SISWA / viewMode === 'home')                 */}
+      {/* INTERACTIVE STUDENT QUICK CARDS (KARTU CEPAT SISWA) - RINGKAS & MINIMALIS   */}
       {/* ========================================================================= */}
       {(viewMode === 'home' || viewMode === 'all') && (
         <>
           <section className="space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
                 <span>Kartu Cepat Dasbor Siswa</span>
               </h2>
               <span className="text-xs text-slate-500 font-medium">Aksi Cepat & Navigasi</span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
               {/* CARD 1: Modul Latihan Aktif */}
-              <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition-all border border-blue-500/30">
+              <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-3 hover:shadow-md transition-all border border-blue-500/30">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full text-blue-100 backdrop-blur-xs">
-                      Modul Latihan Aktif
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-md text-blue-100 backdrop-blur-xs">
+                      Modul Aktif
                     </span>
-                    <span className="text-xs font-semibold text-blue-200">
+                    <span className="text-xs font-bold text-blue-200 font-mono">
                       Modul {activeWeekId} / 8
                     </span>
                   </div>
                   <div>
-                    <h3 className="text-base font-extrabold text-white line-clamp-1">
+                    <h3 className="text-sm font-extrabold text-white truncate">
                       {activeCategory.shortTitle}
                     </h3>
-                    <p className="text-xs text-blue-100/90 mt-1 line-clamp-2">
-                      {activeCategory.description}
-                    </p>
                   </div>
-                  <div className="pt-1 flex items-center gap-3 text-xs text-blue-100 font-medium">
-                    <span>Skor Terbaik: <strong className="text-white font-bold">{activeStat?.highestScore ?? 0}</strong></span>
-                    <span>·</span>
-                    <span>Mencoba: <strong className="text-white font-bold">{activeStat?.attempts ?? 0}x</strong></span>
+                  <div className="flex items-center gap-2 text-xs text-blue-100 font-medium bg-black/15 px-2.5 py-1.5 rounded-lg border border-white/10">
+                    <span className="truncate">Skor: <strong className="text-white font-bold">{activeStat?.highestScore ?? 0}</strong></span>
+                    <span className="opacity-40">•</span>
+                    <span className="truncate">Ujian: <strong className="text-white font-bold">{activeStat?.attempts ?? 0}x</strong></span>
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-white/20 flex items-center">
-                  <button
-                    onClick={() => onStartExam(activeWeekId, 'exam')}
-                    className="w-full py-2 px-3 bg-white text-blue-700 hover:bg-blue-50 text-xs font-extrabold rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5"
-                  >
-                    <Play className="w-3.5 h-3.5 fill-blue-700" />
-                    <span>Lanjutkan Kuis</span>
-                  </button>
-                </div>
+                <button
+                  onClick={() => onStartExam(activeWeekId, 'exam')}
+                  className="w-full py-1.5 px-3 bg-white hover:bg-blue-50 text-blue-800 text-xs font-extrabold rounded-xl shadow-2xs transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <Play className="w-3.5 h-3.5 fill-blue-800" />
+                  <span>Lanjutkan Kuis</span>
+                </button>
               </div>
 
               {/* CARD 2: Progres Belajar */}
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4 hover:border-emerald-400 transition-all">
-                <div className="space-y-3">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-3 hover:border-emerald-500/50 transition-all">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800">
                       Progres Belajar
                     </span>
-                    <span className="text-xs font-bold font-mono text-emerald-600 dark:text-emerald-400">
+                    <span className="text-xs font-black font-mono text-emerald-600 dark:text-emerald-400">
                       {progressPercent}% Tuntas
                     </span>
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-1">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-500 font-medium">Penguasaan Modul:</span>
-                      <span className="font-extrabold text-slate-900 dark:text-white">{masteredWeeks} dari 8 Modul (&ge;75)</span>
+                      <span className="text-slate-500 font-medium">Penguasaan:</span>
+                      <span className="font-extrabold text-slate-900 dark:text-white text-xs">{masteredWeeks} / 8 Modul (&ge;75)</span>
                     </div>
-                    {/* Progress Bar */}
-                    <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                    <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
                       <div 
                         className="bg-emerald-500 h-full rounded-full transition-all duration-500"
                         style={{ width: `${progressPercent}%` }}
@@ -698,79 +691,70 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 text-xs pt-1">
-                    <div className="p-2 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800">
-                      <span className="text-[10px] text-slate-400 block font-medium">Rerata Nilai</span>
-                      <span className="text-sm font-black text-blue-600 dark:text-blue-400">{averageHighestScore}</span>
-                    </div>
-                    <div className="p-2 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800">
-                      <span className="text-[10px] text-slate-400 block font-medium">Soal Dijawab</span>
-                      <span className="text-sm font-black text-slate-900 dark:text-white">{totalAnswered}</span>
-                    </div>
+                  <div className="flex items-center justify-between gap-1 text-[11px] pt-0.5">
+                    <span className="text-slate-500">Rerata: <strong className="text-blue-600 dark:text-blue-400 font-black">{averageHighestScore}</strong></span>
+                    <span className="text-slate-400">•</span>
+                    <span className="text-slate-500">Soal Dijawab: <strong className="text-slate-900 dark:text-white font-black">{totalAnswered}</strong></span>
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-                  <button
-                    onClick={() => {
-                      if (onNavigateToModules) {
-                        onNavigateToModules();
-                      } else {
-                        const el = document.getElementById('daftar-modul-pembelajaran');
-                        if (el) el.scrollIntoView({ behavior: 'smooth' });
-                      }
-                    }}
-                    className="w-full py-2 px-3 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-xs font-extrabold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 border border-emerald-200 dark:border-emerald-800/60"
-                  >
-                    <TrendingUp className="w-3.5 h-3.5" />
-                    <span>Buka 8 Modul Pembelajaran</span>
-                  </button>
-                </div>
+                <button
+                  onClick={() => {
+                    if (onNavigateToModules) {
+                      onNavigateToModules();
+                    } else {
+                      const el = document.getElementById('daftar-modul-pembelajaran');
+                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                  className="w-full py-1.5 px-3 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-xs font-extrabold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 border border-emerald-200/80 dark:border-emerald-800/60"
+                >
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  <span>Buka 8 Modul Pembelajaran</span>
+                </button>
               </div>
 
               {/* CARD 3: Status Akun */}
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4 hover:border-purple-400 transition-all">
-                <div className="space-y-3">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-3 hover:border-purple-500/50 transition-all">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-purple-600 bg-purple-50 dark:bg-purple-950/40 px-2.5 py-0.5 rounded-full border border-purple-200 dark:border-purple-800">
-                      Status Akun Siswa
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/50 px-2 py-0.5 rounded-md border border-purple-200 dark:border-purple-800">
+                      Status Akun
                     </span>
-                    <span className="text-xs font-semibold text-slate-500">
+                    <span className="text-[11px] font-semibold text-slate-500">
                       {currentUser?.authProvider === 'google' ? 'Google OAuth' : 'Email Direct'}
                     </span>
                   </div>
 
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  <div className="space-y-0.5">
+                    <h3 className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
                       {currentUser ? currentUser.namaLengkap : 'Pengunjung Tamu'}
                     </h3>
                     <p className="text-xs text-slate-500 truncate">
                       {currentUser ? currentUser.email : 'Belum Login / Terdaftar'}
                     </p>
-                    <p className="text-[11px] font-medium text-slate-600 dark:text-slate-400 mt-0.5 flex items-center gap-1">
-                      <School className="w-3 h-3 text-slate-400 shrink-0" />
-                      <span className="truncate">{currentUser?.asalSekolah || 'SMK Kejuruan TJKT'}</span>
-                    </p>
                   </div>
 
-                  <div className="p-2 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                    <span className="text-slate-500 font-medium">Verifikasi Akun:</span>
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>Aktif (Terverifikasi)</span>
+                  <div className="flex items-center justify-between text-xs pt-0.5">
+                    <span className="text-slate-500 text-[11px] truncate">{currentUser?.asalSekolah || 'SMK Kejuruan'}</span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 shrink-0 text-[11px]">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>Terverifikasi</span>
                     </span>
                   </div>
                 </div>
 
-                {!currentUser && (
-                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-                    <button
-                      onClick={() => onOpenAuth?.('register')}
-                      className="w-full py-2 px-3 bg-purple-600 hover:bg-purple-700 text-white text-xs font-extrabold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-xs"
-                    >
-                      <User className="w-3.5 h-3.5" />
-                      <span>Daftar Akun Sekarang</span>
-                    </button>
+                {!currentUser ? (
+                  <button
+                    onClick={() => onOpenAuth?.('register')}
+                    className="w-full py-1.5 px-3 bg-purple-600 hover:bg-purple-700 text-white text-xs font-extrabold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
+                  >
+                    <User className="w-3.5 h-3.5" />
+                    <span>Daftar Akun Sekarang</span>
+                  </button>
+                ) : (
+                  <div className="py-1 px-2.5 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 text-center text-[11px] font-semibold text-slate-600 dark:text-slate-400">
+                    Siswa Terdaftar Active
                   </div>
                 )}
               </div>

@@ -45,6 +45,7 @@ interface TeacherDashboardViewProps {
   onOpenHeroSettings?: () => void;
   onOpenContactSettings?: () => void;
   onOpenBrandingSettings?: () => void;
+  onNavigateToUsers?: () => void;
 }
 
 export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({ 
@@ -52,7 +53,8 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
   onRefresh, 
   onOpenHeroSettings,
   onOpenContactSettings,
-  onOpenBrandingSettings
+  onOpenBrandingSettings,
+  onNavigateToUsers
 }) => {
   const [data, setData] = useState<TeacherClassOverview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -494,136 +496,124 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
             {/* KARTU 1: Rekapitulasi Nilai Siswa */}
             <div 
               onClick={() => setActiveSection('grades')}
-              className={`bg-white dark:bg-slate-900 border rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4 cursor-pointer transition-all ${
+              className={`bg-white dark:bg-slate-900 border rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-3 cursor-pointer transition-all ${
                 activeSection === 'grades'
                   ? 'border-blue-500 ring-2 ring-blue-500/20 bg-blue-50/20 dark:bg-blue-950/20'
                   : 'border-slate-200 dark:border-slate-800 hover:border-blue-400'
               }`}
             >
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 dark:bg-blue-950/50 px-2.5 py-0.5 rounded-full border border-blue-200 dark:border-blue-800">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-md border border-blue-200 dark:border-blue-800">
                     Rekapitulasi Nilai
                   </span>
                   {activeSection === 'grades' ? (
-                    <span className="text-[10px] font-bold text-blue-600 bg-blue-100 dark:bg-blue-900/60 px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] font-bold text-blue-600 bg-blue-100 dark:bg-blue-900/60 px-2 py-0.5 rounded-md">
                       ● Aktif
                     </span>
                   ) : (
-                    <span className="text-xs font-mono font-bold text-blue-600">
+                    <span className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400">
                       {filteredStudents.length} Siswa
                     </span>
                   )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <div className="p-2 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800">
                     <span className="text-[10px] text-slate-400 block font-medium">Rata-Rata</span>
-                    <span className="text-base font-black text-slate-900 dark:text-white">
+                    <span className="text-sm font-black text-slate-900 dark:text-white">
                       {data?.classAverageScore ? data.classAverageScore : 0}%
                     </span>
                   </div>
-                  <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl border border-emerald-200 dark:border-emerald-800/80">
+                  <div className="p-2 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl border border-emerald-200 dark:border-emerald-800/80">
                     <span className="text-[10px] text-emerald-800 dark:text-emerald-300 block font-medium">Ujian Selesai</span>
-                    <span className="text-base font-black text-emerald-600 dark:text-emerald-400">
+                    <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">
                       {data?.totalExamsTaken || 0}
                     </span>
                   </div>
                 </div>
-
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Pantau capaian 8 modul kejuruan, status kompeten/remedial, dan ekspor lembar rekap nilai.
-                </p>
               </div>
 
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveSection('grades');
-                  }}
-                  className={`w-full py-2 px-3 text-xs font-extrabold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
-                    activeSection === 'grades'
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : 'bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
-                  }`}
-                >
-                  <GraduationCap className="w-3.5 h-3.5" />
-                  <span>{activeSection === 'grades' ? 'Sedang Ditampilkan' : 'Buka Rekapitulasi Nilai'}</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveSection('grades');
+                }}
+                className={`w-full py-1.5 px-3 text-xs font-extrabold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
+                  activeSection === 'grades'
+                    ? 'bg-blue-600 text-white shadow-2xs'
+                    : 'bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
+                }`}
+              >
+                <GraduationCap className="w-3.5 h-3.5" />
+                <span>{activeSection === 'grades' ? 'Sedang Ditampilkan' : 'Buka Rekapitulasi Nilai'}</span>
+              </button>
             </div>
 
             {/* KARTU 2: Daftar Pengguna & Identitas */}
             <div 
               onClick={() => setActiveSection('users')}
-              className={`bg-white dark:bg-slate-900 border rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4 cursor-pointer transition-all ${
+              className={`bg-white dark:bg-slate-900 border rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-3 cursor-pointer transition-all ${
                 activeSection === 'users'
                   ? 'border-purple-500 ring-2 ring-purple-500/20 bg-purple-50/20 dark:bg-purple-950/20'
                   : 'border-slate-200 dark:border-slate-800 hover:border-purple-400'
               }`}
             >
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-purple-700 bg-purple-50 dark:bg-purple-950/50 px-2.5 py-0.5 rounded-full border border-purple-200 dark:border-purple-800">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/50 px-2 py-0.5 rounded-md border border-purple-200 dark:border-purple-800">
                     Daftar Pengguna
                   </span>
                   {activeSection === 'users' ? (
-                    <span className="text-[10px] font-bold text-purple-600 bg-purple-100 dark:bg-purple-900/60 px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] font-bold text-purple-600 bg-purple-100 dark:bg-purple-900/60 px-2 py-0.5 rounded-md">
                       ● Aktif
                     </span>
                   ) : (
-                    <span className="text-xs font-mono font-bold text-purple-600">
+                    <span className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400">
                       {data?.students?.length || 0} Akun
                     </span>
                   )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <div className="p-2 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800">
                     <span className="text-[10px] text-slate-400 block font-medium">Siswa Terdaftar</span>
-                    <span className="text-base font-black text-slate-900 dark:text-white">
+                    <span className="text-sm font-black text-slate-900 dark:text-white">
                       {data?.students?.filter(s => s.role !== 'admin').length || 0}
                     </span>
                   </div>
-                  <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl border border-emerald-200 dark:border-emerald-800/80">
-                    <span className="text-[10px] text-emerald-800 dark:text-emerald-300 block font-medium">Email Verified</span>
-                    <span className="text-base font-black text-emerald-600 dark:text-emerald-400">
+                  <div className="p-2 bg-purple-50 dark:bg-purple-950/40 rounded-xl border border-purple-200 dark:border-purple-800/80">
+                    <span className="text-[10px] text-purple-800 dark:text-purple-300 block font-medium">Email Verified</span>
+                    <span className="text-sm font-black text-purple-600 dark:text-purple-400">
                       {data?.verifiedStudents || 0}
                     </span>
                   </div>
                 </div>
-
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Kelola akun pengguna terdaftar, status verifikasi OTP, hak akses guru/siswa, dan audit akun.
-                </p>
               </div>
 
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveSection('users');
-                  }}
-                  className={`w-full py-2 px-3 text-xs font-extrabold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
-                    activeSection === 'users'
-                      ? 'bg-purple-600 text-white shadow-xs'
-                      : 'bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800'
-                  }`}
-                >
-                  <Users className="w-3.5 h-3.5" />
-                  <span>{activeSection === 'users' ? 'Sedang Ditampilkan' : 'Buka Daftar Pengguna'}</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveSection('users');
+                }}
+                className={`w-full py-1.5 px-3 text-xs font-extrabold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
+                  activeSection === 'users'
+                    ? 'bg-purple-600 text-white shadow-2xs'
+                    : 'bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800'
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>{activeSection === 'users' ? 'Sedang Ditampilkan' : 'Buka Daftar Pengguna'}</span>
+              </button>
             </div>
 
             {/* KARTU 3: Kustomisasi Platform & Ekspor */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4 hover:border-amber-400 transition-all">
-              <div className="space-y-3">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-3 hover:border-amber-400 transition-all">
+              <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 dark:bg-amber-950/50 px-2.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-800">
                     Pengaturan Platform
                   </span>
                   <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1">
@@ -632,26 +622,19 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                   </span>
                 </div>
 
-                <div className="p-2.5 bg-amber-50/50 dark:bg-amber-950/30 rounded-xl border border-amber-200/60 dark:border-amber-800/60 space-y-1">
-                  <span className="text-[10px] text-amber-800 dark:text-amber-300 block font-bold">Kustomisasi Cepat</span>
+                <div className="p-2 bg-amber-50/50 dark:bg-amber-950/30 rounded-xl border border-amber-200/60 dark:border-amber-800/60 text-xs">
+                  <span className="text-[10px] text-amber-800 dark:text-amber-300 block font-bold">Akses Visual & Rekap</span>
                   <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                    Hero, Branding, & Kontak
-                  </p>
-                  <p className="text-[10px] text-slate-500 font-medium">
-                    Sesuaikan judul aplikasi, logo navigasi, dan kontak WhatsApp bantuan.
+                    Hero, Branding & Kontak WA
                   </p>
                 </div>
-
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Kelola identitas visual aplikasi dan unduh rekap nilai keseluruhan siswa ke CSV.
-                </p>
               </div>
 
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={handleDownloadCsv}
-                  className="flex-1 py-2 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1 shadow-xs"
+                  className="flex-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
                   title="Unduh CSV"
                 >
                   <FileSpreadsheet className="w-3.5 h-3.5" />
@@ -661,7 +644,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                   <button
                     type="button"
                     onClick={onOpenHeroSettings}
-                    className="p-2 bg-amber-100 hover:bg-amber-200 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 rounded-xl border border-amber-300 dark:border-amber-800 transition-colors cursor-pointer"
+                    className="p-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 rounded-xl border border-amber-300 dark:border-amber-800 transition-colors cursor-pointer"
                     title="Edit Teks Hero"
                   >
                     <Edit3 className="w-3.5 h-3.5" />
@@ -775,7 +758,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                 <th className="py-3 px-3 text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-sans">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {paginatedStudents.length === 0 ? (
                 <tr>
                   <td colSpan={13} className="py-12 text-center text-slate-400">
@@ -889,224 +872,30 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
       </div>
 
       {/* ========================================================================= */}
-      {/* TABEL DAFTAR PENGGUNA TERDAFTAR & IDENTITAS (KHUSUS AKUN ADMIN)           */}
+      {/* LINK NAVIGASI DAFTAR PENGGUNA TERSEPARASI - RINGKAS                        */}
       {/* ========================================================================= */}
       {isAdmin && (
-        <section id="section-users" className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden space-y-6 p-6 sm:p-8">
-          {/* Section Header */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-xs font-semibold text-purple-600 dark:text-purple-400">
-                <ShieldCheck className="w-4 h-4" />
-                <span>Kelola Identitas & Hak Akses Pengguna (Khusus Admin)</span>
+        <section id="section-users" className="bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 text-white rounded-2xl p-4 sm:p-5 shadow-sm relative overflow-hidden border border-purple-800/40">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-1 max-w-2xl">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-purple-500/20 border border-purple-400/30 rounded-full text-[11px] font-bold text-purple-300">
+                <ShieldCheck className="w-3 h-3 text-purple-400" />
+                <span>Halaman Terpisah · Pengaturan Pengguna</span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
-                Daftar Pengguna Terdaftar & Identitas System
+              <h2 className="text-base sm:text-lg font-extrabold text-white">
+                Kelola Identitas & Hak Akses Pengguna
               </h2>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-                Lacak dan kelola identitas lengkap seluruh pengguna terdaftar (Admin, Guru, Siswa), status verifikasi email, metode login, dan instansi.
-              </p>
             </div>
 
-            {/* Metric Pills */}
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-center min-w-[75px]">
-                <span className="text-[10px] text-slate-500 block font-bold uppercase">Total User</span>
-                <span className="text-sm font-black text-slate-900 dark:text-white">{data?.students?.length || 0}</span>
-              </div>
-              <div className="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 rounded-xl text-center min-w-[75px]">
-                <span className="text-[10px] text-emerald-800 dark:text-emerald-300 block font-bold uppercase">Siswa</span>
-                <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">
-                  {data?.students?.filter(s => (s.role || 'siswa') === 'siswa').length || 0}
-                </span>
-              </div>
-              <div className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/80 rounded-xl text-center min-w-[75px]">
-                <span className="text-[10px] text-blue-800 dark:text-blue-300 block font-bold uppercase">Guru</span>
-                <span className="text-sm font-black text-blue-600 dark:text-blue-400">
-                  {data?.students?.filter(s => s.role === 'guru').length || 0}
-                </span>
-              </div>
-              <div className="px-3 py-1.5 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/80 rounded-xl text-center min-w-[75px]">
-                <span className="text-[10px] text-purple-800 dark:text-purple-300 block font-bold uppercase">Admin</span>
-                <span className="text-sm font-black text-purple-600 dark:text-purple-400">
-                  {data?.students?.filter(s => s.role === 'admin').length || 0}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Controls Bar: Search & Filter Dropdowns */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="relative w-full sm:max-w-xs">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text"
-                value={userSearchQuery}
-                onChange={(e) => setUserSearchQuery(e.target.value)}
-                placeholder="Cari nama, email, sekolah..."
-                className="w-full pl-10 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-900 dark:text-white"
-              />
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-              <select
-                value={userRoleFilter}
-                onChange={(e) => setUserRoleFilter(e.target.value as any)}
-                className="py-2 px-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-700 dark:text-slate-300 cursor-pointer"
+            {onNavigateToUsers && (
+              <button
+                onClick={onNavigateToUsers}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-extrabold text-white bg-purple-600 hover:bg-purple-500 active:bg-purple-700 rounded-xl shadow-2xs transition-all cursor-pointer shrink-0"
               >
-                <option value="all">Semua Peran (Role)</option>
-                <option value="siswa">Siswa</option>
-                <option value="guru">Guru / Instruktur</option>
-                <option value="admin">Administrator</option>
-              </select>
-
-              <select
-                value={userVerificationFilter}
-                onChange={(e) => setUserVerificationFilter(e.target.value as any)}
-                className="py-2 px-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-700 dark:text-slate-300 cursor-pointer"
-              >
-                <option value="all">Semua Status Email</option>
-                <option value="verified">Terverifikasi (Aktif)</option>
-                <option value="unverified">Pending (OTP)</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Table Container */}
-          <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
-                <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white font-bold border-b border-slate-200 dark:border-slate-700">
-                  <tr>
-                    <th className="py-3 px-4">No & ID User</th>
-                    <th className="py-3 px-4">Nama Lengkap & Email</th>
-                    <th className="py-3 px-4">Asal Sekolah / Instansi</th>
-                    <th className="py-3 px-3 text-center">Peran (Role)</th>
-                    <th className="py-3 px-3 text-center">Metode Auth</th>
-                    <th className="py-3 px-3 text-center">Status Email</th>
-                    <th className="py-3 px-4">Tgl Terdaftar</th>
-                    <th className="py-3 px-3 text-right">Aksi Admin</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-sans">
-                  {paginatedUsersList.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} className="py-10 text-center text-slate-400">
-                        Tidak ada pengguna terdaftar yang sesuai dengan kriteria pencarian.
-                      </td>
-                    </tr>
-                  ) : (
-                    paginatedUsersList.map((usr, idx) => {
-                      const userRole = usr.role || 'siswa';
-                      const authProvider = usr.authProvider || 'local';
-                      const itemIndex = (userPage - 1) * ITEMS_PER_PAGE + idx + 1;
-
-                      return (
-                        <tr key={usr.userId} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                          <td className="py-3 px-4 font-mono text-[11px] text-slate-500">
-                            <span className="font-bold text-slate-700 dark:text-slate-300 mr-1.5">{itemIndex}.</span>
-                            <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[10px]" title={usr.userId}>
-                              {usr.userId.length > 10 ? `${usr.userId.substring(0, 8)}...` : usr.userId}
-                            </span>
-                          </td>
-
-                          <td className="py-3 px-4">
-                            <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                              <span>{usr.namaLengkap}</span>
-                              {usr.email === currentUser?.email && (
-                                <span className="text-[10px] font-bold text-purple-600 bg-purple-50 dark:bg-purple-950/60 px-1.5 py-0.5 rounded">
-                                  Akun Anda
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-[11px] text-slate-500 font-mono">
-                              {usr.email}
-                            </div>
-                          </td>
-
-                          <td className="py-3 px-4 text-slate-700 dark:text-slate-300 font-medium">
-                            <div className="flex items-center gap-1.5">
-                              <School className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                              <span>{usr.asalSekolah || '-'}</span>
-                            </div>
-                          </td>
-
-                          <td className="py-3 px-3 text-center whitespace-nowrap">
-                            {userRole === 'admin' ? (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-purple-700 bg-purple-50 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-800 px-2.5 py-0.5 rounded-full">
-                                <Shield className="w-3 h-3 text-purple-600" />
-                                <span>Administrator</span>
-                              </span>
-                            ) : userRole === 'guru' ? (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 px-2.5 py-0.5 rounded-full">
-                                <GraduationCap className="w-3 h-3 text-blue-600" />
-                                <span>Guru / Instruktur</span>
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 px-2.5 py-0.5 rounded-full">
-                                <Users className="w-3 h-3 text-emerald-600" />
-                                <span>Siswa</span>
-                              </span>
-                            )}
-                          </td>
-
-                          <td className="py-3 px-3 text-center whitespace-nowrap">
-                            {authProvider === 'google' ? (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
-                                <span>Google OAuth</span>
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
-                                <Key className="w-3 h-3 text-slate-400" />
-                                <span>Password</span>
-                              </span>
-                            )}
-                          </td>
-
-                          <td className="py-3 px-3 text-center whitespace-nowrap">
-                            {usr.isVerified ? (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-full">
-                                <CheckCircle2 className="w-3 h-3" />
-                                <span>Terverifikasi</span>
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-full">
-                                <Clock className="w-3 h-3" />
-                                <span>Terdaftar</span>
-                              </span>
-                            )}
-                          </td>
-
-                          <td className="py-3 px-4 font-mono text-[11px] text-slate-500 whitespace-nowrap">
-                            {usr.createdAt ? formatDate(usr.createdAt) : '-'}
-                          </td>
-
-                          <td className="py-3 px-3 text-right whitespace-nowrap">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                onClick={() => setSelectedStudent(usr)}
-                                className="px-2 py-1 text-[10px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
-                              >
-                                Detail
-                              </button>
-
-                              <button
-                                onClick={() => handleDeleteStudent(usr)}
-                                title="Hapus Akun Pengguna"
-                                className="p-1 text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg cursor-pointer transition-colors"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-              <Pagination currentPage={userPage} totalItems={filteredUsersList.length} onPageChange={setUserPage} label="pengguna" />
-            </div>
+                <Users className="w-3.5 h-3.5" />
+                <span>Halaman Daftar Pengguna &rarr;</span>
+              </button>
+            )}
           </div>
         </section>
       )}

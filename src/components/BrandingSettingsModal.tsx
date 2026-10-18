@@ -399,23 +399,47 @@ export const BrandingSettingsModal: React.FC<BrandingSettingsModalProps> = ({
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-blue-500" />
-                <span>Gaya Font Aplikasi</span>
+            <div className="space-y-2 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60">
+              <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+                  <span>Gaya Font Utama Aplikasi</span>
+                </span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                  Tersimpan di Database
+                </span>
               </label>
               <select
                 value={config.fontStyle}
-                onChange={(e) => handleChange('fontStyle', e.target.value)}
-                className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-white"
+                onChange={(e) => {
+                  const newFont = e.target.value;
+                  handleChange('fontStyle', newFont);
+                  applyBrandingToDOM({ ...config, fontStyle: newFont });
+                }}
+                className="w-full px-3.5 py-2 text-xs sm:text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-white font-medium cursor-pointer"
               >
-                <option value="font-sans">1. Sans Serif (Modern)</option>
-                <option value="font-serif">2. Serif (Klasik)</option>
-                <option value="font-mono">3. Monospace (Teknis)</option>
-                <option value="font-inter">4. Inter (Clean)</option>
-                <option value="font-poppins">5. Poppins (Rapi)</option>
-                <option value="font-roboto">6. Roboto (Standar)</option>
+                <option value="font-sans">Plus Jakarta Sans (Standar TKA Modern)</option>
+                <option value="font-inter">Inter (Clean & Minimalist)</option>
+                <option value="font-poppins">Poppins (Geometric & Rapi)</option>
+                <option value="font-jakarta">Plus Jakarta Sans (Professional)</option>
+                <option value="font-outfit">Outfit (Modern Display)</option>
+                <option value="font-roboto">Roboto (Android Style)</option>
+                <option value="font-serif">Merriweather (Klasik / Serif Formil)</option>
+                <option value="font-mono">Fira Code (Monospace / Teknis Kode)</option>
               </select>
+
+              {/* Live Preview Sample */}
+              <div className={`p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 ${config.fontStyle || 'font-sans'} transition-all`}>
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-400 block mb-1">
+                  Pratinjau Font Live:
+                </span>
+                <p className="text-sm font-bold text-slate-900 dark:text-white">
+                  Simulasi TKA SMK Teknik Jaringan Komputer & Telekomunikasi
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  1234567890 · Bank 400 Soal & Pembahasan Modul
+                </p>
+              </div>
             </div>
           </div>
 

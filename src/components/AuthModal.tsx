@@ -173,7 +173,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     const cleanMail = email.trim().toLowerCase();
     if (!cleanMail) {
       triggerShake();
-      setErrorMsg('Email wajib diisi.');
+      setErrorMsg('Alamat Email / Username wajib diisi.');
+      return;
+    }
+
+    if (!password) {
+      triggerShake();
+      setErrorMsg('Email/Username atau Kata Sandi salah. Silakan periksa kembali kata sandi Anda.');
       return;
     }
 
@@ -236,9 +242,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         <div className="p-6 space-y-4 overflow-y-auto flex-1">
           {/* Error Message */}
           {errorMsg && (
-            <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl text-xs text-red-600 dark:text-red-300 flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-500" />
-              <span>{errorMsg}</span>
+            <div className="p-3.5 bg-red-50 dark:bg-red-950/50 border border-red-300 dark:border-red-800 rounded-2xl text-xs text-red-700 dark:text-red-200 flex items-start gap-2.5 shadow-xs animate-in fade-in slide-in-from-top-1 duration-200">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600 dark:text-red-400 animate-bounce" />
+              <div className="space-y-0.5 leading-snug">
+                <p className="font-bold text-red-800 dark:text-red-300 text-xs">Gagal Masuk / Terjadi Kesalahan</p>
+                <p>{errorMsg}</p>
+              </div>
             </div>
           )}
 
