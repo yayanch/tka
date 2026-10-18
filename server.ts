@@ -38,6 +38,9 @@ const memoryStore = {
   emailLogs: [] as any[],
 };
 
+// Track real-time online presence heartbeats (email -> timestamp)
+const activeHeartbeats = new Map<string, number>();
+
 // Seed sample teacher and student so demo starts with rich data if fresh
 const DEFAULT_STUDENTS = [
   {
@@ -1214,6 +1217,15 @@ app.post('/api/teacher/update-role', async (req: Request, res: Response) => {
   }
 });
 
+// Heartbeat endpoint for tracking real-time online status of users
+app.post('/api/auth/heartbeat', (req: Request, res: Response) => {
+  const email = (req.body.email || '').trim().toLowerCase();
+  if (email) {
+    activeHeartbeats.set(email, Date.now());
+  }
+  return res.json({ success: true, timestamp: Date.now() });
+});
+
 
 // ---------------------------------------------------------------------------
 // Teacher / Instructor Portal Endpoints (Rekap Nilai & Analisis Kelas)
@@ -1254,8 +1266,17 @@ app.get('/api/teacher/overview', async (req: Request, res: Response) => {
         }
       }
 
-      const avgScore = completedCount > 0 ? totalScoreSum / completedCount : 0;
+      // RULE: Penjumlahan seluruh nilai 8 modul dibagi 8
+      const avgScore = totalScoreSum / 8;
       const lastSession = userSessions[0];
+
+      // Real-time Online check: active heartbeat within 2 minutes OR currently requesting user
+      const userEmailLower = (user.email || '').toLowerCase();
+      const lastHb = activeHeartbeats.get(userEmailLower);
+      const isOnline = Boolean(
+        (lastHb && (Date.now() - lastHb < 120000)) ||
+        (queryEmail && userEmailLower === queryEmail)
+      );
 
       return {
         userId: user.id,
@@ -1271,6 +1292,7 @@ app.get('/api/teacher/overview', async (req: Request, res: Response) => {
         averageScore: parseFloat(avgScore.toFixed(1)),
         completedModulesCount: completedCount,
         lastActive: lastSession ? lastSession.created_at : user.created_at,
+        isOnline,
       };
     });
 
@@ -1297,9 +1319,8 @@ app.get('/api/teacher/overview', async (req: Request, res: Response) => {
     const totalStudents = studentOnlySummaries.length;
     const verifiedStudents = studentOnlySummaries.filter(s => s.isVerified).length;
     const totalExamsTaken = allSessions.length;
-    const overallAvg = studentOnlySummaries.filter(s => s.completedModulesCount > 0);
-    const classAverageScore = overallAvg.length > 0 
-      ? parseFloat((overallAvg.reduce((a, b) => a + b.averageScore, 0) / overallAvg.length).toFixed(1))
+    const classAverageScore = studentOnlySummaries.length > 0 
+      ? parseFloat((studentOnlySummaries.reduce((a, b) => a + b.averageScore, 0) / studentOnlySummaries.length).toFixed(1))
       : 0;
 
     return res.json({

@@ -42,6 +42,7 @@ export interface TeacherStudentSummary {
   averageScore: number;
   completedModulesCount: number;
   lastActive: string;
+  isOnline?: boolean;
 }
 
 export interface EmailLogEntry {

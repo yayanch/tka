@@ -119,7 +119,7 @@ export const ProgressStatsView: React.FC<ProgressStatsViewProps> = ({
     }
   });
 
-  const averageHighest = attemptedWeeksCount > 0 ? (highestSum / attemptedWeeksCount).toFixed(1) : '0';
+  const averageHighest = (highestSum / 8).toFixed(1);
   const overallMasteryPct = Math.round((masteredWeeksCount / 8) * 100);
   const isOverallCompetent = masteredWeeksCount >= 6; // At least 6 of 8 modules >= 75
 

@@ -433,11 +433,9 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
         </div>
       </div>
 
-      {/* Main Table Container */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden space-y-6 p-5 sm:p-7">
-        
-        {/* Controls Bar: Search, Filters & Sorting */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+      {/* Container 1: Controls Bar (Search, Filters & Sorting) */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs p-4 sm:p-5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           {/* Search Box */}
           <div className="relative w-full lg:max-w-md">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -520,10 +518,11 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
             </div>
           </div>
         </div>
+      </div>
 
-        {/* User Table */}
-        <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
-          <div className="overflow-x-auto">
+      {/* Container 2: Main User Table */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+        <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
               <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white font-bold border-b border-slate-200 dark:border-slate-700">
                 <tr>
@@ -733,7 +732,6 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                 <span>Selanjutnya</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
-            </div>
           </div>
         </div>
       </div>

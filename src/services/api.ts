@@ -78,6 +78,19 @@ async function safeFetch(url: string, options?: RequestInit, retries = 1, delay 
   }
 }
 
+export async function sendHeartbeat(email: string): Promise<void> {
+  if (!email) return;
+  try {
+    await fetch('/api/auth/heartbeat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+  } catch {
+    // ignore
+  }
+}
+
 export async function checkUserSession(email: string): Promise<{
   valid: boolean;
   user?: UserProfile;

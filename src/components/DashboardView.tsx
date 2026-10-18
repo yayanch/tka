@@ -95,8 +95,8 @@ export const StatistikSingkat: React.FC<StatistikSingkatProps> = ({
     }
   });
 
-  const averageScoreNum = countScored > 0 ? totalScoreSum / countScored : 0;
-  const averageHighestScore = averageScoreNum > 0 ? averageScoreNum.toFixed(1) : '0.0';
+  const averageScoreNum = totalScoreSum / 8;
+  const averageHighestScore = averageScoreNum.toFixed(1);
   const progressPercent = Math.round((masteredWeeks / 8) * 100);
 
   const getScoreStatus = () => {
@@ -500,7 +500,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     }
   });
 
-  const averageHighestScore = countScored > 0 ? (totalScoreSum / countScored).toFixed(1) : '0';
+  const averageHighestScore = (totalScoreSum / 8).toFixed(1);
 
   // Compute active week (first uncompleted week or week 1)
   let activeWeekId = 1;

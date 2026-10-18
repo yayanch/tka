@@ -45,7 +45,8 @@ import {
   setStoredUser, 
   checkUserSession,
   saveExamToDatabase,
-  resetRemoteUserProgress
+  resetRemoteUserProgress,
+  sendHeartbeat
 } from './services/api';
 import { 
   loadUserProgress, 
@@ -200,6 +201,16 @@ export default function App() {
   useEffect(() => { isSettingsOpenRef.current = isSettingsOpen; }, [isSettingsOpen]);
   useEffect(() => { learningWeekRef.current = learningSelectedWeek; }, [learningSelectedWeek]);
   useEffect(() => { bankWeekRef.current = bankSelectedWeek; }, [bankSelectedWeek]);
+
+  // Periodic online presence heartbeat (every 25 seconds) when user is logged in
+  useEffect(() => {
+    if (!currentUser?.email) return;
+    sendHeartbeat(currentUser.email);
+    const interval = setInterval(() => {
+      sendHeartbeat(currentUser.email);
+    }, 25000);
+    return () => clearInterval(interval);
+  }, [currentUser?.email]);
 
   // Centralized history navigation dispatcher that supports browser Back & Forward buttons
   const navigateState = useCallback((
@@ -831,6 +842,7 @@ export default function App() {
                   onOpenHeroSettings={() => setIsHeroSettingsOpen(true)}
                   onOpenContactSettings={() => setIsContactSettingsOpen(true)}
                   onOpenBrandingSettings={() => setIsBrandingSettingsOpen(true)}
+                  showScoreRecap={false}
                 />
               ) : (
                 <DashboardView
@@ -905,6 +917,7 @@ export default function App() {
                 onOpenHeroSettings={() => setIsHeroSettingsOpen(true)}
                 onOpenContactSettings={() => setIsContactSettingsOpen(true)}
                 onOpenBrandingSettings={() => setIsBrandingSettingsOpen(true)}
+                showScoreRecap={true}
                 onNavigateToUsers={() => {
                   setCurrentTab('users');
                   window.scrollTo({ top: 0, behavior: 'smooth' });
