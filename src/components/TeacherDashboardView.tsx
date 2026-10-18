@@ -776,14 +776,14 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                     >
                       <td className="py-3 px-4">
                         <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                          <span>{s.namaLengkap}</span>
+                          <span className="uppercase">{s.namaLengkap}</span>
                           {s.email === currentUser?.email && (
-                            <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">Anda</span>
+                            <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded normal-case">Anda</span>
                           )}
                         </div>
                         <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
                           <School className="w-3 h-3 text-slate-400" />
-                          <span>{s.asalSekolah}</span>
+                          <span className="uppercase">{s.asalSekolah}</span>
                           <span aria-hidden="true">·</span>
                           <span>{s.email}</span>
                         </div>
@@ -913,11 +913,11 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                 <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
                   Rapor Capaian Siswa TKA TJKT
                 </span>
-                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
+                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white uppercase">
                   {selectedStudent.namaLengkap}
                 </h3>
                 <p className="text-xs text-slate-500">
-                  {selectedStudent.asalSekolah} · {selectedStudent.email}
+                  <span className="uppercase">{selectedStudent.asalSekolah}</span> · {selectedStudent.email}
                 </p>
               </div>
 

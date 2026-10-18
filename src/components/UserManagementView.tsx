@@ -586,9 +586,9 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
 
                         <td className="py-3.5 px-4">
                           <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            <span>{usr.namaLengkap}</span>
+                            <span className="uppercase">{usr.namaLengkap}</span>
                             {isSelf && (
-                              <span className="text-[10px] font-extrabold text-purple-700 bg-purple-100 dark:bg-purple-900/60 dark:text-purple-300 px-2 py-0.5 rounded-md border border-purple-200 dark:border-purple-800">
+                              <span className="text-[10px] font-extrabold text-purple-700 bg-purple-100 dark:bg-purple-900/60 dark:text-purple-300 px-2 py-0.5 rounded-md border border-purple-200 dark:border-purple-800 normal-case">
                                 Anda
                               </span>
                             )}
@@ -602,7 +602,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                         <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300 font-medium">
                           <div className="flex items-center gap-1.5">
                             <School className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <span>{usr.asalSekolah || '-'}</span>
+                            <span className="uppercase">{usr.asalSekolah || '-'}</span>
                           </div>
                         </td>
 
@@ -750,11 +750,11 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                 <span className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">
                   Rapor Capaian Siswa TKA TJKT
                 </span>
-                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
+                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white uppercase">
                   {selectedStudent.namaLengkap}
                 </h3>
                 <p className="text-xs text-slate-500">
-                  {selectedStudent.asalSekolah} · {selectedStudent.email}
+                  <span className="uppercase">{selectedStudent.asalSekolah}</span> · {selectedStudent.email}
                 </p>
               </div>
 
