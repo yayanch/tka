@@ -46,7 +46,8 @@ import {
   checkUserSession,
   saveExamToDatabase,
   resetRemoteUserProgress,
-  sendHeartbeat
+  sendHeartbeat,
+  sendOfflineStatus
 } from './services/api';
 import { 
   loadUserProgress, 
@@ -202,14 +203,26 @@ export default function App() {
   useEffect(() => { learningWeekRef.current = learningSelectedWeek; }, [learningSelectedWeek]);
   useEffect(() => { bankWeekRef.current = bankSelectedWeek; }, [bankSelectedWeek]);
 
-  // Periodic online presence heartbeat (every 25 seconds) when user is logged in
+  // Periodic online presence heartbeat (every 20 seconds) when user is logged in
   useEffect(() => {
     if (!currentUser?.email) return;
-    sendHeartbeat(currentUser.email);
+    const email = currentUser.email;
+
+    sendHeartbeat(email);
     const interval = setInterval(() => {
-      sendHeartbeat(currentUser.email);
-    }, 25000);
-    return () => clearInterval(interval);
+      sendHeartbeat(email);
+    }, 20000);
+
+    const handleUnload = () => {
+      sendOfflineStatus(email);
+    };
+
+    window.addEventListener('beforeunload', handleUnload);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('beforeunload', handleUnload);
+    };
   }, [currentUser?.email]);
 
   // Centralized history navigation dispatcher that supports browser Back & Forward buttons
@@ -471,6 +484,9 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    if (currentUser?.email) {
+      sendOfflineStatus(currentUser.email);
+    }
     setCurrentUser(null);
     setStoredUser(null);
     setCurrentSession(null);

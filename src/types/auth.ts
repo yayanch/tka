@@ -55,6 +55,18 @@ export interface EmailLogEntry {
   sentAt: string;
 }
 
+export interface LoginLogEntry {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  asalSekolah: string;
+  role: string;
+  loginMethod: string;
+  ipAddress?: string;
+  loginAt: string;
+}
+
 export interface ServerMetrics {
   cpuUsagePercent: number;
   cpuCount?: number;
@@ -87,6 +99,7 @@ export interface TeacherClassOverview {
   students: TeacherStudentSummary[];
   moduleAverageScores: Record<number, number>;
   emailLogs?: EmailLogEntry[];
+  loginLogs?: LoginLogEntry[];
   databaseStatus?: {
     isMySqlConnected: boolean;
     host: string;

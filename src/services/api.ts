@@ -91,6 +91,24 @@ export async function sendHeartbeat(email: string): Promise<void> {
   }
 }
 
+export async function sendOfflineStatus(email: string): Promise<void> {
+  if (!email) return;
+  try {
+    if (navigator.sendBeacon) {
+      const blob = new Blob([JSON.stringify({ email })], { type: 'application/json' });
+      navigator.sendBeacon('/api/auth/logout-presence', blob);
+    } else {
+      await fetch('/api/auth/logout-presence', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+    }
+  } catch {
+    // ignore
+  }
+}
+
 export async function checkUserSession(email: string): Promise<{
   valid: boolean;
   user?: UserProfile;
@@ -315,5 +333,11 @@ export async function updateUserRole(data: {
     body: JSON.stringify(data),
   });
   return result;
+}
+
+export async function fetchLoginLogs(): Promise<any[]> {
+  const data = await safeFetch('/api/teacher/login-logs');
+  if (data && data.success) return data.logs || [];
+  return [];
 }
 

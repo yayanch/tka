@@ -213,8 +213,8 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
   const [selectedSchool, setSelectedSchool] = useState('all');
   const [selectedStudent, setSelectedStudent] = useState<TeacherStudentSummary | null>(null);
 
-  // Active section state: 'grades' (Rekapitulasi Nilai), 'users' (Daftar Pengguna)
-  const [activeSection, setActiveSection] = useState<'grades' | 'users'>('grades');
+  // Active section state: 'grades' (Rekapitulasi Nilai), 'users' (Daftar Pengguna), 'loginLogs' (Log Login Siswa)
+  const [activeSection, setActiveSection] = useState<'grades' | 'users' | 'loginLogs'>('grades');
 
   // Pagination states
   const [studentPage, setStudentPage] = useState(1);
@@ -238,10 +238,12 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
 
   const handleRefreshMetrics = async () => {
     setIsRefreshingMetrics(true);
-    const m = await fetchServerMetrics();
-    if (m) {
-      setLiveMetrics(m);
-    }
+    const [m, overview] = await Promise.all([
+      fetchServerMetrics(),
+      fetchTeacherOverview(currentUser?.email, currentUser?.role)
+    ]);
+    if (m) setLiveMetrics(m);
+    if (overview) setData(overview);
     setIsRefreshingMetrics(false);
   };
 
@@ -253,13 +255,16 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
 
   useEffect(() => {
     if (!autoRefreshMetrics || currentUser?.role === 'siswa') return;
-    const interval = setInterval(() => {
-      fetchServerMetrics().then(m => {
-        if (m) setLiveMetrics(m);
-      });
+    const interval = setInterval(async () => {
+      const [m, overview] = await Promise.all([
+        fetchServerMetrics(),
+        fetchTeacherOverview(currentUser?.email, currentUser?.role)
+      ]);
+      if (m) setLiveMetrics(m);
+      if (overview) setData(overview);
     }, 10000);
     return () => clearInterval(interval);
-  }, [autoRefreshMetrics, currentUser?.role]);
+  }, [autoRefreshMetrics, currentUser?.email, currentUser?.role]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -818,8 +823,122 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
         </section>
       )}
 
-      {/* Search Bar & Rekapitulasi Nilai Table */}
-      {showScoreRecap ? (
+      {/* Navigation Section Tabs: Rekap Nilai vs Log Login Siswa */}
+      {!isStudent && (
+        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+          <button
+            type="button"
+            onClick={() => setActiveSection('grades')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeSection === 'grades'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+            }`}
+          >
+            Rekapitulasi Nilai & Siswa Aktif
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveSection('loginLogs')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeSection === 'loginLogs'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+            }`}
+          >
+            <Clock className="w-3.5 h-3.5" />
+            <span>Log Login Siswa ({data?.loginLogs?.length || 0})</span>
+          </button>
+        </div>
+      )}
+
+      {/* Conditional View: Login Logs vs Grades Recap */}
+      {activeSection === 'loginLogs' && !isStudent ? (
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+          <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                Log Aktivitas Login Siswa (Real-Time)
+              </h3>
+              <p className="text-xs text-slate-500">
+                Catatan riwayat masuk (login) akun siswa beserta metode autentikasi dan alamat IP
+              </p>
+            </div>
+            <button
+              onClick={loadData}
+              className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors cursor-pointer flex items-center gap-1.5"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Muat Ulang Log</span>
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+              <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px] tracking-wider border-b border-slate-200 dark:border-slate-700">
+                <tr>
+                  <th className="px-4 py-3">Waktu Login</th>
+                  <th className="px-4 py-3">Nama Siswa</th>
+                  <th className="px-4 py-3">Email</th>
+                  <th className="px-4 py-3">Asal Sekolah</th>
+                  <th className="px-4 py-3">Peran (Role)</th>
+                  <th className="px-4 py-3">Metode Login</th>
+                  <th className="px-4 py-3">Alamat IP</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {(!data?.loginLogs || data.loginLogs.length === 0) ? (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-8 text-center text-slate-400">
+                      Belum ada log login siswa yang terekam.
+                    </td>
+                  </tr>
+                ) : (
+                  data.loginLogs.map((log: any) => (
+                    <tr key={log.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                      <td className="px-4 py-3 font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                        {formatDate(log.loginAt || log.login_at)}
+                      </td>
+                      <td className="px-4 py-3 font-extrabold text-slate-900 dark:text-white uppercase whitespace-nowrap">
+                        {log.userName || log.user_name}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-slate-600 dark:text-slate-300">
+                        {log.userEmail || log.user_email}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300 uppercase">
+                        {log.asalSekolah || log.asal_sekolah}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                          (log.role === 'admin' || log.role === 'guru')
+                            ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border border-purple-200 dark:border-purple-800'
+                            : 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
+                        }`}>
+                          {log.role}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          (log.loginMethod === 'google' || log.login_method === 'google')
+                            ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
+                            : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                        }`}>
+                          {log.loginMethod === 'google' || log.login_method === 'google' ? 'Google Auth' : 'Password Local'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 font-mono text-[11px] text-slate-500">
+                        {log.ipAddress || log.ip_address || '127.0.0.1'}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : null}
+
+      {activeSection === 'grades' && (
         <>
           {/* Search and Filter Bar */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -1069,9 +1188,8 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
           <Pagination currentPage={studentPage} totalItems={filteredStudents.length} onPageChange={setStudentPage} label="siswa" />
         </div>
       </div>
-    </>
-  ) : (
-    /* Section: Dashboard Admin Overview (Top 10 Siswa Tuntas & List Siswa Online) */
+      
+      {/* Section: Dashboard Admin Overview (Top 10 Siswa Tuntas & List Siswa Online) */}
     <div className="space-y-8">
       {/* Container 1: Daftar 10 Siswa Paling Banyak Menyelesaikan Modul & Tuntas */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
@@ -1464,7 +1582,8 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
         </div>
       </div>
     </div>
-  )}
+        </>
+      )}
 
 
 

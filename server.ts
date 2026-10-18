@@ -38,6 +38,7 @@ const memoryStore = {
   users: new Map<string, any>(),
   examSessions: [] as any[],
   emailLogs: [] as any[],
+  loginLogs: [] as any[],
 };
 
 // Track real-time online presence heartbeats (email -> timestamp)
@@ -238,6 +239,68 @@ const SAMPLE_EMAIL_LOGS = [
 ];
 
 SAMPLE_EMAIL_LOGS.forEach(log => memoryStore.emailLogs.push(log));
+
+const SAMPLE_LOGIN_LOGS = [
+  {
+    id: 'log_01',
+    user_id: 'usr_sample_1',
+    user_email: 'budi.raharjo@smk.belajar.id',
+    user_name: 'Budi Raharjo',
+    asal_sekolah: 'SMKN 1 Cimahi',
+    role: 'siswa',
+    login_method: 'local',
+    ip_address: '192.168.1.45',
+    login_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+  },
+  {
+    id: 'log_02',
+    user_id: 'usr_sample_2',
+    user_email: 'siti.aminah@smk.belajar.id',
+    user_name: 'Siti Aminah',
+    asal_sekolah: 'SMKN 2 Bandung',
+    role: 'siswa',
+    login_method: 'google',
+    ip_address: '192.168.1.88',
+    login_at: new Date(Date.now() - 3600000 * 5).toISOString(),
+  }
+];
+
+SAMPLE_LOGIN_LOGS.forEach(log => memoryStore.loginLogs.push(log));
+
+async function recordLoginLog(user: any, loginMethod: string, req: Request) {
+  const logId = 'log_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+  const rawIp = req.ip || req.headers['x-forwarded-for'] || '127.0.0.1';
+  const ipAddress = typeof rawIp === 'string' ? rawIp.replace(/^::ffff:/, '') : '127.0.0.1';
+  const loginAt = new Date().toISOString();
+  
+  const logEntry = {
+    id: logId,
+    user_id: user.id,
+    user_email: user.email,
+    user_name: user.nama_lengkap || user.namaLengkap,
+    asal_sekolah: user.asal_sekolah || user.asalSekolah,
+    role: user.role || 'siswa',
+    login_method: loginMethod,
+    ip_address: ipAddress,
+    login_at: loginAt,
+  };
+
+  if (isMySqlConnected && pool) {
+    try {
+      await pool.query(`
+        INSERT INTO login_logs (id, user_id, user_email, user_name, asal_sekolah, role, login_method, ip_address, login_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [logEntry.id, logEntry.user_id, logEntry.user_email, logEntry.user_name, logEntry.asal_sekolah, logEntry.role, logEntry.login_method, logEntry.ip_address, logEntry.login_at]);
+    } catch (e) {
+      console.error('Failed to record login log to MySQL:', e);
+    }
+  }
+
+  memoryStore.loginLogs.unshift(logEntry);
+  if (memoryStore.loginLogs.length > 200) {
+    memoryStore.loginLogs.pop();
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Real Physical Email Delivery Service (SMTP via Nodemailer) & Logging
@@ -566,6 +629,20 @@ async function initDatabase() {
       );
     `);
     await conn.query(`
+      CREATE TABLE IF NOT EXISTS login_logs (
+        id VARCHAR(64) PRIMARY KEY,
+        user_id VARCHAR(64) NOT NULL,
+        user_email VARCHAR(255) NOT NULL,
+        user_name VARCHAR(255) NOT NULL,
+        asal_sekolah VARCHAR(255) NOT NULL,
+        role VARCHAR(50) NOT NULL,
+        login_method VARCHAR(50) NOT NULL,
+        ip_address VARCHAR(100) NULL,
+        login_at VARCHAR(100) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    await conn.query(`
       CREATE TABLE IF NOT EXISTS users (
         id VARCHAR(64) PRIMARY KEY,
         nama_lengkap VARCHAR(255) NOT NULL,
@@ -640,6 +717,13 @@ async function initDatabase() {
           VALUES (?, ?, ?, ?, ?, ?, ?)
         `, [log.id, log.recipient_email, log.recipient_name, log.subject, log.status, log.error_message, log.sent_at]);
       }
+
+      for (const log of SAMPLE_LOGIN_LOGS) {
+        await conn.query(`
+          INSERT IGNORE INTO login_logs (id, user_id, user_email, user_name, asal_sekolah, role, login_method, ip_address, login_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [log.id, log.user_id, log.user_email, log.user_name, log.asal_sekolah, log.role, log.login_method, log.ip_address, log.login_at]);
+      }
     } else {
       // Database already initialized: ONLY ensure admin accounts exist, DO NOT re-seed deleted sample students!
       const adminUsers = DEFAULT_STUDENTS.filter(s => s.role === 'admin');
@@ -671,6 +755,9 @@ async function initDatabase() {
 
     const [dbLogs]: any = await conn.query('SELECT * FROM email_logs ORDER BY created_at DESC');
     memoryStore.emailLogs = dbLogs || [];
+
+    const [dbLoginLogs]: any = await conn.query('SELECT * FROM login_logs ORDER BY created_at DESC');
+    memoryStore.loginLogs = dbLoginLogs || [];
 
     conn.release();
     console.log('[Database] MySQL tables verified and memory store synchronized successfully.');
@@ -803,6 +890,8 @@ app.post('/api/auth/google', async (req: Request, res: Response) => {
       }
     }
 
+    await recordLoginLog(existingUser, 'google', req);
+
     return res.json({
       success: true,
       requiresVerification: false,
@@ -868,6 +957,8 @@ app.post('/api/auth/verify-email', async (req: Request, res: Response) => {
       user.is_verified = 1;
       user.verification_code = null;
     }
+
+    await recordLoginLog(user, 'local', req);
 
     return res.json({
       success: true,
@@ -966,6 +1057,8 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
       }
       user.is_verified = 1;
     }
+
+    await recordLoginLog(user, 'local', req);
 
     return res.json({
       success: true,
@@ -1434,13 +1527,42 @@ app.post('/api/teacher/update-role', async (req: Request, res: Response) => {
   }
 });
 
+// Helper to clean up expired heartbeats (> 2 minutes inactive)
+function purgeExpiredHeartbeats() {
+  const now = Date.now();
+  for (const [email, timestamp] of activeHeartbeats.entries()) {
+    if (now - timestamp >= 120000) {
+      activeHeartbeats.delete(email);
+    }
+  }
+}
+
 // Heartbeat endpoint for tracking real-time online status of users
 app.post('/api/auth/heartbeat', (req: Request, res: Response) => {
   const email = (req.body.email || '').trim().toLowerCase();
   if (email) {
     activeHeartbeats.set(email, Date.now());
   }
+  purgeExpiredHeartbeats();
   return res.json({ success: true, timestamp: Date.now() });
+});
+
+// Logout presence endpoint to immediately mark user offline
+app.post('/api/auth/logout-presence', (req: Request, res: Response) => {
+  let email = '';
+  if (typeof req.body === 'object' && req.body?.email) {
+    email = String(req.body.email).trim().toLowerCase();
+  } else if (typeof req.body === 'string') {
+    try {
+      const parsed = JSON.parse(req.body);
+      email = String(parsed.email || '').trim().toLowerCase();
+    } catch {}
+  }
+  if (email) {
+    activeHeartbeats.delete(email);
+  }
+  purgeExpiredHeartbeats();
+  return res.json({ success: true });
 });
 
 
@@ -1451,6 +1573,11 @@ app.get('/api/teacher/overview', async (req: Request, res: Response) => {
   try {
     const queryEmail = (req.query.email as string || '').trim().toLowerCase();
     const queryRole = (req.query.role as string || '').trim().toLowerCase();
+
+    if (queryEmail) {
+      activeHeartbeats.set(queryEmail, Date.now());
+    }
+    purgeExpiredHeartbeats();
 
     let allUsers: any[] = [];
     let allSessions: any[] = [];
@@ -1543,6 +1670,36 @@ app.get('/api/teacher/overview', async (req: Request, res: Response) => {
     const onlineCount = studentSummaries.filter(s => s.isOnline).length;
     const serverMetrics = getVpsHardwareMetrics(onlineCount);
 
+    let loginLogs = memoryStore.loginLogs;
+    if (isMySqlConnected && pool) {
+      const [logRows]: any = await pool.query('SELECT * FROM login_logs ORDER BY created_at DESC LIMIT 100');
+      if (logRows) {
+        loginLogs = logRows.map((r: any) => ({
+          id: r.id,
+          userId: r.user_id,
+          userEmail: r.user_email,
+          userName: r.user_name,
+          asalSekolah: r.asal_sekolah,
+          role: r.role,
+          loginMethod: r.login_method,
+          ipAddress: r.ip_address,
+          loginAt: r.login_at,
+        }));
+      }
+    } else {
+      loginLogs = memoryStore.loginLogs.map((r: any) => ({
+        id: r.id,
+        userId: r.user_id || r.userId,
+        userEmail: r.user_email || r.userEmail,
+        userName: r.user_name || r.userName,
+        asalSekolah: r.asal_sekolah || r.asalSekolah,
+        role: r.role || 'siswa',
+        loginMethod: r.login_method || r.loginMethod || 'local',
+        ipAddress: r.ip_address || r.ipAddress || '127.0.0.1',
+        loginAt: r.login_at || r.loginAt,
+      }));
+    }
+
     return res.json({
       totalStudents,
       verifiedStudents,
@@ -1550,6 +1707,7 @@ app.get('/api/teacher/overview', async (req: Request, res: Response) => {
       classAverageScore,
       students: studentSummaries,
       moduleAverageScores,
+      loginLogs,
       databaseStatus: {
         isMySqlConnected,
         host: dbConfig.host,
@@ -1560,6 +1718,44 @@ app.get('/api/teacher/overview', async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error('Teacher overview error:', err);
     return res.status(500).json({ error: err.message });
+  }
+});
+
+// Standalone endpoint for fetching student login logs
+app.get('/api/teacher/login-logs', async (_req: Request, res: Response) => {
+  try {
+    let loginLogs = memoryStore.loginLogs;
+    if (isMySqlConnected && pool) {
+      const [rows]: any = await pool.query('SELECT * FROM login_logs ORDER BY created_at DESC LIMIT 100');
+      if (rows && rows.length > 0) {
+        loginLogs = rows.map((r: any) => ({
+          id: r.id,
+          userId: r.user_id,
+          userEmail: r.user_email,
+          userName: r.user_name,
+          asalSekolah: r.asal_sekolah,
+          role: r.role,
+          loginMethod: r.login_method,
+          ipAddress: r.ip_address,
+          loginAt: r.login_at,
+        }));
+      }
+    } else {
+      loginLogs = memoryStore.loginLogs.map((r: any) => ({
+        id: r.id,
+        userId: r.user_id || r.userId,
+        userEmail: r.user_email || r.userEmail,
+        userName: r.user_name || r.userName,
+        asalSekolah: r.asal_sekolah || r.asalSekolah,
+        role: r.role || 'siswa',
+        loginMethod: r.login_method || r.loginMethod || 'local',
+        ipAddress: r.ip_address || r.ipAddress || '127.0.0.1',
+        loginAt: r.login_at || r.loginAt,
+      }));
+    }
+    return res.json({ success: true, logs: loginLogs });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
   }
 });
 
@@ -1657,6 +1853,7 @@ function getVpsHardwareMetrics(onlineCount: number) {
 
 // Standalone endpoint for live server metrics polling
 app.get('/api/server/metrics', (_req: Request, res: Response) => {
+  purgeExpiredHeartbeats();
   const onlineCount = activeHeartbeats.size;
   const metrics = getVpsHardwareMetrics(onlineCount);
   res.json(metrics);
