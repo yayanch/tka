@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Users, 
   Download, 
@@ -16,6 +16,8 @@ import {
   Sparkles,
   Award,
   ChevronRight,
+  ChevronDown,
+  Settings,
   School,
   Mail,
   UserCheck,
@@ -64,6 +66,14 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
   const [selectedSchool, setSelectedSchool] = useState('all');
   const [selectedStudent, setSelectedStudent] = useState<TeacherStudentSummary | null>(null);
 
+  // Active section state: 'grades' (Rekapitulasi Nilai), 'users' (Daftar Pengguna), 'emails' (Riwayat & Monitoring Email)
+  const [activeSection, setActiveSection] = useState<'grades' | 'users' | 'emails'>('grades');
+
+  // Pagination states
+  const [studentPage, setStudentPage] = useState(1);
+  const [userPage, setUserPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+
   // State for Registered User List (Admin View)
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState<'all' | 'siswa' | 'guru' | 'admin'>('all');
@@ -72,10 +82,164 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
   // State for Email Delivery History / SMTP Logs
   const [emailSearchQuery, setEmailSearchQuery] = useState('');
   const [emailStatusFilter, setEmailStatusFilter] = useState<'all' | 'sent' | 'bounced_or_failed'>('all');
+  const [emailPage, setEmailPage] = useState(1);
   const [resendingEmail, setResendingEmail] = useState<string | null>(null);
   const [actionFeedback, setActionFeedback] = useState<string | null>(null);
   const [testEmailAddress, setTestEmailAddress] = useState('');
   const [isSendingTest, setIsSendingTest] = useState(false);
+
+  // Dropdown Action Menu state
+  const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
+  const actionMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {
+        setIsActionMenuOpen(false);
+      }
+    };
+    if (isActionMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isActionMenuOpen]);
+
+  // Filtered Email Logs
+  const filteredEmailLogs = useMemo(() => {
+    if (!data?.emailLogs) return [];
+    return data.emailLogs.filter(log => {
+      const matchSearch = 
+        log.recipientEmail.toLowerCase().includes(emailSearchQuery.toLowerCase()) ||
+        (log.recipientName && log.recipientName.toLowerCase().includes(emailSearchQuery.toLowerCase())) ||
+        (log.subject && log.subject.toLowerCase().includes(emailSearchQuery.toLowerCase())) ||
+        (log.errorMessage && log.errorMessage.toLowerCase().includes(emailSearchQuery.toLowerCase()));
+
+      const matchFilter = 
+        emailStatusFilter === 'all' ||
+        (emailStatusFilter === 'sent' && log.status === 'sent') ||
+        (emailStatusFilter === 'bounced_or_failed' && (log.status === 'bounced' || log.status === 'failed'));
+
+      return matchSearch && matchFilter;
+    });
+  }, [data?.emailLogs, emailSearchQuery, emailStatusFilter]);
+
+  // Apply email log pagination
+  const paginatedEmailLogs = useMemo(() => {
+    const start = (emailPage - 1) * ITEMS_PER_PAGE;
+    return filteredEmailLogs.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredEmailLogs, emailPage]);
+
+
+  const schoolOptions = useMemo(() => {
+    if (!data?.students) return [];
+    const set = new Set<string>();
+    data.students.forEach(s => {
+      if (s.role !== 'admin' && s.asalSekolah) set.add(s.asalSekolah);
+    });
+    return Array.from(set);
+  }, [data?.students]);
+
+  // Filtered students (Excludes Admin accounts from Peserta / Siswa)
+  const filteredStudents = useMemo(() => {
+    if (!data?.students) return [];
+    return data.students.filter(s => {
+      if (s.role === 'admin') return false;
+      const matchSearch = 
+        s.namaLengkap.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.asalSekolah.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchSchool = selectedSchool === 'all' || s.asalSekolah === selectedSchool;
+      return matchSearch && matchSchool;
+    });
+  }, [data?.students, searchQuery, selectedSchool]);
+
+  // Apply student pagination
+  const paginatedStudents = useMemo(() => {
+    const start = (studentPage - 1) * ITEMS_PER_PAGE;
+    return filteredStudents.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredStudents, studentPage]);
+
+
+
+  // Filtered Registered Users (Admin View)
+  const filteredUsersList = useMemo(() => {
+    if (!data?.students) return [];
+    return data.students.filter(u => {
+      const q = userSearchQuery.toLowerCase();
+      const matchSearch =
+        u.namaLengkap.toLowerCase().includes(q) ||
+        u.email.toLowerCase().includes(q) ||
+        u.asalSekolah.toLowerCase().includes(q) ||
+        u.userId.toLowerCase().includes(q);
+
+      const userRole = u.role || 'siswa';
+      const matchRole = userRoleFilter === 'all' || userRole === userRoleFilter;
+
+      const matchVerification =
+        userVerificationFilter === 'all' ||
+        (userVerificationFilter === 'verified' && u.isVerified) ||
+        (userVerificationFilter === 'unverified' && !u.isVerified);
+
+      return matchSearch && matchRole && matchVerification;
+    });
+  }, [data?.students, userSearchQuery, userRoleFilter, userVerificationFilter]);
+
+  // Apply user pagination
+  const paginatedUsersList = useMemo(() => {
+    const start = (userPage - 1) * ITEMS_PER_PAGE;
+    return filteredUsersList.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredUsersList, userPage]);
+
+  // Pagination helpers
+  const Pagination = ({ 
+    currentPage, 
+    totalItems, 
+    onPageChange,
+    label = 'data'
+  }: { 
+    currentPage: number; 
+    totalItems: number; 
+    onPageChange: (p: number) => void;
+    label?: string;
+  }) => {
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+    if (totalPages <= 1) return null;
+    const startItem = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+    const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalItems);
+
+    return (
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-3 border-t border-slate-100 dark:border-slate-800 text-xs bg-slate-50/50 dark:bg-slate-800/40">
+        <span className="text-slate-500 font-medium">
+          Menampilkan {startItem} - {endItem} dari {totalItems} {label}
+        </span>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => onPageChange(Math.max(1, currentPage - 1))} 
+            disabled={currentPage === 1} 
+            className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-semibold text-slate-700 dark:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer transition-colors shadow-2xs"
+          >
+            Sebelumnya
+          </button>
+          <span className="font-bold text-slate-800 dark:text-slate-200 px-2">
+            {currentPage} / {totalPages}
+          </span>
+          <button 
+            onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))} 
+            disabled={currentPage === totalPages} 
+            className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-semibold text-slate-700 dark:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer transition-colors shadow-2xs"
+          >
+            Selanjutnya
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+
+
+
 
   const isAdmin = currentUser?.role === 'admin';
   const isStudent = currentUser?.role === 'siswa';
@@ -135,71 +299,8 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
     }
   };
 
-  // Filter school options (Excludes Admin accounts from Peserta / Siswa)
-  const schoolOptions = useMemo(() => {
-    if (!data?.students) return [];
-    const set = new Set<string>();
-    data.students.forEach(s => {
-      if (s.role !== 'admin' && s.asalSekolah) set.add(s.asalSekolah);
-    });
-    return Array.from(set);
-  }, [data?.students]);
 
-  // Filtered students (Excludes Admin accounts from Peserta / Siswa)
-  const filteredStudents = useMemo(() => {
-    if (!data?.students) return [];
-    return data.students.filter(s => {
-      if (s.role === 'admin') return false;
-      const matchSearch = 
-        s.namaLengkap.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.asalSekolah.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchSchool = selectedSchool === 'all' || s.asalSekolah === selectedSchool;
-      return matchSearch && matchSchool;
-    });
-  }, [data?.students, searchQuery, selectedSchool]);
 
-  // Filtered Email Logs
-  const filteredEmailLogs = useMemo(() => {
-    if (!data?.emailLogs) return [];
-    return data.emailLogs.filter(log => {
-      const matchSearch = 
-        log.recipientEmail.toLowerCase().includes(emailSearchQuery.toLowerCase()) ||
-        (log.recipientName && log.recipientName.toLowerCase().includes(emailSearchQuery.toLowerCase())) ||
-        (log.subject && log.subject.toLowerCase().includes(emailSearchQuery.toLowerCase())) ||
-        (log.errorMessage && log.errorMessage.toLowerCase().includes(emailSearchQuery.toLowerCase()));
-
-      const matchFilter = 
-        emailStatusFilter === 'all' ||
-        (emailStatusFilter === 'sent' && log.status === 'sent') ||
-        (emailStatusFilter === 'bounced_or_failed' && (log.status === 'bounced' || log.status === 'failed'));
-
-      return matchSearch && matchFilter;
-    });
-  }, [data?.emailLogs, emailSearchQuery, emailStatusFilter]);
-
-  // Filtered Registered Users (Admin View)
-  const filteredUsersList = useMemo(() => {
-    if (!data?.students) return [];
-    return data.students.filter(u => {
-      const q = userSearchQuery.toLowerCase();
-      const matchSearch =
-        u.namaLengkap.toLowerCase().includes(q) ||
-        u.email.toLowerCase().includes(q) ||
-        u.asalSekolah.toLowerCase().includes(q) ||
-        u.userId.toLowerCase().includes(q);
-
-      const userRole = u.role || 'siswa';
-      const matchRole = userRoleFilter === 'all' || userRole === userRoleFilter;
-
-      const matchVerification =
-        userVerificationFilter === 'all' ||
-        (userVerificationFilter === 'verified' && u.isVerified) ||
-        (userVerificationFilter === 'unverified' && !u.isVerified);
-
-      return matchSearch && matchRole && matchVerification;
-    });
-  }, [data?.students, userSearchQuery, userRoleFilter, userVerificationFilter]);
 
   const formatDate = (isoString: string) => {
     try {
@@ -311,64 +412,141 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 self-start md:self-center shrink-0">
-            {!isStudent && onOpenContactSettings && (
+          <div className="flex items-center gap-2 self-start md:self-center shrink-0">
+            {/* Single Consolidated Dropdown Action Button */}
+            <div className="relative" ref={actionMenuRef}>
               <button
-                onClick={onOpenContactSettings}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-blue-900 dark:text-blue-200 bg-blue-100 dark:bg-blue-950/80 hover:bg-blue-200 border border-blue-300 dark:border-blue-800 shadow-xs transition-colors cursor-pointer"
-                title="Pengaturan Kontak Bantuan"
+                type="button"
+                onClick={() => setIsActionMenuOpen(!isActionMenuOpen)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-100 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 shadow-xs transition-colors cursor-pointer"
+                title="Buka menu aksi dan pengaturan"
+                aria-expanded={isActionMenuOpen}
               >
-                <Phone className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <span>Pengaturan Kontak</span>
+                <Settings className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <span>Menu Aksi & Pengaturan</span>
+                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isActionMenuOpen ? 'rotate-180' : ''}`} />
               </button>
-            )}
 
-            {!isStudent && onOpenBrandingSettings && (
-              <button
-                onClick={onOpenBrandingSettings}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-indigo-900 dark:text-indigo-200 bg-indigo-100 dark:bg-indigo-950/80 hover:bg-indigo-200 border border-indigo-300 dark:border-indigo-800 shadow-xs transition-colors cursor-pointer"
-                title="Pengaturan Logo & Favicon"
-              >
-                <ImageIcon className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                <span>Pengaturan Logo</span>
-              </button>
-            )}
+              {isActionMenuOpen && (
+                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                  {!isStudent && (
+                    <>
+                      <div className="px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                        Pengaturan Tampilan
+                      </div>
 
-            {!isStudent && onOpenHeroSettings && (
-              <button
-                onClick={onOpenHeroSettings}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-amber-900 dark:text-amber-200 bg-amber-100 dark:bg-amber-950/80 hover:bg-amber-200 border border-amber-300 dark:border-amber-800 shadow-xs transition-colors cursor-pointer"
-                title="Pengaturan Teks Hero Banner Halaman Depan"
-              >
-                <Edit3 className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                <span>Pengaturan Hero</span>
-              </button>
-            )}
+                      {onOpenContactSettings && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsActionMenuOpen(false);
+                            onOpenContactSettings();
+                          }}
+                          className="w-full flex items-center gap-3 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-950/80 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                            <Phone className="w-3.5 h-3.5" />
+                          </div>
+                          <div>
+                            <div className="font-bold text-slate-800 dark:text-slate-200">Pengaturan Kontak</div>
+                            <div className="text-[10px] text-slate-400 font-normal">Kontak bantuan WhatsApp & email</div>
+                          </div>
+                        </button>
+                      )}
 
-            {!isStudent && (
-              <button
-                onClick={handleDownloadCsv}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-xs transition-colors cursor-pointer"
-              >
-                <FileSpreadsheet className="w-4 h-4" />
-                <span>Ekspor Excel / CSV</span>
-              </button>
-            )}
+                      {onOpenBrandingSettings && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsActionMenuOpen(false);
+                            onOpenBrandingSettings();
+                          }}
+                          className="w-full flex items-center gap-3 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer text-left"
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-950/80 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
+                            <ImageIcon className="w-3.5 h-3.5" />
+                          </div>
+                          <div>
+                            <div className="font-bold text-slate-800 dark:text-slate-200">Pengaturan Logo</div>
+                            <div className="text-[10px] text-slate-400 font-normal">Logo header, brand, & favicon</div>
+                          </div>
+                        </button>
+                      )}
 
+                      {onOpenHeroSettings && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsActionMenuOpen(false);
+                            onOpenHeroSettings();
+                          }}
+                          className="w-full flex items-center gap-3 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:text-amber-600 dark:hover:text-amber-400 transition-colors cursor-pointer text-left"
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-950/80 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </div>
+                          <div>
+                            <div className="font-bold text-slate-800 dark:text-slate-200">Pengaturan Hero</div>
+                            <div className="text-[10px] text-slate-400 font-normal">Teks banner beranda depan</div>
+                          </div>
+                        </button>
+                      )}
+
+                      <div className="my-1.5 border-t border-slate-100 dark:border-slate-800" />
+                    </>
+                  )}
+
+                  <div className="px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                    Ekspor & Cetak
+                  </div>
+
+                  {!isStudent && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsActionMenuOpen(false);
+                        handleDownloadCsv();
+                      }}
+                      className="w-full flex items-center gap-3 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer text-left"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950/80 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                        <FileSpreadsheet className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-800 dark:text-slate-200">Ekspor Excel / CSV</div>
+                        <div className="text-[10px] text-slate-400 font-normal">Unduh rekap nilai & data siswa</div>
+                      </div>
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsActionMenuOpen(false);
+                      handlePrint();
+                    }}
+                    className="w-full flex items-center gap-3 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer text-left"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 shrink-0">
+                      <Printer className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-slate-800 dark:text-slate-200">Cetak Rekap</div>
+                      <div className="text-[10px] text-slate-400 font-normal">Cetak fisik atau simpan PDF</div>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Quick Refresh Data Button */}
             <button
-              onClick={handlePrint}
-              className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 transition-colors cursor-pointer"
-            >
-              <Printer className="w-4 h-4" />
-              <span>Cetak Rekap</span>
-            </button>
-
-            <button
+              type="button"
               onClick={loadData}
-              className="p-2.5 rounded-xl text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 transition-colors cursor-pointer"
+              className="p-2.5 rounded-xl text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
               title="Segarkan Data"
             >
-              <RotateCcw className="w-4 h-4" />
+              <RotateCcw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </div>
@@ -412,29 +590,106 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
       </section>
 
       {/* ========================================================================= */}
-      {/* INTERACTIVE ADMIN QUICK CARDS (KARTU CEPAT BERANDA ADMIN)                  */}
+      {/* INTERACTIVE ADMIN QUICK CARDS (KARTU CEPAT NAVIGASI BAGIAN TERPISAH)        */}
       {/* ========================================================================= */}
       {isAdmin && (
-        <section className="space-y-3">
+        <section className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-purple-600 fill-purple-600" />
+              <Sparkles className="w-4 h-4 text-blue-600 fill-blue-600" />
               <span>Kartu Cepat Dasbor Administrator</span>
             </h2>
-            <span className="text-xs text-slate-500 font-medium">Panel Kendali Pintar</span>
+            <span className="text-xs text-slate-500 font-medium">Klik kartu untuk beralih bagian</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* CARD 1: Ringkasan Pengguna */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4 hover:border-purple-400 transition-all">
+            {/* KARTU 1: Rekapitulasi Nilai Siswa */}
+            <div 
+              onClick={() => setActiveSection('grades')}
+              className={`bg-white dark:bg-slate-900 border rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4 cursor-pointer transition-all ${
+                activeSection === 'grades'
+                  ? 'border-blue-500 ring-2 ring-blue-500/20 bg-blue-50/20 dark:bg-blue-950/20'
+                  : 'border-slate-200 dark:border-slate-800 hover:border-blue-400'
+              }`}
+            >
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 dark:bg-blue-950/50 px-2.5 py-0.5 rounded-full border border-blue-200 dark:border-blue-800">
+                    Rekapitulasi Nilai
+                  </span>
+                  {activeSection === 'grades' ? (
+                    <span className="text-[10px] font-bold text-blue-600 bg-blue-100 dark:bg-blue-900/60 px-2 py-0.5 rounded-full">
+                      ● Aktif
+                    </span>
+                  ) : (
+                    <span className="text-xs font-mono font-bold text-blue-600">
+                      {filteredStudents.length} Siswa
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800">
+                    <span className="text-[10px] text-slate-400 block font-medium">Rata-Rata</span>
+                    <span className="text-base font-black text-slate-900 dark:text-white">
+                      {data?.classAverageScore ? data.classAverageScore : 0}%
+                    </span>
+                  </div>
+                  <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl border border-emerald-200 dark:border-emerald-800/80">
+                    <span className="text-[10px] text-emerald-800 dark:text-emerald-300 block font-medium">Ujian Selesai</span>
+                    <span className="text-base font-black text-emerald-600 dark:text-emerald-400">
+                      {data?.totalExamsTaken || 0}
+                    </span>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Pantau capaian 8 modul kejuruan, status kompeten/remedial, dan ekspor lembar rekap nilai.
+                </p>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveSection('grades');
+                  }}
+                  className={`w-full py-2 px-3 text-xs font-extrabold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
+                    activeSection === 'grades'
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
+                  }`}
+                >
+                  <GraduationCap className="w-3.5 h-3.5" />
+                  <span>{activeSection === 'grades' ? 'Sedang Ditampilkan' : 'Buka Rekapitulasi Nilai'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* KARTU 2: Daftar Pengguna & Identitas */}
+            <div 
+              onClick={() => setActiveSection('users')}
+              className={`bg-white dark:bg-slate-900 border rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4 cursor-pointer transition-all ${
+                activeSection === 'users'
+                  ? 'border-purple-500 ring-2 ring-purple-500/20 bg-purple-50/20 dark:bg-purple-950/20'
+                  : 'border-slate-200 dark:border-slate-800 hover:border-purple-400'
+              }`}
+            >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-purple-700 bg-purple-50 dark:bg-purple-950/50 px-2.5 py-0.5 rounded-full border border-purple-200 dark:border-purple-800">
-                    Ringkasan Pengguna
+                    Daftar Pengguna
                   </span>
-                  <span className="text-xs font-mono font-bold text-purple-600">
-                    {data?.students?.length || 0} Akun Total
-                  </span>
+                  {activeSection === 'users' ? (
+                    <span className="text-[10px] font-bold text-purple-600 bg-purple-100 dark:bg-purple-900/60 px-2 py-0.5 rounded-full">
+                      ● Aktif
+                    </span>
+                  ) : (
+                    <span className="text-xs font-mono font-bold text-purple-600">
+                      {data?.students?.length || 0} Akun
+                    </span>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
@@ -453,40 +708,58 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                 </div>
 
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  Pemantauan akun terdaftar, status verifikasi OTP, dan hak akses guru/siswa.
+                  Kelola akun pengguna terdaftar, status verifikasi OTP, hak akses guru/siswa, dan audit akun.
                 </p>
               </div>
 
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
                 <button
-                  onClick={() => {
-                    const el = document.getElementById('section-users');
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveSection('users');
                   }}
-                  className="w-full py-2 px-3 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 text-xs font-extrabold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 border border-purple-200 dark:border-purple-800"
+                  className={`w-full py-2 px-3 text-xs font-extrabold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
+                    activeSection === 'users'
+                      ? 'bg-purple-600 text-white shadow-xs'
+                      : 'bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800'
+                  }`}
                 >
                   <Users className="w-3.5 h-3.5" />
-                  <span>Kelola Daftar Pengguna</span>
+                  <span>{activeSection === 'users' ? 'Sedang Ditampilkan' : 'Buka Daftar Pengguna'}</span>
                 </button>
               </div>
             </div>
 
-            {/* CARD 2: Monitoring Email OTP */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4 hover:border-blue-400 transition-all">
+            {/* KARTU 3: Riwayat & Monitoring Email OTP */}
+            <div 
+              onClick={() => setActiveSection('emails')}
+              className={`bg-white dark:bg-slate-900 border rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4 cursor-pointer transition-all ${
+                activeSection === 'emails'
+                  ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/20 dark:bg-emerald-950/20'
+                  : 'border-slate-200 dark:border-slate-800 hover:border-emerald-400'
+              }`}
+            >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 dark:bg-blue-950/50 px-2.5 py-0.5 rounded-full border border-blue-200 dark:border-blue-800">
-                    Monitoring Email OTP
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+                    Monitoring Email
                   </span>
-                  <span className="text-xs font-mono font-bold text-emerald-600 flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" />
-                    <span>SMTP Active</span>
-                  </span>
+                  {activeSection === 'emails' ? (
+                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-900/60 px-2 py-0.5 rounded-full">
+                      ● Aktif
+                    </span>
+                  ) : (
+                    <span className="text-xs font-mono font-bold text-emerald-600 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>SMTP Ready</span>
+                    </span>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl border border-emerald-200 dark:border-emerald-800/80">
-                    <span className="text-[10px] text-emerald-800 dark:text-emerald-300 block font-medium">Email Terkirim</span>
+                    <span className="text-[10px] text-emerald-800 dark:text-emerald-300 block font-medium">Terkirim</span>
                     <span className="text-base font-black text-emerald-600 dark:text-emerald-400">
                       {data?.emailLogs?.filter(l => l.status === 'sent').length || 0}
                     </span>
@@ -500,102 +773,133 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                 </div>
 
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  Pantau logs pengiriman kode verifikasi OTP dan jalankan pengujian server email.
+                  Pantau riwayat pengiriman kode OTP verifikasi, deteksi kegagalan MX, dan uji coba pengiriman.
                 </p>
               </div>
 
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
                 <button
-                  onClick={() => {
-                    const el = document.getElementById('section-emails');
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveSection('emails');
                   }}
-                  className="w-full py-2 px-3 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 text-xs font-extrabold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 border border-blue-200 dark:border-blue-800"
+                  className={`w-full py-2 px-3 text-xs font-extrabold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
+                    activeSection === 'emails'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                  }`}
                 >
                   <Mail className="w-3.5 h-3.5" />
-                  <span>Buka Log Email & Uji SMTP</span>
+                  <span>{activeSection === 'emails' ? 'Sedang Ditampilkan' : 'Buka Monitoring Email'}</span>
                 </button>
               </div>
             </div>
 
-            {/* CARD 3: Kelola Identitas & Ekspor */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4 hover:border-emerald-400 transition-all">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
-                    Kelola Identitas & Laporan
-                  </span>
-                  <span className="text-xs font-semibold text-slate-500 flex items-center gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
-                    <span>1 Admin</span>
-                  </span>
-                </div>
-
-                <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800 space-y-1">
-                  <span className="text-[10px] text-slate-400 block font-medium">Akun Administrator Utama</span>
-                  <p className="text-xs font-mono font-bold text-slate-900 dark:text-white truncate">
-                    admin@smk.belajar.id
-                  </p>
-                  <p className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1 mt-0.5">
-                    <CheckCircle2 className="w-3 h-3" />
-                    <span>Protected Super Administrator</span>
-                  </p>
-                </div>
-
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Sistem dikunci khusus 1 admin utama. Unduh rekapitulasi nilai 8 modul secara langsung.
-                </p>
-              </div>
-
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-                <button
-                  onClick={handleDownloadCsv}
-                  className="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-xs"
-                >
-                  <FileSpreadsheet className="w-3.5 h-3.5" />
-                  <span>Ekspor Rekap Nilai CSV</span>
-                </button>
-              </div>
-            </div>
-
-            {/* CARD 4: Pengaturan Teks Hero Banner */}
+            {/* KARTU 4: Kustomisasi & Ekspor */}
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4 hover:border-amber-400 transition-all">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 dark:bg-amber-950/50 px-2.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">
-                    Kustomisasi Landing Page
+                    Pengaturan Platform
                   </span>
                   <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1">
                     <Sparkles className="w-3.5 h-3.5 fill-amber-400" />
-                    <span>Live Hero</span>
+                    <span>Konfigurasi</span>
                   </span>
                 </div>
 
                 <div className="p-2.5 bg-amber-50/50 dark:bg-amber-950/30 rounded-xl border border-amber-200/60 dark:border-amber-800/60 space-y-1">
-                  <span className="text-[10px] text-amber-800 dark:text-amber-300 block font-bold">Banner Depan Publik</span>
+                  <span className="text-[10px] text-amber-800 dark:text-amber-300 block font-bold">Kustomisasi Cepat</span>
                   <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                    Pengaturan Judul & Deskripsi
+                    Hero, Branding, & Kontak
                   </p>
                   <p className="text-[10px] text-slate-500 font-medium">
-                    Ubah teks badge, judul besar, deskripsi, dan 4 item statistik.
+                    Sesuaikan judul aplikasi, logo navigasi, dan kontak WhatsApp bantuan.
                   </p>
                 </div>
 
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  Sesuaikan narasi dan headline banner depan sesuai kebutuhan instansi/sekolah.
+                  Kelola identitas visual aplikasi dan unduh rekap nilai keseluruhan siswa ke CSV.
                 </p>
               </div>
 
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center gap-1.5">
                 <button
-                  onClick={onOpenHeroSettings}
-                  className="w-full py-2 px-3 bg-amber-500 hover:bg-amber-600 text-white text-xs font-extrabold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-xs"
+                  type="button"
+                  onClick={handleDownloadCsv}
+                  className="flex-1 py-2 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1 shadow-xs"
+                  title="Unduh CSV"
                 >
-                  <Edit3 className="w-3.5 h-3.5" />
-                  <span>Edit Teks Hero Banner</span>
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  <span>Ekspor CSV</span>
                 </button>
+                {onOpenHeroSettings && (
+                  <button
+                    type="button"
+                    onClick={onOpenHeroSettings}
+                    className="p-2 bg-amber-100 hover:bg-amber-200 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 rounded-xl border border-amber-300 dark:border-amber-800 transition-colors cursor-pointer"
+                    title="Edit Teks Hero"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             </div>
+          </div>
+
+          {/* Navigasi Tab Pengalih Bagian */}
+          <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700/80">
+            <button
+              onClick={() => setActiveSection('grades')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeSection === 'grades'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-white/60 dark:bg-slate-900/40 hover:bg-white dark:hover:bg-slate-900'
+              }`}
+            >
+              <GraduationCap className="w-4 h-4" />
+              <span>1. Rekapitulasi Nilai Siswa</span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                activeSection === 'grades' ? 'bg-white/20 text-white' : 'bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400'
+              }`}>
+                {filteredStudents.length} Siswa
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveSection('users')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeSection === 'users'
+                  ? 'bg-purple-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-white/60 dark:bg-slate-900/40 hover:bg-white dark:hover:bg-slate-900'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span>2. Daftar Pengguna & Identitas</span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                activeSection === 'users' ? 'bg-white/20 text-white' : 'bg-purple-50 dark:bg-purple-950 text-purple-600 dark:text-purple-400'
+              }`}>
+                {filteredUsersList.length} Akun
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveSection('emails')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeSection === 'emails'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-white/60 dark:bg-slate-900/40 hover:bg-white dark:hover:bg-slate-900'
+              }`}
+            >
+              <MailCheck className="w-4 h-4" />
+              <span>3. Riwayat & Monitoring Email</span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                activeSection === 'emails' ? 'bg-white/20 text-white' : 'bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400'
+              }`}>
+                {filteredEmailLogs.length} Log
+              </span>
+            </button>
           </div>
         </section>
       )}
@@ -666,14 +970,14 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-sans">
-              {filteredStudents.length === 0 ? (
+              {paginatedStudents.length === 0 ? (
                 <tr>
                   <td colSpan={13} className="py-12 text-center text-slate-400">
                     Tidak ada data siswa yang cocok dengan pencarian.
                   </td>
                 </tr>
               ) : (
-                filteredStudents.map((s) => {
+                paginatedStudents.map((s) => {
                   const isCompetent = s.averageScore >= 75;
 
                   return (
@@ -774,6 +1078,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
               )}
             </tbody>
           </table>
+          <Pagination currentPage={studentPage} totalItems={filteredStudents.length} onPageChange={setStudentPage} label="siswa" />
         </div>
       </div>
 
@@ -878,21 +1183,22 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-sans">
-                  {filteredUsersList.length === 0 ? (
+                  {paginatedUsersList.length === 0 ? (
                     <tr>
                       <td colSpan={8} className="py-10 text-center text-slate-400">
                         Tidak ada pengguna terdaftar yang sesuai dengan kriteria pencarian.
                       </td>
                     </tr>
                   ) : (
-                    filteredUsersList.map((usr, idx) => {
+                    paginatedUsersList.map((usr, idx) => {
                       const userRole = usr.role || 'siswa';
                       const authProvider = usr.authProvider || 'local';
+                      const itemIndex = (userPage - 1) * ITEMS_PER_PAGE + idx + 1;
 
                       return (
                         <tr key={usr.userId} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
                           <td className="py-3 px-4 font-mono text-[11px] text-slate-500">
-                            <span className="font-bold text-slate-700 dark:text-slate-300 mr-1.5">{idx + 1}.</span>
+                            <span className="font-bold text-slate-700 dark:text-slate-300 mr-1.5">{itemIndex}.</span>
                             <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[10px]" title={usr.userId}>
                               {usr.userId.length > 10 ? `${usr.userId.substring(0, 8)}...` : usr.userId}
                             </span>
@@ -1004,6 +1310,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                   )}
                 </tbody>
               </table>
+              <Pagination currentPage={userPage} totalItems={filteredUsersList.length} onPageChange={setUserPage} label="pengguna" />
             </div>
           </div>
         </section>
@@ -1144,14 +1451,14 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-sans">
-                  {filteredEmailLogs.length === 0 ? (
+                  {paginatedEmailLogs.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="py-10 text-center text-slate-400">
                         Tidak ada catatan pengiriman email yang sesuai dengan filter.
                       </td>
                     </tr>
                   ) : (
-                    filteredEmailLogs.map((log) => {
+                    paginatedEmailLogs.map((log) => {
                       const isSent = log.status === 'sent';
                       const isBounced = log.status === 'bounced';
 
@@ -1232,6 +1539,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                   )}
                 </tbody>
               </table>
+              <Pagination currentPage={emailPage} totalItems={filteredEmailLogs.length} onPageChange={setEmailPage} label="catatan email" />
             </div>
           </div>
         </section>

@@ -10,7 +10,9 @@ import {
   Settings,
   Sun,
   Moon,
-  Phone
+  Phone,
+  Users,
+  MailCheck
 } from 'lucide-react';
 import { UserProfile } from '../types/auth';
 import { Theme } from '../utils/theme';
@@ -18,7 +20,9 @@ import { getStoredBrandingConfig } from '../utils/brandingStorage';
 
 interface NavbarProps {
   currentTab: 'home' | 'dashboard' | 'learning' | 'bank' | 'stats' | 'teacher';
-  onSelectTab: (tab: 'home' | 'dashboard' | 'learning' | 'bank' | 'stats' | 'teacher') => void;
+  adminSection?: 'grades' | 'users' | 'emails';
+  onSelectAdminSection?: (section: 'grades' | 'users' | 'emails') => void;
+  onSelectTab: (tab: 'home' | 'dashboard' | 'learning' | 'bank' | 'stats' | 'teacher', adminSection?: 'grades' | 'users' | 'emails') => void;
   currentUser: UserProfile | null;
   onOpenAuth: (mode: 'register' | 'login') => void;
   onLogout: () => void;
@@ -30,6 +34,8 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({
   currentTab,
+  adminSection = 'grades',
+  onSelectAdminSection,
   onSelectTab,
   currentUser,
   onOpenAuth,
@@ -52,10 +58,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           className={`flex items-center gap-2.5 whitespace-nowrap shrink-0 group ${currentUser ? 'cursor-pointer' : 'cursor-default'}`}
           title={currentUser ? 'Kembali ke Beranda' : 'Platform TKA SMK TJKT'}
         >
-          <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-xs group-hover:bg-blue-700 transition-colors">
-            {branding.logoIcon ? (
+          <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-xs group-hover:bg-blue-700 transition-colors overflow-hidden">
+            {branding.logoUrl ? (
+              <img id="navbar-logo-img" src={branding.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+            ) : branding.logoIcon ? (
               <i className={`${branding.logoIcon} text-lg`}></i>
-            ) : branding.logoText || 'TK'}
+            ) : (
+              branding.logoText || 'TK'
+            )}
           </div>
           <div className="flex flex-col">
             <span className="text-sm sm:text-base font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">
@@ -108,9 +118,62 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>Progres Belajar</span>
             </button>
 
-            {currentUser.role === 'admin' && (
+            {currentUser.role === 'admin' ? (
+              <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200/80 dark:border-slate-700/80">
+                <button
+                  onClick={() => {
+                    onSelectAdminSection?.('grades');
+                    onSelectTab('teacher', 'grades');
+                  }}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap cursor-pointer ${
+                    currentTab === 'teacher' && adminSection === 'grades'
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                  title="Halaman Rekapitulasi Nilai Siswa"
+                >
+                  <GraduationCap className="w-3.5 h-3.5" />
+                  <span>Rekap Nilai</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    onSelectAdminSection?.('users');
+                    onSelectTab('teacher', 'users');
+                  }}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap cursor-pointer ${
+                    currentTab === 'teacher' && adminSection === 'users'
+                      ? 'bg-purple-600 text-white shadow-xs'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                  title="Halaman Daftar Pengguna & Identitas"
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>Daftar Pengguna</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    onSelectAdminSection?.('emails');
+                    onSelectTab('teacher', 'emails');
+                  }}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap cursor-pointer ${
+                    currentTab === 'teacher' && adminSection === 'emails'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                  title="Halaman Monitoring Pengiriman Email"
+                >
+                  <MailCheck className="w-3.5 h-3.5" />
+                  <span>Monitoring Email</span>
+                </button>
+              </div>
+            ) : currentUser.role === 'guru' ? (
               <button
-                onClick={() => onSelectTab('teacher')}
+                onClick={() => {
+                  onSelectAdminSection?.('grades');
+                  onSelectTab('teacher', 'grades');
+                }}
                 className={`flex items-center gap-1.5 py-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
                   currentTab === 'teacher'
                     ? 'text-blue-600 dark:text-blue-400 font-semibold border-b-2 border-blue-600 dark:border-blue-400'
@@ -120,7 +183,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <GraduationCap className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span>Rekap Nilai Siswa</span>
               </button>
-            )}
+            ) : null}
 
             <button
               onClick={onOpenContact}
@@ -258,9 +321,51 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             Progres
           </button>
-          {currentUser.role === 'admin' && (
+          {currentUser.role === 'admin' ? (
+            <>
+              <button
+                onClick={() => {
+                  onSelectAdminSection?.('grades');
+                  onSelectTab('teacher', 'grades');
+                }}
+                className={`py-1 px-2 whitespace-nowrap cursor-pointer flex items-center gap-1 ${
+                  currentTab === 'teacher' && adminSection === 'grades' ? 'text-blue-600 font-bold' : 'text-slate-500'
+                }`}
+              >
+                <GraduationCap className="w-3.5 h-3.5" />
+                <span>Rekap</span>
+              </button>
+              <button
+                onClick={() => {
+                  onSelectAdminSection?.('users');
+                  onSelectTab('teacher', 'users');
+                }}
+                className={`py-1 px-2 whitespace-nowrap cursor-pointer flex items-center gap-1 ${
+                  currentTab === 'teacher' && adminSection === 'users' ? 'text-purple-600 font-bold' : 'text-slate-500'
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>Pengguna</span>
+              </button>
+              <button
+                onClick={() => {
+                  onSelectAdminSection?.('emails');
+                  onSelectTab('teacher', 'emails');
+                }}
+                className={`py-1 px-2 whitespace-nowrap cursor-pointer flex items-center gap-1 ${
+                  currentTab === 'teacher' && adminSection === 'emails' ? 'text-emerald-600 font-bold' : 'text-slate-500'
+                }`}
+              >
+                <MailCheck className="w-3.5 h-3.5" />
+                <span>Email</span>
+              </button>
+            </>
+          ) : currentUser.role === 'guru' ? (
             <button
-              onClick={() => onSelectTab('teacher')}
+              onClick={() => {
+                onSelectAdminSection?.('grades');
+                onSelectTab('teacher', 'grades');
+              }}
               className={`py-1 px-2 whitespace-nowrap cursor-pointer flex items-center gap-1 ${
                 currentTab === 'teacher' ? 'text-blue-600 font-bold' : 'text-emerald-600'
               }`}
@@ -268,7 +373,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <GraduationCap className="w-3.5 h-3.5" />
               <span>Rekap Guru</span>
             </button>
-          )}
+          ) : null}
 
           <button
             onClick={onOpenContact}

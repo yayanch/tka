@@ -532,45 +532,25 @@ app.post('/api/auth/register', async (req: Request, res: Response) => {
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const verificationExpiresAt = Date.now() + 15 * 60 * 1000; // 15 mins
     const userId = `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
     if (isMySqlConnected && pool) {
       // Check if user already exists
       const [existing]: any = await pool.query('SELECT * FROM users WHERE email = ?', [cleanEmail]);
       if (existing && existing.length > 0) {
-        // If not verified, update code and let them verify
-        if (!existing[0].is_verified) {
-          await pool.query(
-            'UPDATE users SET nama_lengkap = ?, asal_sekolah = ?, verification_code = ?, verification_expires_at = ? WHERE email = ?',
-            [namaLengkap, asalSekolah, verificationCode, verificationExpiresAt, cleanEmail]
-          );
-          const emailResult = await sendVerificationEmail(cleanEmail, verificationCode, namaLengkap);
-          return res.json({
-            success: true,
-            requiresVerification: true,
-            email: cleanEmail,
-            emailSent: emailResult.sent,
-            message: emailResult.sent
-              ? `Kode verifikasi email baru telah dikirimkan ke inbox ${cleanEmail}.`
-              : `Kode verifikasi baru dibuat. ${emailResult.message}`,
-            simulatedCode: verificationCode,
-          });
-        }
-        return res.status(400).json({ error: 'Email sudah terdaftar. Silakan login.' });
+        return res.status(400).json({ error: 'Email sudah terdaftar. Silakan langsung masuk ke akun Anda.' });
       }
 
       await pool.query(
         `INSERT INTO users (id, nama_lengkap, asal_sekolah, email, password_hash, role, auth_provider, is_verified, verification_code, verification_expires_at)
-         VALUES (?, ?, ?, ?, ?, 'siswa', 'local', 0, ?, ?)`,
-        [userId, namaLengkap, asalSekolah, cleanEmail, password || 'default123', verificationCode, verificationExpiresAt]
+         VALUES (?, ?, ?, ?, ?, 'siswa', 'local', 1, NULL, NULL)`,
+        [userId, namaLengkap, asalSekolah, cleanEmail, password || '123456']
       );
     } else {
       // Fallback Store
       const existing = memoryStore.users.get(cleanEmail);
-      if (existing && existing.is_verified) {
-        return res.status(400).json({ error: 'Email sudah terdaftar. Silakan login.' });
+      if (existing) {
+        return res.status(400).json({ error: 'Email sudah terdaftar. Silakan langsung masuk ke akun Anda.' });
       }
 
       memoryStore.users.set(cleanEmail, {
@@ -578,27 +558,21 @@ app.post('/api/auth/register', async (req: Request, res: Response) => {
         nama_lengkap: namaLengkap,
         asal_sekolah: asalSekolah,
         email: cleanEmail,
-        password_hash: password || 'default123',
+        password_hash: password || '123456',
         role: 'siswa',
         auth_provider: 'local',
-        is_verified: 0,
-        verification_code: verificationCode,
-        verification_expires_at: verificationExpiresAt,
+        is_verified: 1,
+        verification_code: null,
+        verification_expires_at: null,
         created_at: new Date().toISOString(),
       });
     }
 
-    const emailResult = await sendVerificationEmail(cleanEmail, verificationCode, namaLengkap);
-
     return res.json({
       success: true,
-      requiresVerification: true,
+      requiresVerification: false,
       email: cleanEmail,
-      emailSent: emailResult.sent,
-      message: emailResult.sent
-        ? `Pendaftaran berhasil. Kode verifikasi 6-digit telah dikirim ke email ${cleanEmail}.`
-        : `Pendaftaran berhasil. Silakan masukkan 6-digit kode verifikasi yang diterbitkan.`,
-      simulatedCode: verificationCode,
+      message: 'Pendaftaran berhasil! Akun Anda telah siap. Silakan masuk menggunakan email dan kata sandi Anda.',
     });
   } catch (err: any) {
     console.error('Register error:', err);
@@ -616,8 +590,6 @@ app.post('/api/auth/google', async (req: Request, res: Response) => {
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const verificationExpiresAt = Date.now() + 15 * 60 * 1000;
     const userId = `usr_goog_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
     let existingUser: any = null;
@@ -628,15 +600,23 @@ app.post('/api/auth/google', async (req: Request, res: Response) => {
 
       if (!existingUser) {
         await pool.query(
-          `INSERT INTO users (id, nama_lengkap, asal_sekolah, email, role, auth_provider, is_verified, verification_code, verification_expires_at, avatar_url)
-           VALUES (?, ?, ?, ?, 'siswa', 'google', 0, ?, ?, ?)`,
-          [userId, namaLengkap || 'Siswa Google', asalSekolah || 'SMK TJKT', cleanEmail, verificationCode, verificationExpiresAt, avatarUrl || null]
+          `INSERT INTO users (id, nama_lengkap, asal_sekolah, email, role, auth_provider, is_verified, avatar_url)
+           VALUES (?, ?, ?, ?, 'siswa', 'google', 1, ?)`,
+          [userId, namaLengkap || 'Siswa Google', asalSekolah || 'SMK TJKT', cleanEmail, avatarUrl || null]
         );
+        existingUser = {
+          id: userId,
+          nama_lengkap: namaLengkap || 'Siswa Google',
+          asal_sekolah: asalSekolah || 'SMK TJKT',
+          email: cleanEmail,
+          role: 'siswa',
+          auth_provider: 'google',
+          is_verified: 1,
+          avatar_url: avatarUrl || null,
+        };
       } else if (!existingUser.is_verified) {
-        await pool.query(
-          'UPDATE users SET verification_code = ?, verification_expires_at = ? WHERE email = ?',
-          [verificationCode, verificationExpiresAt, cleanEmail]
-        );
+        await pool.query('UPDATE users SET is_verified = 1, verification_code = NULL WHERE email = ?', [cleanEmail]);
+        existingUser.is_verified = 1;
       }
     } else {
       existingUser = memoryStore.users.get(cleanEmail);
@@ -648,38 +628,16 @@ app.post('/api/auth/google', async (req: Request, res: Response) => {
           email: cleanEmail,
           role: 'siswa',
           auth_provider: 'google',
-          is_verified: 0,
-          verification_code: verificationCode,
-          verification_expires_at: verificationExpiresAt,
+          is_verified: 1,
           avatar_url: avatarUrl,
           created_at: new Date().toISOString(),
         };
         memoryStore.users.set(cleanEmail, existingUser);
-      } else if (!existingUser.is_verified) {
-        existingUser.verification_code = verificationCode;
-        existingUser.verification_expires_at = verificationExpiresAt;
+      } else {
+        existingUser.is_verified = 1;
       }
     }
 
-    // According to user request: "semua model pendaftaran diminta verifikasi via email"
-    // If not verified yet, require verification!
-    if (!existingUser || !existingUser.is_verified) {
-      const recipientName = existingUser ? existingUser.nama_lengkap : (namaLengkap || 'Siswa Google');
-      const emailResult = await sendVerificationEmail(cleanEmail, verificationCode, recipientName);
-
-      return res.json({
-        success: true,
-        requiresVerification: true,
-        email: cleanEmail,
-        emailSent: emailResult.sent,
-        message: emailResult.sent
-          ? `Akun Google terdeteksi. Kode verifikasi 6-digit telah dikirim ke inbox ${cleanEmail}.`
-          : `Akun Google terdeteksi. Silakan masukkan 6-digit kode verifikasi email untuk aktivasi akun.`,
-        simulatedCode: verificationCode,
-      });
-    }
-
-    // If already verified previously:
     return res.json({
       success: true,
       requiresVerification: false,
@@ -821,36 +779,27 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
     if (isMySqlConnected && pool) {
       const [rows]: any = await pool.query('SELECT * FROM users WHERE email = ?', [cleanEmail]);
       if (!rows || rows.length === 0) {
-        return res.status(404).json({ error: 'Akun dengan email ini belum terdaftar.' });
+        return res.status(404).json({ error: 'Akun dengan email ini belum terdaftar. Silakan daftar terlebih dahulu.' });
       }
       user = rows[0];
     } else {
       user = memoryStore.users.get(cleanEmail);
       if (!user) {
-        return res.status(404).json({ error: 'Akun dengan email ini belum terdaftar.' });
+        return res.status(404).json({ error: 'Akun dengan email ini belum terdaftar. Silakan daftar terlebih dahulu.' });
       }
     }
 
+    // Verify password if set
+    if (user.password_hash && password && user.password_hash !== password) {
+      return res.status(401).json({ error: 'Kata sandi salah. Silakan periksa kembali kata sandi Anda.' });
+    }
+
+    // Auto-verify if needed (OTP is no longer required)
     if (!user.is_verified) {
-      const newCode = Math.floor(100000 + Math.random() * 900000).toString();
       if (isMySqlConnected && pool) {
-        await pool.query('UPDATE users SET verification_code = ? WHERE email = ?', [newCode, cleanEmail]);
-      } else {
-        user.verification_code = newCode;
+        await pool.query('UPDATE users SET is_verified = 1, verification_code = NULL WHERE email = ?', [cleanEmail]);
       }
-
-      const emailResult = await sendVerificationEmail(cleanEmail, newCode, user.nama_lengkap);
-
-      return res.json({
-        success: false,
-        requiresVerification: true,
-        email: cleanEmail,
-        emailSent: emailResult.sent,
-        message: emailResult.sent
-          ? `Akun Anda belum diverifikasi. Kode verifikasi baru telah dikirim ke email ${cleanEmail}.`
-          : `Akun Anda belum diverifikasi. Silakan masukkan kode verifikasi email terlebih dahulu.`,
-        simulatedCode: newCode,
-      });
+      user.is_verified = 1;
     }
 
     return res.json({

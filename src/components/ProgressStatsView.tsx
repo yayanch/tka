@@ -98,6 +98,13 @@ export const ProgressStatsView: React.FC<ProgressStatsViewProps> = ({
   const history = progress.history || [];
   const completedModules = progress.completedModuleWeeks || [];
 
+  const [historyPage, setHistoryPage] = useState(1);
+  const HISTORY_ITEMS_PER_PAGE = 10;
+  const paginatedHistory = useMemo(() => {
+    const start = (historyPage - 1) * HISTORY_ITEMS_PER_PAGE;
+    return history.slice(start, start + HISTORY_ITEMS_PER_PAGE);
+  }, [history, historyPage]);
+
   let highestSum = 0;
   let attemptedWeeksCount = 0;
   let masteredWeeksCount = 0;
@@ -397,7 +404,7 @@ export const ProgressStatsView: React.FC<ProgressStatsViewProps> = ({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                      {history.map((rec) => {
+                      {paginatedHistory.map((rec) => {
                         const isRecPassed = rec.score >= 75;
                         return (
                           <tr key={rec.sessionId} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
@@ -433,6 +440,32 @@ export const ProgressStatsView: React.FC<ProgressStatsViewProps> = ({
                       })}
                     </tbody>
                   </table>
+                  {Math.ceil(history.length / HISTORY_ITEMS_PER_PAGE) > 1 && (
+                    <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 dark:border-slate-800 text-xs">
+                      <span className="text-slate-500">
+                        Menampilkan {((historyPage - 1) * HISTORY_ITEMS_PER_PAGE) + 1} - {Math.min(historyPage * HISTORY_ITEMS_PER_PAGE, history.length)} dari {history.length} sesi
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setHistoryPage((p) => Math.max(1, p - 1))}
+                          disabled={historyPage === 1}
+                          className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+                        >
+                          Sebelumnya
+                        </button>
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">
+                          {historyPage} / {Math.ceil(history.length / HISTORY_ITEMS_PER_PAGE)}
+                        </span>
+                        <button
+                          onClick={() => setHistoryPage((p) => Math.min(Math.ceil(history.length / HISTORY_ITEMS_PER_PAGE), p + 1))}
+                          disabled={historyPage === Math.ceil(history.length / HISTORY_ITEMS_PER_PAGE)}
+                          className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+                        >
+                          Selanjutnya
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
