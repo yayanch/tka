@@ -573,12 +573,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2.5 self-stretch sm:self-center justify-end">
-              <div className="text-[11px] text-slate-600 dark:text-slate-400 flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
-                <Database className="w-3.5 h-3.5 text-blue-500" />
-                <span>Tersimpan di MySQL</span>
-              </div>
-              {onOpenTeacher && currentUser?.role === 'admin' && (
+            {onOpenTeacher && currentUser?.role === 'admin' && (
+              <div className="flex flex-wrap items-center gap-2.5 self-stretch sm:self-center justify-end">
                 <button
                   onClick={onOpenTeacher}
                   className="text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 px-3 py-1.5 rounded-xl transition-colors cursor-pointer flex items-center gap-1"
@@ -586,8 +582,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <GraduationCap className="w-3.5 h-3.5" />
                   <span>Portal Admin</span>
                 </button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="bg-gradient-to-r from-blue-50/90 to-indigo-50/90 dark:from-slate-900 dark:to-slate-800/80 border border-blue-200/80 dark:border-slate-700 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
