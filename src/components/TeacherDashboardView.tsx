@@ -278,8 +278,8 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
         </div>
       )}
 
-      {/* Header Banner */}
-      <section className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs space-y-4">
+      {/* Container 1: Header Title & Actions Banner */}
+      <section className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-xs font-semibold text-blue-600 dark:text-blue-400">
@@ -440,39 +440,41 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
             </button>
           </div>
         </div>
+      </section>
 
-        {/* Quick Stats Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-            <span className="text-[11px] text-slate-500 font-medium block">
+      {/* Container 2: Quick Summary Stats Grid (Transparent Outer Container) */}
+      <section className="w-full">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium block">
               {isStudent ? 'Siswa' : 'Total Siswa Terdaftar'}
             </span>
-            <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+            <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1 block">
               {data?.totalStudents || 0}
             </span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-            <span className="text-[11px] text-slate-500 font-medium block">Status Verifikasi</span>
-            <span className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">
+          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium block">Status Verifikasi</span>
+            <span className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1 block">
               {isStudent ? (data?.students?.[0]?.isVerified ? 'Aktif' : 'Pending') : `${data?.verifiedStudents || 0}`}
             </span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-            <span className="text-[11px] text-slate-500 font-medium block">
+          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium block">
               {isStudent ? 'Modul Diselesaikan' : 'Total Ujian Selesai'}
             </span>
-            <span className="text-xl sm:text-2xl font-black text-blue-600 dark:text-blue-400">
+            <span className="text-xl sm:text-2xl font-black text-blue-600 dark:text-blue-400 mt-1 block">
               {isStudent ? `${data?.students?.[0]?.completedModulesCount || 0} / 8` : (data?.totalExamsTaken || 0)}
             </span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-            <span className="text-[11px] text-slate-500 font-medium block">
+          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium block">
               {isStudent ? 'Rata-Rata Nilai' : 'Rata-Rata Angkatan'}
             </span>
-            <span className="text-xl sm:text-2xl font-black text-amber-500">
+            <span className="text-xl sm:text-2xl font-black text-amber-500 mt-1 block">
               {isStudent ? `${data?.students?.[0]?.averageScore || 0}%` : `${data?.classAverageScore ? data.classAverageScore : 0}%`}
             </span>
           </div>
