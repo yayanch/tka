@@ -55,6 +55,30 @@ export interface EmailLogEntry {
   sentAt: string;
 }
 
+export interface ServerMetrics {
+  cpuUsagePercent: number;
+  cpuCount?: number;
+  cpuModel?: string;
+  memoryUsagePercent: number;
+  memoryUsedMB: number;
+  memoryTotalMB: number;
+  memoryUsedGB?: number;
+  memoryTotalGB?: number;
+  dbPoolUsagePercent: number;
+  dbActiveConnections: number;
+  dbConnectionLimit: number;
+  storageUsagePercent: number;
+  storageUsedMB: number;
+  storageLimitMB: number;
+  storageUsedGB?: number;
+  storageTotalGB?: number;
+  uptimeSeconds: number;
+  uptimeFormatted: string;
+  latencyMs: number;
+  activeOnlineStudents: number;
+  serverStatus: 'optimal' | 'warning' | 'critical';
+}
+
 export interface TeacherClassOverview {
   totalStudents: number;
   verifiedStudents: number;
@@ -68,4 +92,5 @@ export interface TeacherClassOverview {
     host: string;
     database: string;
   };
+  serverMetrics?: ServerMetrics;
 }

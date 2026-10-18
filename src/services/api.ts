@@ -1,4 +1,4 @@
-import { UserProfile, TeacherClassOverview } from '../types/auth';
+import { UserProfile, TeacherClassOverview, ServerMetrics } from '../types/auth';
 
 const STORAGE_USER_KEY = 'tka_current_user_v1';
 
@@ -275,6 +275,12 @@ export async function fetchTeacherOverview(email?: string, role?: string): Promi
   if (!result || result.success === false) {
     return null;
   }
+  return result;
+}
+
+export async function fetchServerMetrics(): Promise<ServerMetrics | null> {
+  const result = await safeFetch('/api/server/metrics');
+  if (!result || result.error) return null;
   return result;
 }
 
