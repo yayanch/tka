@@ -355,8 +355,8 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                             <ImageIcon className="w-3.5 h-3.5" />
                           </div>
                           <div>
-                            <div className="font-bold text-slate-800 dark:text-slate-200">Pengaturan Logo</div>
-                            <div className="text-[10px] text-slate-400 font-normal">Logo header, brand, & favicon</div>
+                            <div className="font-bold text-slate-800 dark:text-slate-200">Pengaturan Logo & Favicon</div>
+                            <div className="text-[10px] text-slate-400 font-normal">Logo header, favicon, & simpan ke database</div>
                           </div>
                         </button>
                       )}

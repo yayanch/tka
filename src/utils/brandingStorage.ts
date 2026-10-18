@@ -50,16 +50,15 @@ export function applyBrandingToDOM(config: BrandingConfig): void {
       const ogTitle = document.querySelector('meta[property="og:title"]');
       if (ogTitle) ogTitle.setAttribute('content', config.appName);
     }
-    if (config.faviconUrl) {
-      let link: HTMLLinkElement | null = document.querySelector("link[rel*='icon']");
-      if (!link) {
-        link = document.createElement('link');
-        link.type = 'image/x-icon';
-        link.rel = 'shortcut icon';
-        document.getElementsByTagName('head')[0].appendChild(link);
-      }
-      link.href = config.faviconUrl;
+    const defaultFavicon = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>";
+    let link: HTMLLinkElement | null = document.querySelector("link[rel*='icon']");
+    if (!link) {
+      link = document.createElement('link');
+      link.type = 'image/x-icon';
+      link.rel = 'shortcut icon';
+      document.getElementsByTagName('head')[0].appendChild(link);
     }
+    link.href = config.faviconUrl?.trim() ? config.faviconUrl.trim() : defaultFavicon;
     
     // Also update logo image if it exists
     if (config.logoUrl) {

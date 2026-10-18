@@ -68,12 +68,18 @@ export async function saveContactConfigToDB(config: ContactConfig): Promise<void
 export async function fetchBrandingConfig(): Promise<BrandingConfig> {
   try {
     const res = await fetch('/api/settings/branding_config');
-    const data = await res.json();
-    if (data.success && data.value) {
-      const merged = { ...DEFAULT_BRANDING_CONFIG, ...data.value };
-      localStorage.setItem(STORAGE_BRANDING_KEY, JSON.stringify(merged));
-      applyBrandingToDOM(merged);
-      return merged;
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && data.value) {
+        const merged: BrandingConfig = { ...DEFAULT_BRANDING_CONFIG, ...data.value };
+        try {
+          localStorage.setItem(STORAGE_BRANDING_KEY, JSON.stringify(merged));
+        } catch {
+          // Ignore localStorage quota limits if image is large
+        }
+        applyBrandingToDOM(merged);
+        return merged;
+      }
     }
   } catch (e) {
     console.warn('Failed to fetch branding config from DB, falling back to local storage:', e);
@@ -83,16 +89,26 @@ export async function fetchBrandingConfig(): Promise<BrandingConfig> {
   return cfg;
 }
 
-export async function saveBrandingConfigToDB(config: BrandingConfig): Promise<void> {
-  localStorage.setItem(STORAGE_BRANDING_KEY, JSON.stringify(config));
+export async function saveBrandingConfigToDB(config: BrandingConfig): Promise<{ success: boolean; error?: string }> {
+  try {
+    localStorage.setItem(STORAGE_BRANDING_KEY, JSON.stringify(config));
+  } catch {
+    // Large base64 can exceed localStorage 5MB limit, ignore and proceed to DB
+  }
   applyBrandingToDOM(config);
   try {
-    await fetch('/api/settings/branding_config', {
+    const res = await fetch('/api/settings/branding_config', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(config),
     });
-  } catch (e) {
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.success) {
+      return { success: true };
+    }
+    return { success: false, error: data.error || `HTTP ${res.status}: Gagal menyimpan ke database` };
+  } catch (e: any) {
     console.error('Failed to save branding config to DB:', e);
+    return { success: false, error: e.message || 'Koneksi ke database gagal' };
   }
 }

@@ -59,7 +59,6 @@ export type AppTab = 'home' | 'dashboard' | 'learning' | 'bank' | 'stats' | 'tea
 
 export interface AppHistoryState {
   tab: AppTab;
-  adminSection?: 'grades' | 'users' | 'emails';
   learningWeek?: number;
   bankWeek?: number;
   isExamActive?: boolean;
@@ -73,7 +72,6 @@ export interface AppHistoryState {
 const tabToHash = (
   tab: AppTab,
   opts?: {
-    adminSection?: 'grades' | 'users' | 'emails';
     learningWeek?: number;
     bankWeek?: number;
     isExamActive?: boolean;
@@ -99,9 +97,7 @@ const tabToHash = (
     case 'stats':
       return '#statistik';
     case 'teacher':
-      if (opts?.adminSection === 'users') return '#pengguna';
-      if (opts?.adminSection === 'emails') return '#email';
-      return '#rekap';
+      return '#guru';
     default:
       return '#home';
   }
@@ -133,20 +129,8 @@ const parseHashToState = (hash: string, fallbackTab: AppTab = 'home'): AppHistor
   if (path === 'statistik' || path === 'stats') {
     return { tab: 'stats' };
   }
-  if (path === 'rekap' || path === 'rekap-nilai') {
-    return { tab: 'teacher', adminSection: 'grades' };
-  }
-  if (path === 'pengguna' || path === 'daftar-pengguna' || path === 'users') {
-    return { tab: 'teacher', adminSection: 'users' };
-  }
-  if (path === 'email' || path === 'monitoring-email' || path === 'log-email' || path === 'emails') {
-    return { tab: 'teacher', adminSection: 'emails' };
-  }
   if (path === 'guru' || path === 'teacher' || path === 'admin') {
-    const sec = params.get('section');
-    if (sec === 'users' || sec === 'pengguna') return { tab: 'teacher', adminSection: 'users' };
-    if (sec === 'emails' || sec === 'email') return { tab: 'teacher', adminSection: 'emails' };
-    return { tab: 'teacher', adminSection: 'grades' };
+    return { tab: 'teacher' };
   }
 
   return { tab: fallbackTab };
@@ -154,7 +138,6 @@ const parseHashToState = (hash: string, fallbackTab: AppTab = 'home'): AppHistor
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<AppTab>('home');
-  const [adminSection, setAdminSection] = useState<'grades' | 'users' | 'emails'>('grades');
   const [userProgress, setUserProgress] = useState(() => loadUserProgress());
   const [currentSession, setCurrentSession] = useState<ExamSession | null>(null);
   const [sessionQuestions, setSessionQuestions] = useState<Question[]>([]);
@@ -202,7 +185,6 @@ export default function App() {
   const isSettingsOpenRef = useRef<boolean>(isSettingsOpen);
   const learningWeekRef = useRef<number>(learningSelectedWeek);
   const bankWeekRef = useRef<number>(bankSelectedWeek);
-  const adminSectionRef = useRef<'grades' | 'users' | 'emails'>(adminSection);
 
   useEffect(() => { currentTabRef.current = currentTab; }, [currentTab]);
   useEffect(() => { currentSessionRef.current = currentSession; }, [currentSession]);
@@ -211,7 +193,6 @@ export default function App() {
   useEffect(() => { isSettingsOpenRef.current = isSettingsOpen; }, [isSettingsOpen]);
   useEffect(() => { learningWeekRef.current = learningSelectedWeek; }, [learningSelectedWeek]);
   useEffect(() => { bankWeekRef.current = bankSelectedWeek; }, [bankSelectedWeek]);
-  useEffect(() => { adminSectionRef.current = adminSection; }, [adminSection]);
 
   // Centralized history navigation dispatcher that supports browser Back & Forward buttons
   const navigateState = useCallback((
@@ -222,7 +203,6 @@ export default function App() {
     if (isPopstateNavigatingRef.current) return;
 
     const targetTab = newState.tab ?? currentTabRef.current;
-    const targetAdminSection = newState.adminSection ?? adminSectionRef.current;
     const targetLearningWeek = newState.learningWeek ?? learningWeekRef.current;
     const targetBankWeek = newState.bankWeek ?? bankWeekRef.current;
     const targetExamActive = newState.isExamActive !== undefined 
@@ -237,7 +217,6 @@ export default function App() {
 
     const fullState: AppHistoryState = {
       tab: targetTab,
-      adminSection: targetAdminSection,
       learningWeek: targetLearningWeek,
       bankWeek: targetBankWeek,
       isExamActive: targetExamActive,
@@ -248,7 +227,6 @@ export default function App() {
     };
 
     const newHash = tabToHash(targetTab, {
-      adminSection: targetAdminSection,
       learningWeek: targetLearningWeek,
       bankWeek: targetBankWeek,
       isExamActive: targetExamActive,
@@ -259,7 +237,6 @@ export default function App() {
     const currentState = window.history.state as AppHistoryState | null;
     const isDuplicate = currentState &&
       currentState.tab === fullState.tab &&
-      currentState.adminSection === fullState.adminSection &&
       currentState.learningWeek === fullState.learningWeek &&
       currentState.bankWeek === fullState.bankWeek &&
       currentState.isExamActive === fullState.isExamActive &&
@@ -345,12 +322,9 @@ export default function App() {
           setBankSelectedWeek(historyState.bankWeek);
         }
 
-        // Restore tab & admin section
+        // Restore tab
         if (historyState.tab) {
           setCurrentTab(historyState.tab);
-        }
-        if (historyState.adminSection) {
-          setAdminSection(historyState.adminSection);
         }
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -487,7 +461,7 @@ export default function App() {
   };
 
   // Select Tab with History Support
-  const handleSelectTab = useCallback((tab: AppTab, targetAdminSection?: 'grades' | 'users' | 'emails') => {
+  const handleSelectTab = useCallback((tab: AppTab) => {
     if (!currentUser) {
       handleOpenAuth('register');
       return;
@@ -504,16 +478,8 @@ export default function App() {
       setSessionQuestions([]);
     }
 
-    if (targetAdminSection) {
-      setAdminSection(targetAdminSection);
-    }
     setCurrentTab(tab);
-    navigateState({ 
-      tab, 
-      adminSection: targetAdminSection || adminSectionRef.current, 
-      isExamActive: false, 
-      isExamFinished: false 
-    });
+    navigateState({ tab, isExamActive: false, isExamFinished: false });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentUser, currentSession, navigateState]);
 
@@ -792,11 +758,6 @@ export default function App() {
       {/* Top Navbar */}
       <Navbar
         currentTab={currentTab}
-        adminSection={adminSection}
-        onSelectAdminSection={(sec) => {
-          setAdminSection(sec);
-          handleSelectTab('teacher', sec);
-        }}
         onSelectTab={handleSelectTab}
         currentUser={currentUser}
         onOpenAuth={handleOpenAuth}
@@ -808,6 +769,7 @@ export default function App() {
         theme={theme}
         onToggleTheme={handleToggleTheme}
         onOpenContact={() => setIsContactModalOpen(true)}
+        brandingConfig={brandingConfig}
       />
 
       {/* Main Container */}
@@ -858,11 +820,6 @@ export default function App() {
               currentUser.role === 'admin' ? (
                 <TeacherDashboardView 
                   currentUser={currentUser} 
-                  initialSection={adminSection}
-                  onSectionChange={(sec) => {
-                    setAdminSection(sec);
-                    navigateState({ tab: 'home', adminSection: sec }, { replace: false, skipScroll: true });
-                  }}
                   onRefresh={refreshProgress} 
                   onOpenHeroSettings={() => setIsHeroSettingsOpen(true)}
                   onOpenContactSettings={() => setIsContactSettingsOpen(true)}
@@ -937,15 +894,8 @@ export default function App() {
             {currentTab === 'teacher' && (
               <TeacherDashboardView 
                 currentUser={currentUser} 
-                initialSection={adminSection}
-                onSectionChange={(sec) => {
-                  setAdminSection(sec);
-                  navigateState({ tab: 'teacher', adminSection: sec }, { replace: false, skipScroll: true });
-                }}
                 onRefresh={refreshProgress} 
                 onOpenHeroSettings={() => setIsHeroSettingsOpen(true)}
-                onOpenContactSettings={() => setIsContactSettingsOpen(true)}
-                onOpenBrandingSettings={() => setIsBrandingSettingsOpen(true)}
               />
             )}
           </div>
@@ -1022,7 +972,6 @@ export default function App() {
         currentUser={currentUser}
         onConfigChange={(newConfig) => {
           setBrandingConfig(newConfig);
-          saveBrandingConfigToDB(newConfig);
         }}
       />
 

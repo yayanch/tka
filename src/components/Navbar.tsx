@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { UserProfile } from '../types/auth';
 import { Theme } from '../utils/theme';
-import { getStoredBrandingConfig } from '../utils/brandingStorage';
+import { BrandingConfig, getStoredBrandingConfig } from '../utils/brandingStorage';
 
 interface NavbarProps {
   currentTab: 'home' | 'dashboard' | 'learning' | 'bank' | 'stats' | 'teacher';
@@ -26,6 +26,7 @@ interface NavbarProps {
   theme?: Theme;
   onToggleTheme?: () => void;
   onOpenContact?: () => void;
+  brandingConfig?: BrandingConfig;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -38,8 +39,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   theme,
   onToggleTheme,
   onOpenContact,
+  brandingConfig,
 }) => {
-  const branding = getStoredBrandingConfig();
+  const branding = brandingConfig || getStoredBrandingConfig();
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors">

@@ -11,7 +11,8 @@ const __dirname = path.dirname(__filename);
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const app = express();
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // ---------------------------------------------------------------------------
 // MySQL Database Connection Pool
@@ -1180,45 +1181,6 @@ async function deleteStudentHandler(req: Request, res: Response) {
 app.post('/api/teacher/delete-student', deleteStudentHandler);
 app.delete('/api/teacher/student/:userId', deleteStudentHandler);
 
-// Delete single email log (Supports POST and DELETE)
-async function deleteEmailLogHandler(req: Request, res: Response) {
-  try {
-    const logId = req.params.logId || req.body.logId;
-    if (!logId) {
-      return res.status(400).json({ success: false, error: 'ID log email wajib disertakan' });
-    }
-    if (isMySqlConnected && pool) {
-      await pool.query('DELETE FROM email_logs WHERE id = ?', [logId]);
-    }
-    const idx = memoryStore.emailLogs.findIndex(l => l.id === logId);
-    if (idx !== -1) {
-      memoryStore.emailLogs.splice(idx, 1);
-    }
-    return res.json({ success: true, message: 'Log email berhasil dihapus' });
-  } catch (err: any) {
-    return res.status(500).json({ success: false, error: err.message });
-  }
-}
-
-app.post('/api/teacher/delete-email-log', deleteEmailLogHandler);
-app.delete('/api/teacher/email-log/:logId', deleteEmailLogHandler);
-
-// Clear all email logs (Supports POST and DELETE)
-async function clearEmailLogsHandler(_req: Request, res: Response) {
-  try {
-    if (isMySqlConnected && pool) {
-      await pool.query('DELETE FROM email_logs');
-    }
-    memoryStore.emailLogs = [];
-    return res.json({ success: true, message: 'Seluruh log email berhasil dibersihkan' });
-  } catch (err: any) {
-    return res.status(500).json({ success: false, error: err.message });
-  }
-}
-
-app.post('/api/teacher/clear-email-logs', clearEmailLogsHandler);
-app.delete('/api/teacher/email-logs/clear-all', clearEmailLogsHandler);
-
 // ---------------------------------------------------------------------------
 // Teacher / Instructor Portal Endpoints (Rekap Nilai & Analisis Kelas)
 // ---------------------------------------------------------------------------
@@ -1306,33 +1268,6 @@ app.get('/api/teacher/overview', async (req: Request, res: Response) => {
       ? parseFloat((overallAvg.reduce((a, b) => a + b.averageScore, 0) / overallAvg.length).toFixed(1))
       : 0;
 
-    // RULE: "monitoring email hanya untuk admin"
-    // Only return emailLogs if user is admin!
-    let emailLogs: any[] = [];
-    if (queryRole === 'admin') {
-      let emailLogsRaw: any[] = [];
-      if (isMySqlConnected && pool) {
-        try {
-          const [lRows]: any = await pool.query('SELECT * FROM email_logs ORDER BY created_at DESC LIMIT 100');
-          emailLogsRaw = lRows || [];
-        } catch {
-          emailLogsRaw = memoryStore.emailLogs;
-        }
-      } else {
-        emailLogsRaw = memoryStore.emailLogs;
-      }
-
-      emailLogs = emailLogsRaw.map(log => ({
-        id: log.id,
-        recipientEmail: log.recipient_email,
-        recipientName: log.recipient_name,
-        subject: log.subject,
-        status: log.status,
-        errorMessage: log.error_message,
-        sentAt: log.sent_at,
-      }));
-    }
-
     return res.json({
       totalStudents,
       verifiedStudents,
@@ -1340,7 +1275,6 @@ app.get('/api/teacher/overview', async (req: Request, res: Response) => {
       classAverageScore,
       students: studentSummaries,
       moduleAverageScores,
-      emailLogs,
       databaseStatus: {
         isMySqlConnected,
         host: dbConfig.host,
