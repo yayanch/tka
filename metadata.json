@@ -1,0 +1,8 @@
+{
+  "name": "Simulasi TKA SMK TJKT - Bank 400 Soal & Pembahasan",
+  "description": "Aplikasi latihan dan simulasi interaktif 400 soal TKA SMK Teknik Jaringan Komputer dan Telekomunikasi (8 Minggu x 50 soal) dengan skor real-time, pembahasan komprehensif, dan pelacakan progres belajar.\nTautan Aplikasi (Development): https://ais-dev-r5q6gnojwhmtpajacqgiqh-569002245145.asia-east1.run.app\nTautan Publik/Shared: https://ais-pre-r5q6gnojwhmtpajacqgiqh-569002245145.asia-east1.run.app",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
