@@ -824,176 +824,6 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
         </div>
       )}
 
-      {/* Container 2.5: Server Monitoring & Realtime Health Diagnostics (Diagram Lingkaran) */}
-      {!isStudent && (
-        <section className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-xs space-y-5">
-          {/* Section Title & Header Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                <Server className="w-4 h-4" />
-                <span>Monitoring Spesifikasi & Performa Hardware VPS</span>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300/60 dark:border-emerald-800/80">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse mr-1" />
-                  {liveMetrics?.serverStatus === 'critical' ? 'Beban Tinggi' : liveMetrics?.serverStatus === 'warning' ? 'Perhatian' : 'Sistem Optimal'}
-                </span>
-              </div>
-              <h3 className="text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                Pemantauan Server VPS (Diagram Lingkaran)
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Data realtime diambil langsung dari spek hardware keseluruhan VPS: Multi-Core CPU, pemakaian RAM fisik VPS, koneksi Database, dan Disk Storage VPS.
-              </p>
-            </div>
-
-            {/* Quick Status Badges & Refresh Action */}
-            <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200">
-                <Zap className="w-3.5 h-3.5 text-amber-500" />
-                <span>Latensi: <strong className="text-slate-900 dark:text-white">{liveMetrics?.latencyMs || 8} ms</strong></span>
-              </div>
-
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200">
-                <Clock className="w-3.5 h-3.5 text-blue-500" />
-                <span>Uptime VPS: <strong className="text-slate-900 dark:text-white">{liveMetrics?.uptimeFormatted || '0m'}</strong></span>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleRefreshMetrics}
-                disabled={isRefreshingMetrics}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800 text-xs font-bold text-blue-600 dark:text-blue-400 cursor-pointer transition-colors"
-                title="Segarkan Metrik VPS Realtime"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshingMetrics ? 'animate-spin' : ''}`} />
-                <span>Segarkan Metrik</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Grid Diagram Lingkaran (4 Donut Charts) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Diagram Lingkaran 1: CPU Load */}
-            <DonutDiagram
-              title="Beban CPU VPS"
-              subtitle={`${liveMetrics?.cpuCount || 2} Core CPU (${liveMetrics?.cpuModel ? liveMetrics.cpuModel.slice(0, 18) + '...' : 'Virtual CPU'})`}
-              percentage={liveMetrics?.cpuUsagePercent || 18}
-              centerText={`${liveMetrics?.cpuUsagePercent || 18}%`}
-              centerSubtext={liveMetrics?.cpuUsagePercent && liveMetrics.cpuUsagePercent > 75 ? 'Beban Tinggi' : 'Beban Normal'}
-              icon={<Cpu className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
-              colorScheme="emerald"
-              legendItems={[
-                { label: 'Beban CPU VPS Aktif', value: `${liveMetrics?.cpuUsagePercent || 18}%`, color: 'bg-emerald-500' },
-                { label: 'Kapasitas Idle / Cadangan', value: `${100 - (liveMetrics?.cpuUsagePercent || 18)}%`, color: 'bg-slate-300 dark:bg-slate-700' },
-              ]}
-            />
-
-            {/* Diagram Lingkaran 2: Memory RAM */}
-            <DonutDiagram
-              title="Total RAM VPS"
-              subtitle="Memori Fisik Hardware"
-              percentage={liveMetrics?.memoryUsagePercent || 35}
-              centerText={`${liveMetrics?.memoryUsagePercent || 35}%`}
-              centerSubtext={`${liveMetrics?.memoryUsedGB ? liveMetrics.memoryUsedGB + ' GB' : (liveMetrics?.memoryUsedMB || 512) + ' MB'} / ${liveMetrics?.memoryTotalGB ? liveMetrics.memoryTotalGB + ' GB' : (liveMetrics?.memoryTotalMB || 2048) + ' MB'}`}
-              icon={<Activity className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
-              colorScheme="blue"
-              legendItems={[
-                { label: 'RAM Terpakai', value: `${liveMetrics?.memoryUsedGB ? liveMetrics.memoryUsedGB + ' GB' : (liveMetrics?.memoryUsedMB || 512) + ' MB'}`, color: 'bg-blue-500' },
-                { label: 'RAM Tersedia', value: `${liveMetrics?.memoryTotalGB && liveMetrics?.memoryUsedGB ? parseFloat((liveMetrics.memoryTotalGB - liveMetrics.memoryUsedGB).toFixed(1)) + ' GB' : (liveMetrics?.memoryTotalMB || 2048) - (liveMetrics?.memoryUsedMB || 512) + ' MB'}`, color: 'bg-slate-300 dark:bg-slate-700' },
-              ]}
-            />
-
-            {/* Diagram Lingkaran 3: Database Pool Connections */}
-            <DonutDiagram
-              title="Pool Koneksi Basis Data"
-              subtitle={data?.databaseStatus?.isMySqlConnected ? 'MySQL Active Pool' : 'Memory Store Sync'}
-              percentage={liveMetrics?.dbPoolUsagePercent || 20}
-              centerText={`${liveMetrics?.dbPoolUsagePercent || 20}%`}
-              centerSubtext={`${liveMetrics?.dbActiveConnections || 2} / ${liveMetrics?.dbConnectionLimit || 10} Pool`}
-              icon={<Database className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
-              colorScheme="indigo"
-              legendItems={[
-                { label: 'Koneksi Aktif', value: `${liveMetrics?.dbActiveConnections || 2} Session`, color: 'bg-indigo-500' },
-                { label: 'Slot Standby', value: `${(liveMetrics?.dbConnectionLimit || 10) - (liveMetrics?.dbActiveConnections || 2)} Slot`, color: 'bg-slate-300 dark:bg-slate-700' },
-              ]}
-            />
-
-            {/* Diagram Lingkaran 4: Storage VPS */}
-            <DonutDiagram
-              title="Penyimpanan Disk VPS"
-              subtitle="Kapasitas HDD/SSD VPS"
-              percentage={liveMetrics?.storageUsagePercent || 30}
-              centerText={`${liveMetrics?.storageUsagePercent || 30}%`}
-              centerSubtext={`${liveMetrics?.storageUsedGB || 12.0} GB / ${liveMetrics?.storageTotalGB || 40.0} GB`}
-              icon={<HardDrive className="w-4 h-4 text-purple-600 dark:text-purple-400" />}
-              colorScheme="purple"
-              legendItems={[
-                { label: 'Disk VPS Terpakai', value: `${liveMetrics?.storageUsedGB || 12.0} GB`, color: 'bg-purple-500' },
-                { label: 'Disk Kosong Tersedia', value: `${liveMetrics?.storageTotalGB && liveMetrics?.storageUsedGB ? parseFloat((liveMetrics.storageTotalGB - liveMetrics.storageUsedGB).toFixed(1)) + ' GB' : '28.0 GB'}`, color: 'bg-slate-300 dark:bg-slate-700' },
-              ]}
-            />
-          </div>
-
-          {/* Footer Info Strip */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500">
-            <div className="flex items-center gap-2">
-              <Radio className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
-              <span>
-                Engine Node.js v20.x Express Server • {data?.databaseStatus?.isMySqlConnected ? 'MySQL Connected' : 'High-Availability In-Memory Active'}
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="font-semibold text-slate-600 dark:text-slate-300">
-                Siswa Aktif Online: <strong className="text-emerald-600 dark:text-emerald-400">{liveMetrics?.activeOnlineStudents ?? onlineStudentsList.length} Siswa</strong>
-              </span>
-              <span>•</span>
-              <span>Pembaruan Otomatis Setiap 10 Detik</span>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Navigation Section Tabs: Rekap Nilai vs Log Login Siswa */}
-      {!isStudent && (
-        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
-          <button
-            type="button"
-            onClick={() => setActiveSection('grades')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              activeSection === 'grades'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-            }`}
-          >
-            Rekapitulasi Nilai & Siswa Aktif
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSection('loginLogs')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeSection === 'loginLogs'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-            }`}
-          >
-            <Clock className="w-3.5 h-3.5" />
-            <span>Log Login Siswa ({data?.loginLogs?.length || 0})</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSection('questionBank')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeSection === 'questionBank'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-            }`}
-          >
-            <BookOpen className="w-3.5 h-3.5 text-amber-500" />
-            <span>Manajemen Bank Soal ({questionBankList.length})</span>
-          </button>
-        </div>
-      )}
-
       {/* Conditional View: Login Logs vs Grades Recap */}
       {activeSection === 'loginLogs' && !isStudent ? (
         <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
@@ -1372,20 +1202,6 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
 
       {/* Main Student Performance Table with Score Recap (Modul 1 s.d. 8) */}
       <div id="section-students" className="hidden">
-        <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">
-              {isStudent ? 'Rekapitulasi Nilai Saya (Modul 1 s.d. 8)' : 'Rekapitulasi Nilai Modul 1 s.d. 8'}
-            </h3>
-            <p className="text-xs text-slate-500">
-              Ambang batas nilai kelulusan kompeten: &ge; 75.0 poin
-            </p>
-          </div>
-          <span className="text-xs font-semibold text-slate-400">
-            {filteredStudents.length} {isStudent ? 'Siswa (Anda)' : 'Siswa Terpilih'}
-          </span>
-        </div>
-
         {/* Tampilan Mobile: Grid Card Layout */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:hidden gap-3 p-4 bg-slate-50/50 dark:bg-slate-900/50">
           {paginatedStudents.length === 0 ? (
@@ -1592,7 +1408,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
       </div>
       
       {/* Section: Dashboard Admin Overview (Top 10 Siswa Tuntas & List Siswa Online) */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
       {/* Container 1: Daftar 10 Siswa Paling Banyak Menyelesaikan Modul & Tuntas */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
         {/* Header Banner Top 10 */}
@@ -1858,6 +1674,135 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
       </div>
     </div>
         </>
+      )}
+
+      {/* Container Monitoring Server VPS (Dipindahkan ke bagian paling bawah) */}
+      {!isStudent && (
+        <section className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-xs space-y-5">
+          {/* Section Title & Header Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                <Server className="w-4 h-4" />
+                <span>Monitoring Spesifikasi & Performa Hardware VPS</span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300/60 dark:border-emerald-800/80">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse mr-1" />
+                  {liveMetrics?.serverStatus === 'critical' ? 'Beban Tinggi' : liveMetrics?.serverStatus === 'warning' ? 'Perhatian' : 'Sistem Optimal'}
+                </span>
+              </div>
+              <h3 className="text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                Pemantauan Server VPS (Diagram Lingkaran)
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Data realtime diambil langsung dari spek hardware keseluruhan VPS: Multi-Core CPU, pemakaian RAM fisik VPS, koneksi Database, dan Disk Storage VPS.
+              </p>
+            </div>
+
+            {/* Quick Status Badges & Refresh Action */}
+            <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200">
+                <Zap className="w-3.5 h-3.5 text-amber-500" />
+                <span>Latensi: <strong className="text-slate-900 dark:text-white">{liveMetrics?.latencyMs || 8} ms</strong></span>
+              </div>
+
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200">
+                <Clock className="w-3.5 h-3.5 text-blue-500" />
+                <span>Uptime VPS: <strong className="text-slate-900 dark:text-white">{liveMetrics?.uptimeFormatted || '0m'}</strong></span>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleRefreshMetrics}
+                disabled={isRefreshingMetrics}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800 text-xs font-bold text-blue-600 dark:text-blue-400 cursor-pointer transition-colors"
+                title="Segarkan Metrik VPS Realtime"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshingMetrics ? 'animate-spin' : ''}`} />
+                <span>Segarkan Metrik</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Grid Diagram Lingkaran (4 Donut Charts) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Diagram Lingkaran 1: CPU Load */}
+            <DonutDiagram
+              title="Beban CPU VPS"
+              subtitle={`${liveMetrics?.cpuCount || 2} Core CPU (${liveMetrics?.cpuModel ? liveMetrics.cpuModel.slice(0, 18) + '...' : 'Virtual CPU'})`}
+              percentage={liveMetrics?.cpuUsagePercent || 18}
+              centerText={`${liveMetrics?.cpuUsagePercent || 18}%`}
+              centerSubtext={liveMetrics?.cpuUsagePercent && liveMetrics.cpuUsagePercent > 75 ? 'Beban Tinggi' : 'Beban Normal'}
+              icon={<Cpu className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
+              colorScheme="emerald"
+              legendItems={[
+                { label: 'Beban CPU VPS Aktif', value: `${liveMetrics?.cpuUsagePercent || 18}%`, color: 'bg-emerald-500' },
+                { label: 'Kapasitas Idle / Cadangan', value: `${100 - (liveMetrics?.cpuUsagePercent || 18)}%`, color: 'bg-slate-300 dark:bg-slate-700' },
+              ]}
+            />
+
+            {/* Diagram Lingkaran 2: Memory RAM */}
+            <DonutDiagram
+              title="Total RAM VPS"
+              subtitle="Memori Fisik Hardware"
+              percentage={liveMetrics?.memoryUsagePercent || 35}
+              centerText={`${liveMetrics?.memoryUsagePercent || 35}%`}
+              centerSubtext={`${liveMetrics?.memoryUsedGB ? liveMetrics.memoryUsedGB + ' GB' : (liveMetrics?.memoryUsedMB || 512) + ' MB'} / ${liveMetrics?.memoryTotalGB ? liveMetrics.memoryTotalGB + ' GB' : (liveMetrics?.memoryTotalMB || 2048) + ' MB'}`}
+              icon={<Activity className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
+              colorScheme="blue"
+              legendItems={[
+                { label: 'RAM Terpakai', value: `${liveMetrics?.memoryUsedGB ? liveMetrics.memoryUsedGB + ' GB' : (liveMetrics?.memoryUsedMB || 512) + ' MB'}`, color: 'bg-blue-500' },
+                { label: 'RAM Tersedia', value: `${liveMetrics?.memoryTotalGB && liveMetrics?.memoryUsedGB ? parseFloat((liveMetrics.memoryTotalGB - liveMetrics.memoryUsedGB).toFixed(1)) + ' GB' : (liveMetrics?.memoryTotalMB || 2048) - (liveMetrics?.memoryUsedMB || 512) + ' MB'}`, color: 'bg-slate-300 dark:bg-slate-700' },
+              ]}
+            />
+
+            {/* Diagram Lingkaran 3: Database Pool Connections */}
+            <DonutDiagram
+              title="Pool Koneksi Basis Data"
+              subtitle={data?.databaseStatus?.isMySqlConnected ? 'MySQL Active Pool' : 'Memory Store Sync'}
+              percentage={liveMetrics?.dbPoolUsagePercent || 20}
+              centerText={`${liveMetrics?.dbPoolUsagePercent || 20}%`}
+              centerSubtext={`${liveMetrics?.dbActiveConnections || 2} / ${liveMetrics?.dbConnectionLimit || 10} Pool`}
+              icon={<Database className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
+              colorScheme="indigo"
+              legendItems={[
+                { label: 'Koneksi Aktif', value: `${liveMetrics?.dbActiveConnections || 2} Session`, color: 'bg-indigo-500' },
+                { label: 'Slot Standby', value: `${(liveMetrics?.dbConnectionLimit || 10) - (liveMetrics?.dbActiveConnections || 2)} Slot`, color: 'bg-slate-300 dark:bg-slate-700' },
+              ]}
+            />
+
+            {/* Diagram Lingkaran 4: Storage VPS */}
+            <DonutDiagram
+              title="Penyimpanan Disk VPS"
+              subtitle="Kapasitas HDD/SSD VPS"
+              percentage={liveMetrics?.storageUsagePercent || 30}
+              centerText={`${liveMetrics?.storageUsagePercent || 30}%`}
+              centerSubtext={`${liveMetrics?.storageUsedGB || 12.0} GB / ${liveMetrics?.storageTotalGB || 40.0} GB`}
+              icon={<HardDrive className="w-4 h-4 text-purple-600 dark:text-purple-400" />}
+              colorScheme="purple"
+              legendItems={[
+                { label: 'Disk VPS Terpakai', value: `${liveMetrics?.storageUsedGB || 12.0} GB`, color: 'bg-purple-500' },
+                { label: 'Disk Kosong Tersedia', value: `${liveMetrics?.storageTotalGB && liveMetrics?.storageUsedGB ? parseFloat((liveMetrics.storageTotalGB - liveMetrics.storageUsedGB).toFixed(1)) + ' GB' : '28.0 GB'}`, color: 'bg-slate-300 dark:bg-slate-700' },
+              ]}
+            />
+          </div>
+
+          {/* Footer Info Strip */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500">
+            <div className="flex items-center gap-2">
+              <Radio className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
+              <span>
+                Engine Node.js v20.x Express Server • {data?.databaseStatus?.isMySqlConnected ? 'MySQL Connected' : 'High-Availability In-Memory Active'}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="font-semibold text-slate-600 dark:text-slate-300">
+                Siswa Aktif Online: <strong className="text-emerald-600 dark:text-emerald-400">{liveMetrics?.activeOnlineStudents ?? onlineStudentsList.length} Siswa</strong>
+              </span>
+              <span>•</span>
+              <span>Pembaruan Otomatis Setiap 10 Detik</span>
+            </div>
+          </div>
+        </section>
       )}
 
 
