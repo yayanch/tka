@@ -65,28 +65,46 @@ export function recordCompletedSession(record: CategoryHistoryRecord): OverallUs
   const current = loadUserProgress();
   const weekId = record.weekId;
   const isSpecificWeek = weekId >= 1 && weekId <= 8;
+  const isSimulation = record.mode === 'simulation';
 
   const updatedHistory = [record, ...current.history].slice(0, 50); // keep last 50 attempts
 
   const updatedCategoryStats = { ...current.categoryStats };
-  if (isSpecificWeek) {
-    const prev = updatedCategoryStats[weekId] || {
-      attempts: 0,
-      highestScore: 0,
-      latestScore: 0,
-      latestDate: '',
-      totalAnswered: 0,
-      totalCorrect: 0,
-    };
+  const updatedSimulationStats = { ...(current.simulationStats || {}) };
 
-    updatedCategoryStats[weekId] = {
-      attempts: prev.attempts + 1,
-      highestScore: Math.max(prev.highestScore, record.score),
-      latestScore: record.score,
-      latestDate: record.date,
-      totalAnswered: prev.totalAnswered + record.total,
-      totalCorrect: prev.totalCorrect + record.correct,
-    };
+  if (isSpecificWeek) {
+    if (isSimulation) {
+      const prevSim = updatedSimulationStats[weekId] || {
+        attempts: 0,
+        highestScore: 0,
+        totalAnswered: 0,
+        totalCorrect: 0,
+      };
+      updatedSimulationStats[weekId] = {
+        attempts: prevSim.attempts + 1,
+        highestScore: Math.max(prevSim.highestScore, record.score),
+        totalAnswered: prevSim.totalAnswered + record.total,
+        totalCorrect: prevSim.totalCorrect + record.correct,
+      };
+    } else {
+      const prev = updatedCategoryStats[weekId] || {
+        attempts: 0,
+        highestScore: 0,
+        latestScore: 0,
+        latestDate: '',
+        totalAnswered: 0,
+        totalCorrect: 0,
+      };
+
+      updatedCategoryStats[weekId] = {
+        attempts: prev.attempts + 1,
+        highestScore: Math.max(prev.highestScore, record.score),
+        latestScore: record.score,
+        latestDate: record.date,
+        totalAnswered: prev.totalAnswered + record.total,
+        totalCorrect: prev.totalCorrect + record.correct,
+      };
+    }
   }
 
   const updated: OverallUserProgress = {
@@ -94,6 +112,7 @@ export function recordCompletedSession(record: CategoryHistoryRecord): OverallUs
     totalAttempts: current.totalAttempts + 1,
     totalQuestionsAnswered: current.totalQuestionsAnswered + record.total,
     categoryStats: updatedCategoryStats,
+    simulationStats: updatedSimulationStats,
     history: updatedHistory,
   };
 

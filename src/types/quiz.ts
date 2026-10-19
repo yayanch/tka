@@ -94,6 +94,12 @@ export interface OverallUserProgress {
   totalQuestionsAnswered: number;
   completedModuleWeeks?: number[];
   completedSimulations?: Record<number, number[]>;
+  simulationStats?: Record<number, {
+    attempts: number;
+    highestScore: number;
+    totalAnswered: number;
+    totalCorrect: number;
+  }>;
   categoryStats: Record<number, {
     attempts: number;
     highestScore: number;
