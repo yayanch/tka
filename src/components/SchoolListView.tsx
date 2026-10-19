@@ -81,6 +81,7 @@ export const SchoolListView: React.FC<SchoolListViewProps> = ({
     const map = new Map<string, TeacherStudentSummary[]>();
 
     data.students.forEach((student) => {
+      if (student.role === 'admin') return;
       const rawSchool = (student.asalSekolah || 'SMK TJKT').trim();
       const normalizedKey = rawSchool.toUpperCase();
       if (!map.has(normalizedKey)) {

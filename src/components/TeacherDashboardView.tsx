@@ -51,7 +51,6 @@ import {
 } from 'lucide-react';
 import { TeacherClassOverview, TeacherStudentSummary, UserProfile, ServerMetrics } from '../types/auth';
 import { HourlyLoginStatsCard } from './HourlyLoginStatsCard';
-import { normalizeSchoolName } from '../utils/schoolNormalization';
 import { 
   fetchTeacherOverview, 
   deleteStudentAccount,
@@ -482,7 +481,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
     if (!data?.students) return [];
     const set = new Set<string>();
     data.students.forEach(s => {
-      if (s.role !== 'admin') set.add(normalizeSchoolName(s.asalSekolah));
+      if (s.role !== 'admin' && s.asalSekolah) set.add(s.asalSekolah);
     });
     return Array.from(set);
   }, [data?.students]);
@@ -491,21 +490,13 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
     const set = new Set<string>();
     if (data?.students) {
       data.students.forEach(s => {
-        if (s.role !== 'admin') {
-          set.add(normalizeSchoolName(s.asalSekolah));
+        if (s.role !== 'admin' && s.asalSekolah && s.asalSekolah.trim()) {
+          set.add(s.asalSekolah.trim().toUpperCase());
         }
       });
     }
-    if (data?.loginLogs) {
-      data.loginLogs.forEach(l => {
-        if (l.role !== 'admin') {
-          const sch = l.asalSekolah || (l as any).asal_sekolah;
-          set.add(normalizeSchoolName(sch));
-        }
-      });
-    }
-    return set.size > 0 ? set.size : (schoolOptions.length > 0 ? schoolOptions.length : 1);
-  }, [data?.students, data?.loginLogs, schoolOptions.length]);
+    return set.size;
+  }, [data?.students]);
 
   // Table Rekap Sorting types & states
   type StudentSortField = 'name' | 'school' | 'verification' | 'm1' | 'm2' | 'm3' | 'm4' | 'm5' | 'm6' | 'm7' | 'm8' | 'belumTuntas';
@@ -1091,7 +1082,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
             {/* Card 2: Jumlah Sekolah Terdaftar */}
             <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-purple-300 dark:hover:border-purple-700/60 transition-all flex flex-col justify-between gap-3">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium block truncate">
+                <span className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-bold block leading-tight">
                   Jumlah Sekolah Terdaftar
                 </span>
                 <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/80 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 shadow-xs">
