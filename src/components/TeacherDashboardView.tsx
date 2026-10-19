@@ -1210,14 +1210,14 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {(!data?.loginLogs || data.loginLogs.length === 0) ? (
+                {(!data?.loginLogs || data.loginLogs.filter((log: any) => log.role !== 'admin').length === 0) ? (
                   <tr>
                     <td colSpan={7} className="px-4 py-8 text-center text-slate-400">
                       Belum ada log login siswa yang terekam.
                     </td>
                   </tr>
                 ) : (
-                  data.loginLogs.map((log: any) => (
+                  data.loginLogs.filter((log: any) => log.role !== 'admin').map((log: any) => (
                     <tr key={log.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
                       <td className="px-4 py-3 font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap">
                         {formatDate(log.loginAt || log.login_at)}

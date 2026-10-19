@@ -11,15 +11,16 @@ import {
   Sun,
   Moon,
   Phone,
-  Users
+  Users,
+  Building2
 } from 'lucide-react';
 import { UserProfile } from '../types/auth';
 import { Theme } from '../utils/theme';
 import { BrandingConfig, getStoredBrandingConfig } from '../utils/brandingStorage';
 
 interface NavbarProps {
-  currentTab: 'home' | 'dashboard' | 'learning' | 'bank' | 'stats' | 'teacher' | 'users';
-  onSelectTab: (tab: 'home' | 'dashboard' | 'learning' | 'bank' | 'stats' | 'teacher' | 'users') => void;
+  currentTab: 'home' | 'dashboard' | 'learning' | 'bank' | 'stats' | 'teacher' | 'users' | 'schools';
+  onSelectTab: (tab: 'home' | 'dashboard' | 'learning' | 'bank' | 'stats' | 'teacher' | 'users' | 'schools') => void;
   currentUser: UserProfile | null;
   onOpenAuth: (mode: 'register' | 'login') => void;
   onLogout: () => void;
@@ -91,43 +92,45 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>Beranda</span>
             </button>
 
-            <button
-              onClick={() => onSelectTab('dashboard')}
-              className={`flex items-center gap-1.5 py-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
-                currentTab === 'dashboard'
-                  ? 'text-blue-600 dark:text-blue-400 font-semibold border-b-2 border-blue-600 dark:border-blue-400'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <Layers className="w-4 h-4" />
-              <span>8 Modul Pembelajaran</span>
-            </button>
+            {currentUser.role !== 'admin' && (
+              <>
+                <button
+                  onClick={() => onSelectTab('dashboard')}
+                  className={`flex items-center gap-1.5 py-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                    currentTab === 'dashboard'
+                      ? 'text-blue-600 dark:text-blue-400 font-semibold border-b-2 border-blue-600 dark:border-blue-400'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Layers className="w-4 h-4" />
+                  <span>8 Modul Pembelajaran</span>
+                </button>
 
-            <button
-              onClick={() => onSelectTab('bank')}
-              className={`flex items-center gap-1.5 py-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
-                currentTab === 'bank'
-                  ? 'text-blue-600 dark:text-blue-400 font-semibold border-b-2 border-blue-600 dark:border-blue-400'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <BookOpen className="w-4 h-4 text-amber-500" />
-              <span>Bank Soal (400+)</span>
-            </button>
+                <button
+                  onClick={() => onSelectTab('bank')}
+                  className={`flex items-center gap-1.5 py-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                    currentTab === 'bank'
+                      ? 'text-blue-600 dark:text-blue-400 font-semibold border-b-2 border-blue-600 dark:border-blue-400'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <BookOpen className="w-4 h-4 text-amber-500" />
+                  <span>Bank Soal (400+)</span>
+                </button>
 
-
-
-            <button
-              onClick={() => onSelectTab('stats')}
-              className={`flex items-center gap-1.5 py-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
-                currentTab === 'stats'
-                  ? 'text-blue-600 dark:text-blue-400 font-semibold border-b-2 border-blue-600 dark:border-blue-400'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <BarChart3 className="w-4 h-4" />
-              <span>Progres Belajar</span>
-            </button>
+                <button
+                  onClick={() => onSelectTab('stats')}
+                  className={`flex items-center gap-1.5 py-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                    currentTab === 'stats'
+                      ? 'text-blue-600 dark:text-blue-400 font-semibold border-b-2 border-blue-600 dark:border-blue-400'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  <span>Progres Belajar</span>
+                </button>
+              </>
+            )}
 
             {(currentUser.role === 'admin' || currentUser.role === 'guru') && (
               <>
@@ -153,6 +156,18 @@ export const Navbar: React.FC<NavbarProps> = ({
                 >
                   <Users className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                   <span>Daftar Pengguna</span>
+                </button>
+
+                <button
+                  onClick={() => onSelectTab('schools')}
+                  className={`flex items-center gap-1.5 py-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                    currentTab === 'schools'
+                      ? 'text-indigo-600 dark:text-indigo-400 font-semibold border-b-2 border-indigo-600 dark:border-indigo-400'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Building2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  <span>Daftar Sekolah</span>
                 </button>
               </>
             )}
@@ -260,32 +275,36 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             Beranda
           </button>
-          <button
-            onClick={() => onSelectTab('dashboard')}
-            className={`py-1 px-2 whitespace-nowrap cursor-pointer ${
-              currentTab === 'dashboard' ? 'text-blue-600 font-bold' : 'text-slate-500'
-            }`}
-          >
-            8 Modul
-          </button>
-          <button
-            onClick={() => onSelectTab('bank')}
-            className={`py-1 px-2 whitespace-nowrap cursor-pointer flex items-center gap-1 ${
-              currentTab === 'bank' ? 'text-blue-600 font-bold' : 'text-slate-500'
-            }`}
-          >
-            <BookOpen className="w-3.5 h-3.5 text-amber-500" />
-            <span>Bank Soal</span>
-          </button>
+          {currentUser.role !== 'admin' && (
+            <>
+              <button
+                onClick={() => onSelectTab('dashboard')}
+                className={`py-1 px-2 whitespace-nowrap cursor-pointer ${
+                  currentTab === 'dashboard' ? 'text-blue-600 font-bold' : 'text-slate-500'
+                }`}
+              >
+                8 Modul
+              </button>
+              <button
+                onClick={() => onSelectTab('bank')}
+                className={`py-1 px-2 whitespace-nowrap cursor-pointer flex items-center gap-1 ${
+                  currentTab === 'bank' ? 'text-blue-600 font-bold' : 'text-slate-500'
+                }`}
+              >
+                <BookOpen className="w-3.5 h-3.5 text-amber-500" />
+                <span>Bank Soal</span>
+              </button>
 
-          <button
-            onClick={() => onSelectTab('stats')}
-            className={`py-1 px-2 whitespace-nowrap cursor-pointer ${
-              currentTab === 'stats' ? 'text-blue-600 font-bold' : 'text-slate-500'
-            }`}
-          >
-            Progres
-          </button>
+              <button
+                onClick={() => onSelectTab('stats')}
+                className={`py-1 px-2 whitespace-nowrap cursor-pointer ${
+                  currentTab === 'stats' ? 'text-blue-600 font-bold' : 'text-slate-500'
+                }`}
+              >
+                Progres
+              </button>
+            </>
+          )}
           {(currentUser.role === 'admin' || currentUser.role === 'guru') && (
             <>
               <button
@@ -306,6 +325,16 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <Users className="w-3.5 h-3.5" />
                 <span>Pengguna</span>
+              </button>
+
+              <button
+                onClick={() => onSelectTab('schools')}
+                className={`py-1 px-2 whitespace-nowrap cursor-pointer flex items-center gap-1 ${
+                  currentTab === 'schools' ? 'text-indigo-600 font-bold' : 'text-indigo-600'
+                }`}
+              >
+                <Building2 className="w-3.5 h-3.5" />
+                <span>Sekolah</span>
               </button>
             </>
           )}

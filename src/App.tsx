@@ -8,6 +8,7 @@ import { ProgressStatsView } from './components/ProgressStatsView';
 import { LearningMaterialView } from './components/LearningMaterialView';
 import { TeacherDashboardView } from './components/TeacherDashboardView';
 import { UserManagementView } from './components/UserManagementView';
+import { SchoolListView } from './components/SchoolListView';
 import { QuestionBankView } from './components/QuestionBankView';
 import { ScrollToTop } from './components/ScrollToTop';
 import { Phone } from 'lucide-react';
@@ -62,7 +63,7 @@ import {
 } from './utils/storage';
 import { calculateSessionSummary } from './utils/scoring';
 
-export type AppTab = 'home' | 'dashboard' | 'learning' | 'bank' | 'stats' | 'teacher' | 'users';
+export type AppTab = 'home' | 'dashboard' | 'learning' | 'bank' | 'stats' | 'teacher' | 'users' | 'schools';
 
 export interface AppHistoryState {
   tab: AppTab;
@@ -107,6 +108,8 @@ const tabToHash = (
       return '#guru';
     case 'users':
       return '#pengguna';
+    case 'schools':
+      return '#sekolah';
     default:
       return '#home';
   }
@@ -146,6 +149,9 @@ const parseHashToState = (hash: string, fallbackTab: AppTab = 'home'): AppHistor
   }
   if (path === 'pengguna' || path === 'users' || path === 'daftar-pengguna') {
     return { tab: 'users' };
+  }
+  if (path === 'sekolah' || path === 'schools' || path === 'daftar-sekolah') {
+    return { tab: 'schools' };
   }
 
   return { tab: fallbackTab };
@@ -1014,6 +1020,17 @@ export default function App() {
                 onRefresh={refreshProgress}
                 onNavigateToTeacher={() => {
                   setCurrentTab('teacher');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+              />
+            )}
+
+            {currentTab === 'schools' && (
+              <SchoolListView
+                currentUser={currentUser}
+                onRefresh={refreshProgress}
+                onNavigateToUsers={() => {
+                  setCurrentTab('users');
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
               />

@@ -771,8 +771,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             onReadMaterial={onReadMaterial}
           />
 
-          {/* Quick CTA banner to open 8 Modul Pembelajaran on Home */}
-          {onNavigateToModules && (
+          {/* Quick CTA banner to open 8 Modul Pembelajaran on Home (Hidden for Admin) */}
+          {onNavigateToModules && currentUser?.role !== 'admin' && (
             <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-5 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
               <div className="space-y-1">
                 <h3 className="text-base font-bold flex items-center gap-2">
