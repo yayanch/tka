@@ -752,7 +752,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
 
       {/* Container 2: Quick Summary Stats Grid (Transparent Outer Container) */}
       <section className="w-full">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
             <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium block">
               {isStudent ? 'Siswa' : 'Total Siswa Terdaftar'}
@@ -774,13 +774,6 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
             </div>
             <span className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1 block">
               {totalOnlineCount}
-            </span>
-          </div>
-
-          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
-            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium block">Status Verifikasi</span>
-            <span className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1 block">
-              {isStudent ? (data?.students?.[0]?.isVerified ? 'Aktif' : 'Pending') : `${data?.verifiedStudents || 0}`}
             </span>
           </div>
 
