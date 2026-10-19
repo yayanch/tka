@@ -1776,16 +1776,12 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
               <tr>
                 <th className="py-3.5 px-4">Nama Siswa</th>
                 <th className="py-3.5 px-4">Asal Sekolah</th>
-                <th className="py-3.5 px-3 text-center">Status Sesi</th>
-                <th className="py-3.5 px-3 text-center">Modul Selesai</th>
-                <th className="py-3.5 px-3 text-center">Rata-Rata Nilai</th>
-                <th className="py-3.5 px-4 text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {paginatedOnlineStudents.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                  <td colSpan={2} className="py-12 text-center text-slate-400">
                     Tidak ada siswa yang sedang online membuka aplikasi saat ini.
                   </td>
                 </tr>
@@ -1809,46 +1805,6 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                       <div className="flex items-center gap-1.5">
                         <School className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                         <span className="uppercase">{s.asalSekolah || '-'}</span>
-                      </div>
-                    </td>
-
-                    <td className="py-3.5 px-3 text-center">
-                      <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
-                        <span className="relative flex h-1.5 w-1.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-                        </span>
-                        <span>Online App</span>
-                      </span>
-                    </td>
-
-                    <td className="py-3.5 px-3 text-center font-bold">
-                      <span className="px-2.5 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 text-[11px]">
-                        {s.completedModulesCount} / 8 Modul
-                      </span>
-                    </td>
-
-                    <td className="py-3.5 px-3 text-center font-black font-mono text-amber-600 dark:text-amber-400">
-                      {s.averageScore}%
-                    </td>
-
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => setSelectedStudent(s)}
-                          className="px-3 py-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 rounded-xl transition-colors cursor-pointer"
-                        >
-                          Detail Rapor
-                        </button>
-                        {isAdmin && (
-                          <button
-                            onClick={() => handleDeleteStudent(s)}
-                            title="Hapus Siswa"
-                            className="p-1.5 text-rose-600 hover:text-rose-700 bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 rounded-xl transition-colors cursor-pointer"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
                       </div>
                     </td>
                   </tr>
