@@ -268,6 +268,15 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             8 Modul
           </button>
+          <button
+            onClick={() => onSelectTab('bank')}
+            className={`py-1 px-2 whitespace-nowrap cursor-pointer flex items-center gap-1 ${
+              currentTab === 'bank' ? 'text-blue-600 font-bold' : 'text-slate-500'
+            }`}
+          >
+            <BookOpen className="w-3.5 h-3.5 text-amber-500" />
+            <span>Bank Soal</span>
+          </button>
 
           <button
             onClick={() => onSelectTab('stats')}
