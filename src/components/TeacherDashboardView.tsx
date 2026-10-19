@@ -197,6 +197,94 @@ const DonutDiagram: React.FC<DonutDiagramProps> = ({
   );
 };
 
+interface CircularProgressProps {
+  value: number;
+  size?: number;
+  strokeWidth?: number;
+  subLabel?: string;
+}
+
+const CircularProgress: React.FC<CircularProgressProps> = ({
+  value,
+  size = 44,
+  strokeWidth = 4,
+  subLabel,
+}) => {
+  const clampedValue = Math.max(0, Math.min(100, Math.round(value)));
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (clampedValue / 100) * circumference;
+
+  const strokeColor =
+    clampedValue === 100
+      ? 'text-emerald-500'
+      : clampedValue >= 75
+      ? 'text-blue-500'
+      : clampedValue >= 50
+      ? 'text-amber-500'
+      : clampedValue > 0
+      ? 'text-orange-500'
+      : 'text-slate-300 dark:text-slate-600';
+
+  const textColor =
+    clampedValue === 100
+      ? 'text-emerald-600 dark:text-emerald-400'
+      : clampedValue >= 75
+      ? 'text-blue-600 dark:text-blue-400'
+      : clampedValue >= 50
+      ? 'text-amber-600 dark:text-amber-400'
+      : 'text-slate-600 dark:text-slate-400';
+
+  return (
+    <div className="flex items-center gap-2.5">
+      <div 
+        className="relative inline-flex items-center justify-center shrink-0" 
+        style={{ width: `${size}px`, height: `${size}px` }}
+      >
+        <svg
+          className="w-full h-full -rotate-90 transform"
+          viewBox={`0 0 ${size} ${size}`}
+        >
+          {/* Background circle */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="currentColor"
+            strokeWidth={strokeWidth}
+            className="text-slate-200 dark:text-slate-700/80 fill-none"
+          />
+          {/* Progress circle */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="currentColor"
+            strokeWidth={strokeWidth}
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+            className={`${strokeColor} fill-none transition-all duration-700 ease-out`}
+          />
+        </svg>
+        <span className={`absolute font-black text-[10px] ${textColor}`}>
+          {clampedValue}%
+        </span>
+      </div>
+      {subLabel && (
+        <div className="flex flex-col text-left">
+          <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight">
+            {clampedValue}%
+          </span>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight whitespace-nowrap">
+            {subLabel}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+};
+
 interface TeacherDashboardViewProps {
   currentUser?: UserProfile | null;
   onRefresh?: () => void;
@@ -1563,7 +1651,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-                  Daftar 10 Siswa Paling Banyak Menyelesaikan Modul & Tuntas
+                  Top 10
                 </h3>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -1582,6 +1670,9 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
           ) : (
             top10Students.map((s, idx) => {
               const rank = idx + 1;
+              const completedCount = Math.min(8, Math.max(s.completedModulesCount || 0, Object.keys(s.moduleScores || {}).length));
+              const completionPct = Math.round((completedCount / 8) * 100);
+
               return (
                 <div 
                   key={s.userId}
@@ -1617,6 +1708,19 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                       </span>
                     )}
                   </div>
+
+                  {/* Progress Bar Melingkar & Persentase Penyelesaian */}
+                  <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+                      Penyelesaian Modul:
+                    </span>
+                    <CircularProgress 
+                      value={completionPct}
+                      size={38}
+                      strokeWidth={3.5}
+                      subLabel={`${completedCount}/8 Modul`}
+                    />
+                  </div>
                 </div>
               );
             })
@@ -1631,18 +1735,21 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                 <th className="py-3.5 px-4 text-center w-20">Peringkat</th>
                 <th className="py-3.5 px-4">Nama Siswa</th>
                 <th className="py-3.5 px-4">Asal Sekolah</th>
+                <th className="py-3.5 px-4 text-center w-56">Progress Penyelesaian</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {top10Students.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="py-12 text-center text-slate-400">
+                  <td colSpan={4} className="py-12 text-center text-slate-400">
                     Belum ada data pengerjaan modul siswa.
                   </td>
                 </tr>
               ) : (
                 top10Students.map((s, idx) => {
                   const rank = idx + 1;
+                  const completedCount = Math.min(8, Math.max(s.completedModulesCount || 0, Object.keys(s.moduleScores || {}).length));
+                  const completionPct = Math.round((completedCount / 8) * 100);
 
                   return (
                     <tr 
@@ -1683,6 +1790,17 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                           <span className="uppercase">{s.asalSekolah || '-'}</span>
                         </div>
                       </td>
+
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center justify-center">
+                          <CircularProgress 
+                            value={completionPct}
+                            size={42}
+                            strokeWidth={4}
+                            subLabel={`${completedCount} dari 8 Modul`}
+                          />
+                        </div>
+                      </td>
                     </tr>
                   );
                 })
@@ -1703,7 +1821,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-                  Daftar Siswa Sedang Online
+                  Online
                 </h3>
               </div>
             </div>
