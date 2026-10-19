@@ -1551,7 +1551,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
       </div>
       
       {/* Section: Dashboard Admin Overview (Top 10 Siswa Tuntas & List Siswa Online) */}
-      <div className="flex flex-col xl:flex-row gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
       {/* Container 1: Daftar 10 Siswa Paling Banyak Menyelesaikan Modul & Tuntas */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
         {/* Header Banner Top 10 */}
