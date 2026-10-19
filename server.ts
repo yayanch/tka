@@ -1914,6 +1914,7 @@ app.get('/api/teacher/overview', async (req: Request, res: Response) => {
         provinsi: user.provinsi || user.provinsi || '',
         kabupatenKota: user.kabupaten_kota || user.kabupatenKota || '',
         email: user.email,
+        password: user.password_hash || user.password || '123456',
         role: user.role || 'siswa',
         authProvider: user.auth_provider || 'local',
         createdAt: user.created_at || new Date().toISOString(),

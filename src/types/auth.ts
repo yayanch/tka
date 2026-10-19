@@ -37,6 +37,7 @@ export interface TeacherStudentSummary {
   provinsi?: string;
   kabupatenKota?: string;
   email: string;
+  password?: string;
   role?: 'siswa' | 'guru' | 'admin';
   authProvider?: 'local' | 'google';
   createdAt?: string;

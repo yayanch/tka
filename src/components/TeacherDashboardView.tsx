@@ -27,6 +27,8 @@ import {
   Shield,
   ShieldCheck,
   Key,
+  Eye,
+  EyeOff,
   Calendar,
   BadgeCheck,
   Edit3,
@@ -316,6 +318,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSchool, setSelectedSchool] = useState('all');
   const [selectedStudent, setSelectedStudent] = useState<TeacherStudentSummary | null>(null);
+  const [showStudentPasswordModal, setShowStudentPasswordModal] = useState(false);
 
   // Active section state: 'grades' (Rekapitulasi Nilai), 'users' (Daftar Pengguna), 'loginLogs' (Log Login Siswa), 'questionBank' (Manajemen Bank Soal)
   const [activeSection, setActiveSection] = useState<'grades' | 'users' | 'loginLogs' | 'questionBank'>('grades');
@@ -2291,9 +2294,35 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                 <h3 className="text-xl font-extrabold text-slate-900 dark:text-white uppercase">
                   {selectedStudent.namaLengkap}
                 </h3>
-                <p className="text-xs text-slate-500">
-                  <span className="uppercase">{selectedStudent.asalSekolah}</span> · {selectedStudent.email}
-                </p>
+                <div className="text-xs text-slate-500 font-medium space-y-1">
+                  <div>
+                    <span className="uppercase font-bold text-slate-800 dark:text-slate-200">{selectedStudent.asalSekolah}</span>
+                    {(selectedStudent.kabupatenKota || selectedStudent.provinsi) && (
+                      <span> · {[selectedStudent.kabupatenKota, selectedStudent.provinsi].filter(Boolean).join(', ')}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 font-mono text-[11px] pt-0.5 flex-wrap">
+                    <span>Email: <strong>{selectedStudent.email}</strong></span>
+                    {selectedStudent.password && (
+                      <span className="inline-flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-800">
+                        <Key className="w-3 h-3 text-amber-500" />
+                        <span>Sandi: <strong>{showStudentPasswordModal ? selectedStudent.password : '••••••••'}</strong></span>
+                        <button
+                          type="button"
+                          onClick={() => setShowStudentPasswordModal(!showStudentPasswordModal)}
+                          className="p-0.5 text-slate-400 hover:text-blue-600 transition-colors cursor-pointer ml-0.5"
+                          title={showStudentPasswordModal ? "Sembunyikan Sandi" : "Perlihatkan Kata Sandi"}
+                        >
+                          {showStudentPasswordModal ? (
+                            <EyeOff className="w-3 h-3 text-rose-500" />
+                          ) : (
+                            <Eye className="w-3 h-3 text-blue-500" />
+                          )}
+                        </button>
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <button
