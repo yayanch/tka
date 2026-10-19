@@ -285,31 +285,8 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
   );
 };
 
-const getRankBadgeClasses = (rank: number): string => {
-  switch (rank) {
-    case 1:
-      return 'bg-amber-500 text-white shadow-xs ring-2 ring-amber-300 dark:ring-amber-600';
-    case 2:
-      return 'bg-slate-400 dark:bg-slate-500 text-white shadow-xs ring-2 ring-slate-300 dark:ring-slate-600';
-    case 3:
-      return 'bg-amber-700 dark:bg-amber-800 text-white shadow-xs ring-2 ring-amber-600 dark:ring-amber-800';
-    case 4:
-      return 'bg-blue-500 text-white shadow-xs';
-    case 5:
-      return 'bg-indigo-500 text-white shadow-xs';
-    case 6:
-      return 'bg-violet-500 text-white shadow-xs';
-    case 7:
-      return 'bg-purple-500 text-white shadow-xs';
-    case 8:
-      return 'bg-teal-500 text-white shadow-xs';
-    case 9:
-      return 'bg-emerald-600 text-white shadow-xs';
-    case 10:
-      return 'bg-cyan-600 text-white shadow-xs';
-    default:
-      return 'bg-slate-500 text-white shadow-xs';
-  }
+const getRankBadgeClasses = (_rank?: number): string => {
+  return 'bg-blue-500 text-white shadow-xs';
 };
 
 interface TeacherDashboardViewProps {
@@ -1770,9 +1747,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
               return (
                 <div 
                   key={s.userId}
-                  className={`p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between gap-3 ${
-                    rank === 1 ? 'border-amber-300 dark:border-amber-700/60 ring-1 ring-amber-400/20' : ''
-                  }`}
+                  className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between gap-3"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="space-y-0.5">
@@ -1837,9 +1812,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                   return (
                     <tr 
                       key={s.userId} 
-                      className={`hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors ${
-                        rank === 1 ? 'bg-amber-50/30 dark:bg-amber-950/10' : ''
-                      }`}
+                      className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
                     >
                       <td className="py-3.5 px-4 text-center">
                         <div className="flex items-center justify-center">
