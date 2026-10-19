@@ -76,8 +76,9 @@ export const StatistikSingkat: React.FC<StatistikSingkatProps> = ({
   const [activeDetail, setActiveDetail] = useState<'none' | 'exams' | 'score' | 'mastered' | 'questions'>('none');
 
   // Aggregate stats
-  const totalAttempts = progress.totalAttempts || 0;
-  const totalAnswered = progress.totalQuestionsAnswered || 0;
+  const officialHistory = progress.history.filter(h => h.mode !== 'simulation');
+  const totalAttempts = officialHistory.length;
+  const totalAnswered = officialHistory.reduce((acc, curr) => acc + curr.total, 0);
   
   let totalScoreSum = 0;
   let countScored = 0;
