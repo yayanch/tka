@@ -486,6 +486,26 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
     return Array.from(set);
   }, [data?.students]);
 
+  const totalSchoolsCount = useMemo(() => {
+    const set = new Set<string>();
+    if (data?.students) {
+      data.students.forEach(s => {
+        if (s.role !== 'admin' && s.asalSekolah && s.asalSekolah.trim()) {
+          set.add(s.asalSekolah.trim().toUpperCase());
+        }
+      });
+    }
+    if (data?.loginLogs) {
+      data.loginLogs.forEach(l => {
+        const sch = l.asalSekolah || (l as any).asal_sekolah;
+        if (sch && sch.trim()) {
+          set.add(sch.trim().toUpperCase());
+        }
+      });
+    }
+    return set.size > 0 ? set.size : (schoolOptions.length > 0 ? schoolOptions.length : 1);
+  }, [data?.students, data?.loginLogs, schoolOptions.length]);
+
   // Table Rekap Sorting types & states
   type StudentSortField = 'name' | 'school' | 'verification' | 'm1' | 'm2' | 'm3' | 'm4' | 'm5' | 'm6' | 'm7' | 'm8' | 'belumTuntas';
   type SortDirection = 'asc' | 'desc';
@@ -1051,7 +1071,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
       {/* Container 2: Quick Summary Stats Grid (Only on Dashboard Admin) */}
       {!showScoreRecap && (
         <section className="w-full">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             {/* Card 1: Total Siswa */}
             <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-blue-300 dark:hover:border-blue-700/60 transition-all flex flex-col justify-between gap-3">
               <div className="flex items-center justify-between gap-2">
@@ -1067,7 +1087,22 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
               </span>
             </div>
 
-            {/* Card 2: Siswa Sedang Online */}
+            {/* Card 2: Jumlah Sekolah Terdaftar */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-purple-300 dark:hover:border-purple-700/60 transition-all flex flex-col justify-between gap-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium block truncate">
+                  Jumlah Sekolah Terdaftar
+                </span>
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/80 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 shadow-xs">
+                  <School className="w-4 h-4 sm:w-5 sm:h-5" />
+                </div>
+              </div>
+              <span className="text-xl sm:text-2xl font-black text-purple-600 dark:text-purple-400 tabular-nums">
+                {totalSchoolsCount}
+              </span>
+            </div>
+
+            {/* Card 3: Siswa Sedang Online */}
             <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-emerald-300 dark:hover:border-emerald-700/60 transition-all flex flex-col justify-between gap-3">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 min-w-0">
@@ -1088,7 +1123,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
               </span>
             </div>
 
-            {/* Card 3: Total Ujian Selesai / Modul Diselesaikan */}
+            {/* Card 4: Total Ujian Selesai / Modul Diselesaikan */}
             <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-indigo-300 dark:hover:border-indigo-700/60 transition-all flex flex-col justify-between gap-3">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium block truncate">
@@ -1103,7 +1138,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
               </span>
             </div>
 
-            {/* Card 4: Rata-Rata Nilai / Rata-Rata Angkatan */}
+            {/* Card 5: Rata-Rata Nilai / Rata-Rata Angkatan */}
             <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-amber-300 dark:hover:border-amber-700/60 transition-all flex flex-col justify-between gap-3">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium block truncate">
@@ -1118,6 +1153,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
               </span>
             </div>
           </div>
+
         </section>
       )}
 
