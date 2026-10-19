@@ -45,7 +45,8 @@ import {
   PlusCircle,
   ArrowUpDown,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  TrendingUp
 } from 'lucide-react';
 import { TeacherClassOverview, TeacherStudentSummary, UserProfile, ServerMetrics } from '../types/auth';
 import { 
@@ -990,44 +991,68 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
       {!showScoreRecap && (
         <section className="w-full">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium block">
-                {isStudent ? 'Siswa' : 'Total Siswa Terdaftar'}
-              </span>
-              <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1 block">
+            {/* Card 1: Total Siswa */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-blue-300 dark:hover:border-blue-700/60 transition-all flex flex-col justify-between gap-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium block truncate">
+                  {isStudent ? 'Siswa' : 'Total Siswa Terdaftar'}
+                </span>
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800/80 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-xs">
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5" />
+                </div>
+              </div>
+              <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tabular-nums">
                 {data?.totalStudents || 0}
               </span>
             </div>
 
-            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium block">
-                  Siswa Sedang Online
-                </span>
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
+            {/* Card 2: Siswa Sedang Online */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-emerald-300 dark:hover:border-emerald-700/60 transition-all flex flex-col justify-between gap-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium block truncate">
+                    Siswa Sedang Online
+                  </span>
+                  <span className="relative flex h-2 w-2 shrink-0">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                </div>
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-xs">
+                  <Radio className="w-4 h-4 sm:w-5 sm:h-5" />
+                </div>
               </div>
-              <span className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1 block">
+              <span className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
                 {totalOnlineCount}
               </span>
             </div>
 
-            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium block">
-                {isStudent ? 'Modul Diselesaikan' : 'Total Ujian Selesai'}
-              </span>
-              <span className="text-xl sm:text-2xl font-black text-blue-600 dark:text-blue-400 mt-1 block">
+            {/* Card 3: Total Ujian Selesai / Modul Diselesaikan */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-indigo-300 dark:hover:border-indigo-700/60 transition-all flex flex-col justify-between gap-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium block truncate">
+                  {isStudent ? 'Modul Diselesaikan' : 'Total Ujian Selesai'}
+                </span>
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 shadow-xs">
+                  <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
+                </div>
+              </div>
+              <span className="text-xl sm:text-2xl font-black text-indigo-600 dark:text-indigo-400 tabular-nums">
                 {isStudent ? `${data?.students?.[0]?.completedModulesCount || 0} / 8` : (data?.totalExamsTaken || 0)}
               </span>
             </div>
 
-            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium block">
-                {isStudent ? 'Rata-Rata Nilai' : 'Rata-Rata Angkatan'}
-              </span>
-              <span className="text-xl sm:text-2xl font-black text-amber-500 mt-1 block">
+            {/* Card 4: Rata-Rata Nilai / Rata-Rata Angkatan */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-amber-300 dark:hover:border-amber-700/60 transition-all flex flex-col justify-between gap-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium block truncate">
+                  {isStudent ? 'Rata-Rata Nilai' : 'Rata-Rata Angkatan'}
+                </span>
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/80 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 shadow-xs">
+                  <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
+                </div>
+              </div>
+              <span className="text-xl sm:text-2xl font-black text-amber-500 tabular-nums">
                 {isStudent ? `${data?.students?.[0]?.averageScore || 0}%` : `${data?.classAverageScore ? data.classAverageScore : 0}%`}
               </span>
             </div>
