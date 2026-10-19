@@ -123,13 +123,6 @@ export const QuizSessionView: React.FC<QuizSessionViewProps> = ({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Module Title & Mode */}
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowExitModal(true)}
-              className="p-1.5 text-slate-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              title="Keluar Sesi"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
             <div>
               <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                 <span className="font-semibold text-blue-600 dark:text-blue-400">
@@ -200,6 +193,14 @@ export const QuizSessionView: React.FC<QuizSessionViewProps> = ({
                 A++
               </button>
             </div>
+
+            {/* Batal Button */}
+            <button
+              onClick={() => setShowExitModal(true)}
+              className="px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg transition-colors cursor-pointer"
+            >
+              <span>Batal</span>
+            </button>
 
             {/* Selesaikan Ujian Button */}
             <button
