@@ -902,7 +902,7 @@ export default function App() {
           /* Render Tabs Setelah Siswa Terautentikasi */
           <div key={currentTab} className="animate-fade-in w-full">
             {currentTab === 'home' && (
-              currentUser.role === 'admin' ? (
+              (currentUser.role === 'admin' || currentUser.role === 'guru') ? (
                 <TeacherDashboardView 
                   currentUser={currentUser} 
                   onRefresh={refreshProgress} 
