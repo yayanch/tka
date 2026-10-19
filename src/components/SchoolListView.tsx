@@ -169,6 +169,7 @@ export const SchoolListView: React.FC<SchoolListViewProps> = ({
     const counts = new Map<string, { schoolSet: Set<string>; studentCount: number }>();
 
     data.students.forEach((s) => {
+      if (s.role === 'admin') return;
       const rawProv = (s.provinsi || '').trim();
       const provName = rawProv && rawProv !== '-' ? rawProv : 'Jawa Barat';
       const key = provName.toUpperCase();
@@ -179,23 +180,25 @@ export const SchoolListView: React.FC<SchoolListViewProps> = ({
 
       const entry = counts.get(key)!;
       entry.studentCount++;
-      if (s.asalSekolah) {
+      if (s.asalSekolah && s.asalSekolah.trim()) {
         entry.schoolSet.add(s.asalSekolah.trim().toUpperCase());
       }
     });
 
-    let topProvName = 'JAWA BARAT';
+    let topProvName = '';
     let maxSchools = 0;
     let maxStudents = 0;
 
     counts.forEach((val, key) => {
       const schoolCount = val.schoolSet.size || 1;
-      if (schoolCount > maxSchools || (schoolCount === maxSchools && val.studentCount > maxStudents)) {
+      if (val.studentCount > maxStudents || (val.studentCount === maxStudents && schoolCount > maxSchools)) {
         maxSchools = schoolCount;
         maxStudents = val.studentCount;
         topProvName = key;
       }
     });
+
+    if (!topProvName) return null;
 
     const formattedName = topProvName
       .toLowerCase()
@@ -205,10 +208,10 @@ export const SchoolListView: React.FC<SchoolListViewProps> = ({
 
     return {
       name: formattedName,
-      schoolCount: maxSchools || schoolStatsList.length || 1,
-      studentCount: maxStudents || totalStudentsOverall || 0,
+      schoolCount: maxSchools,
+      studentCount: maxStudents,
     };
-  }, [data, schoolStatsList.length, totalStudentsOverall]);
+  }, [data]);
 
   // Export CSV
   const handleExportCSV = () => {

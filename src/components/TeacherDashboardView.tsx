@@ -53,6 +53,7 @@ import {
 } from 'lucide-react';
 import { TeacherClassOverview, TeacherStudentSummary, UserProfile, ServerMetrics } from '../types/auth';
 import { HourlyLoginStatsCard } from './HourlyLoginStatsCard';
+import { SecurityMonitoringView } from './SecurityMonitoringView';
 import { 
   fetchTeacherOverview, 
   deleteStudentAccount,
@@ -320,8 +321,8 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
   const [selectedStudent, setSelectedStudent] = useState<TeacherStudentSummary | null>(null);
   const [showStudentPasswordModal, setShowStudentPasswordModal] = useState(false);
 
-  // Active section state: 'grades' (Rekapitulasi Nilai), 'users' (Daftar Pengguna), 'loginLogs' (Log Login Siswa), 'questionBank' (Manajemen Bank Soal)
-  const [activeSection, setActiveSection] = useState<'grades' | 'users' | 'loginLogs' | 'questionBank'>('grades');
+  // Active section state: 'grades' (Rekapitulasi Nilai), 'users' (Daftar Pengguna), 'loginLogs' (Log Login Siswa), 'questionBank' (Manajemen Bank Soal), 'security' (Monitoring Keamanan)
+  const [activeSection, setActiveSection] = useState<'grades' | 'users' | 'loginLogs' | 'questionBank' | 'security'>('grades');
 
   // Question Bank Management States
   const [questionBankList, setQuestionBankList] = useState<any[]>([]);
@@ -990,6 +991,23 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                         type="button"
                         onClick={() => {
                           setIsActionMenuOpen(false);
+                          setActiveSection('security');
+                        }}
+                        className="w-full flex items-center gap-3 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer text-left"
+                      >
+                        <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950/80 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                          <ShieldCheck className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-slate-800 dark:text-slate-200">Monitoring Keamanan</div>
+                          <div className="text-[10px] text-slate-400 font-normal">Audit log, Rate Limiter & Proteksi</div>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsActionMenuOpen(false);
                           setActiveSection('grades');
                         }}
                         className="w-full flex items-center gap-3 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer text-left"
@@ -1515,6 +1533,10 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
             )}
           </div>
         </div>
+      )}
+
+      {activeSection === 'security' && !isStudent && currentUser && (
+        <SecurityMonitoringView currentUser={currentUser} onRefresh={onRefresh} />
       )}
 
       {activeSection === 'grades' && (

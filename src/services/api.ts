@@ -385,3 +385,22 @@ export async function deleteCustomQuestion(questionId: string): Promise<{ succes
   return result;
 }
 
+export async function fetchSecurityLogs(): Promise<{ success: boolean; logs: any[]; metrics: any }> {
+  const data = await safeFetch('/api/teacher/security-logs');
+  if (data && data.success) {
+    return {
+      success: true,
+      logs: data.logs || [],
+      metrics: data.metrics || {},
+    };
+  }
+  return { success: false, logs: [], metrics: {} };
+}
+
+export async function runSecurityAuditScan(): Promise<{ success: boolean; message: string; report?: any }> {
+  const result = await safeFetch('/api/teacher/run-security-scan', {
+    method: 'POST',
+  });
+  return result;
+}
+
