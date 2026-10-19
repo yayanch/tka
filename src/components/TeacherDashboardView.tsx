@@ -1133,33 +1133,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
 
       {activeSection === 'grades' && (
         <>
-          {/* Search and Filter Bar */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="relative w-full sm:max-w-md">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari nama siswa, email, atau asal sekolah..."
-            className="w-full pl-10 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
-          />
-        </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Filter className="w-4 h-4 text-slate-400 shrink-0" />
-          <select
-            value={selectedSchool}
-            onChange={(e) => setSelectedSchool(e.target.value)}
-            className="py-2 px-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 dark:text-slate-300 cursor-pointer w-full sm:w-auto"
-          >
-            <option value="all">Semua Asal Sekolah ({schoolOptions.length})</option>
-            {schoolOptions.map(sch => (
-              <option key={sch} value={sch}>{sch}</option>
-            ))}
-          </select>
-        </div>
-      </div>
 
       {/* Main Student Performance Table with Score Recap (Modul 1 s.d. 8) */}
       <div id="section-students" className="hidden">
