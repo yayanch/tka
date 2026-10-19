@@ -1112,13 +1112,15 @@ export default function App() {
             <span className="hidden md:inline">Sistem Skor Real-Time</span>
             <span aria-hidden="true" className="hidden md:inline">·</span>
             <span className="hidden md:inline">Pembahasan Otomatis Sesi</span>
-            <button
-              onClick={() => setIsContactModalOpen(true)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition-colors cursor-pointer flex items-center gap-2"
-            >
-              <Phone className="w-3.5 h-3.5" />
-              <span>Hubungi Kami</span>
-            </button>
+            {currentUser && (
+              <button
+                onClick={() => setIsContactModalOpen(true)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition-colors cursor-pointer flex items-center gap-2"
+              >
+                <Phone className="w-3.5 h-3.5" />
+                <span>Hubungi Kami</span>
+              </button>
+            )}
           </div>
         </div>
       </footer>
