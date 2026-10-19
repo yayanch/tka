@@ -1736,57 +1736,44 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
         </div>
       </div>
 
-      {/* Container 2: Header Filter & Status Online Siswa */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-emerald-600 shrink-0">
-            <UserCheck className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-                Daftar Siswa Sedang Online Membuka Aplikasi
-              </h3>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <span>{onlineStudentsList.length} Siswa Online</span>
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Memantau siswa yang saat ini sedang aktif membuka dan mengakses aplikasi platform pembelajaran.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full md:w-auto">
-          <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari siswa online..."
-              className="w-full pl-10 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900 dark:text-white"
-            />
-          </div>
-
-          {onNavigateToUsers && (
-            <button
-              type="button"
-              onClick={onNavigateToUsers}
-              className="w-full sm:w-auto px-3.5 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors cursor-pointer shrink-0"
-            >
-              Kelola Pengguna
-            </button>
-          )}
-        </div>
-      </div>
-
       {/* Container 2: Tabel Siswa Sedang Online */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+        {/* Header Filter & Status Online Siswa */}
+        <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-800/20">
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-emerald-600 shrink-0">
+              <UserCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                  Daftar Siswa Sedang Online
+                </h3>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  <span>{onlineStudentsList.length} Online</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full md:w-auto">
+            <div className="relative w-full sm:w-64">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Cari siswa online..."
+                className="w-full pl-10 pr-4 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900 dark:text-white"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Tampilan Mobile: Grid Card Layout */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:hidden gap-3 p-4 bg-slate-50/50 dark:bg-slate-900/50">
           {paginatedOnlineStudents.length === 0 ? (
