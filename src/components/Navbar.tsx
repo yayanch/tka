@@ -300,14 +300,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             </>
           )}
-
-          <button
-            onClick={onOpenContact}
-            className="py-1 px-2 whitespace-nowrap cursor-pointer text-slate-500 flex items-center gap-1"
-          >
-            <Phone className="w-3.5 h-3.5 text-blue-500" />
-            <span>Kontak</span>
-          </button>
         </div>
       )}
     </header>
