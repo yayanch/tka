@@ -227,10 +227,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   ? 'Pendaftaran Siswa TKA TJKT'
                   : 'Masuk ke Akun Siswa'}
               </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                <Database className="w-3 h-3 text-blue-500" />
-                <span>Penyimpanan MySQL via File .env</span>
-              </p>
             </div>
           </div>
 
