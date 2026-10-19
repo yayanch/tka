@@ -736,7 +736,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   </div>
 
                   <div className="flex items-center justify-between text-xs pt-0.5">
-                    <span className="text-slate-500 text-[11px] truncate">{currentUser?.asalSekolah || 'SMK Kejuruan'}</span>
+                    <span className="text-slate-500 text-[11px] truncate">{currentUser?.asalSekolah || 'SMKN 2 MAGETAN'}</span>
                     <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 shrink-0 text-[11px]">
                       <CheckCircle2 className="w-3 h-3" />
                       <span>Terverifikasi</span>

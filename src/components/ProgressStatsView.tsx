@@ -81,7 +81,7 @@ export const ProgressStatsView: React.FC<ProgressStatsViewProps> = ({
         name: currentUser.namaLengkap,
         nisn: currentUser.email,
         kelas: currentUser.role === 'admin' ? 'Administrator' : currentUser.role === 'guru' ? 'Guru TJKT' : 'Siswa TJKT',
-        sekolah: currentUser.asalSekolah || 'SMK Kejuruan TJKT',
+        sekolah: currentUser.asalSekolah || 'SMKN 2 MAGETAN',
         createdAt: currentUser.createdAt ? new Date(currentUser.createdAt).getFullYear().toString() : '2026',
         avatarColor: '#2563eb',
         completedModuleWeeks: liveCompleted,

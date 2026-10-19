@@ -34,6 +34,8 @@ export interface TeacherStudentSummary {
   userId: string;
   namaLengkap: string;
   asalSekolah: string;
+  provinsi?: string;
+  kabupatenKota?: string;
   email: string;
   role?: 'siswa' | 'guru' | 'admin';
   authProvider?: 'local' | 'google';

@@ -16,7 +16,8 @@ import {
   UserCheck,
   Zap,
   Award,
-  BookOpen
+  BookOpen,
+  MapPin
 } from 'lucide-react';
 import { UserProfile, TeacherClassOverview, TeacherStudentSummary } from '../types/auth';
 import { fetchTeacherOverview } from '../services/api';
@@ -161,6 +162,53 @@ export const SchoolListView: React.FC<SchoolListViewProps> = ({
     return [...schoolStatsList].sort((a, b) => b.averageScore - a.averageScore)[0];
   }, [schoolStatsList]);
 
+  const topProvince = useMemo(() => {
+    if (!data || !data.students || data.students.length === 0) return null;
+
+    const counts = new Map<string, { schoolSet: Set<string>; studentCount: number }>();
+
+    data.students.forEach((s) => {
+      const rawProv = (s.provinsi || '').trim();
+      const provName = rawProv && rawProv !== '-' ? rawProv : 'Jawa Barat';
+      const key = provName.toUpperCase();
+
+      if (!counts.has(key)) {
+        counts.set(key, { schoolSet: new Set<string>(), studentCount: 0 });
+      }
+
+      const entry = counts.get(key)!;
+      entry.studentCount++;
+      if (s.asalSekolah) {
+        entry.schoolSet.add(s.asalSekolah.trim().toUpperCase());
+      }
+    });
+
+    let topProvName = 'JAWA BARAT';
+    let maxSchools = 0;
+    let maxStudents = 0;
+
+    counts.forEach((val, key) => {
+      const schoolCount = val.schoolSet.size || 1;
+      if (schoolCount > maxSchools || (schoolCount === maxSchools && val.studentCount > maxStudents)) {
+        maxSchools = schoolCount;
+        maxStudents = val.studentCount;
+        topProvName = key;
+      }
+    });
+
+    const formattedName = topProvName
+      .toLowerCase()
+      .split(' ')
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+
+    return {
+      name: formattedName,
+      schoolCount: maxSchools || schoolStatsList.length || 1,
+      studentCount: maxStudents || totalStudentsOverall || 0,
+    };
+  }, [data, schoolStatsList.length, totalStudentsOverall]);
+
   // Export CSV
   const handleExportCSV = () => {
     if (schoolStatsList.length === 0) return;
@@ -228,7 +276,7 @@ export const SchoolListView: React.FC<SchoolListViewProps> = ({
       </div>
 
       {/* Summary KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         {/* Card 1: Total Sekolah */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
           <div className="flex items-center justify-between">
@@ -271,7 +319,28 @@ export const SchoolListView: React.FC<SchoolListViewProps> = ({
           </div>
         </div>
 
-        {/* Card 3: Sekolah Siswa Terbanyak */}
+        {/* Card 3: Provinsi Terbanyak */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              Provinsi Terbanyak
+            </span>
+            <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+              <MapPin className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="mt-4">
+            <div className="text-lg font-bold text-slate-900 dark:text-white truncate">
+              {isLoading ? '...' : topProvince?.name || 'Jawa Barat'}
+            </div>
+            <p className="text-xs text-purple-600 dark:text-purple-400 font-semibold mt-1 flex items-center gap-1">
+              <Building2 className="w-3 h-3" />
+              <span>{topProvince ? `${topProvince.schoolCount} Sekolah (${topProvince.studentCount} Siswa)` : '-'}</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Card 4: Sekolah Siswa Terbanyak */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
@@ -292,7 +361,7 @@ export const SchoolListView: React.FC<SchoolListViewProps> = ({
           </div>
         </div>
 
-        {/* Card 4: Nilai Rata-rata Tertinggi */}
+        {/* Card 5: Nilai Rata-rata Tertinggi */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">

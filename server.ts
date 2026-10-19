@@ -1645,6 +1645,137 @@ app.post('/api/teacher/update-role', async (req: Request, res: Response) => {
   }
 });
 
+// Admin Edit Student Data Endpoint (Nama, Asal Sekolah, Provinsi, Kabupaten/Kota, Email, Role, Verification, Password)
+app.post('/api/teacher/update-student', async (req: Request, res: Response) => {
+  try {
+    const {
+      userId,
+      originalEmail,
+      namaLengkap,
+      asalSekolah,
+      provinsi,
+      kabupatenKota,
+      email,
+      role,
+      isVerified,
+      password,
+    } = req.body;
+
+    if (!namaLengkap || !asalSekolah || !email) {
+      return res.status(400).json({ success: false, error: 'Nama Lengkap, Asal Sekolah, dan Email wajib diisi' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanOrigEmail = (originalEmail || email).trim().toLowerCase();
+    const isVerNum = isVerified ? 1 : 0;
+    const targetRole = role && ['siswa', 'guru', 'admin'].includes(role) ? role : 'siswa';
+
+    if (isMySqlConnected && pool) {
+      try {
+        if (password && password.trim()) {
+          await pool.query(
+            `UPDATE users 
+             SET nama_lengkap = ?, asal_sekolah = ?, provinsi = ?, kabupaten_kota = ?, email = ?, role = ?, is_verified = ?, password_hash = ?
+             WHERE id = ? OR email = ?`,
+            [namaLengkap.trim(), asalSekolah.trim(), (provinsi || '').trim(), (kabupatenKota || '').trim(), cleanEmail, targetRole, isVerNum, password.trim(), userId || '', cleanOrigEmail]
+          );
+        } else {
+          await pool.query(
+            `UPDATE users 
+             SET nama_lengkap = ?, asal_sekolah = ?, provinsi = ?, kabupaten_kota = ?, email = ?, role = ?, is_verified = ?
+             WHERE id = ? OR email = ?`,
+            [namaLengkap.trim(), asalSekolah.trim(), (provinsi || '').trim(), (kabupatenKota || '').trim(), cleanEmail, targetRole, isVerNum, userId || '', cleanOrigEmail]
+          );
+        }
+
+        if (cleanEmail !== cleanOrigEmail || namaLengkap) {
+          await pool.query(
+            `UPDATE exam_sessions SET user_name = ?, user_email = ?, asal_sekolah = ? WHERE user_id = ? OR user_email = ?`,
+            [namaLengkap.trim(), cleanEmail, asalSekolah.trim(), userId || '', cleanOrigEmail]
+          );
+          await pool.query(
+            `UPDATE login_logs SET user_name = ?, user_email = ?, asal_sekolah = ? WHERE user_id = ? OR user_email = ?`,
+            [namaLengkap.trim(), cleanEmail, asalSekolah.trim(), userId || '', cleanOrigEmail]
+          );
+        }
+      } catch (dbErr: any) {
+        console.error('[Database] Error updating student in MySQL:', dbErr);
+      }
+    }
+
+    // Update memoryStore
+    let foundUser: any = null;
+    if (memoryStore.users.has(cleanOrigEmail)) {
+      foundUser = memoryStore.users.get(cleanOrigEmail);
+      if (cleanOrigEmail !== cleanEmail) {
+        memoryStore.users.delete(cleanOrigEmail);
+      }
+    } else {
+      for (const u of memoryStore.users.values()) {
+        if (userId && u.id === userId) {
+          foundUser = u;
+          if (u.email && u.email.toLowerCase() !== cleanEmail) {
+            memoryStore.users.delete(u.email.toLowerCase());
+          }
+          break;
+        }
+      }
+    }
+
+    if (foundUser) {
+      foundUser.nama_lengkap = namaLengkap.trim();
+      foundUser.asal_sekolah = asalSekolah.trim();
+      foundUser.provinsi = (provinsi || '').trim();
+      foundUser.kabupaten_kota = (kabupatenKota || '').trim();
+      foundUser.email = cleanEmail;
+      foundUser.role = targetRole;
+      foundUser.is_verified = isVerNum;
+      if (password && password.trim()) {
+        foundUser.password_hash = password.trim();
+      }
+      memoryStore.users.set(cleanEmail, foundUser);
+    } else {
+      memoryStore.users.set(cleanEmail, {
+        id: userId || `usr_${Date.now()}`,
+        nama_lengkap: namaLengkap.trim(),
+        asal_sekolah: asalSekolah.trim(),
+        provinsi: (provinsi || '').trim(),
+        kabupaten_kota: (kabupatenKota || '').trim(),
+        email: cleanEmail,
+        role: targetRole,
+        auth_provider: 'local',
+        is_verified: isVerNum,
+        password_hash: password || '123456',
+        created_at: new Date().toISOString(),
+      });
+    }
+
+    memoryStore.examSessions.forEach((s: any) => {
+      if ((userId && s.user_id === userId) || (s.user_email && s.user_email.toLowerCase() === cleanOrigEmail)) {
+        s.user_name = namaLengkap.trim();
+        s.user_email = cleanEmail;
+        s.asal_sekolah = asalSekolah.trim();
+      }
+    });
+
+    memoryStore.loginLogs.forEach((l: any) => {
+      if ((userId && l.user_id === userId) || (l.user_email && l.user_email.toLowerCase() === cleanOrigEmail)) {
+        l.user_name = namaLengkap.trim();
+        l.user_email = cleanEmail;
+        l.asal_sekolah = asalSekolah.trim();
+      }
+    });
+
+    return res.json({
+      success: true,
+      message: `Data siswa "${namaLengkap}" berhasil diperbarui!`,
+    });
+  } catch (err: any) {
+    console.error('Update student error:', err);
+    return res.status(500).json({ success: false, error: err.message || 'Gagal memperbarui data siswa' });
+  }
+});
+
 // Helper to clean up expired heartbeats (> 2 minutes inactive)
 function purgeExpiredHeartbeats() {
   const now = Date.now();
@@ -1778,8 +1909,10 @@ app.get('/api/teacher/overview', async (req: Request, res: Response) => {
 
       return {
         userId: user.id,
-        namaLengkap: user.nama_lengkap,
-        asalSekolah: user.asal_sekolah,
+        namaLengkap: user.nama_lengkap || user.namaLengkap || '',
+        asalSekolah: user.asal_sekolah || user.asalSekolah || '',
+        provinsi: user.provinsi || user.provinsi || '',
+        kabupatenKota: user.kabupaten_kota || user.kabupatenKota || '',
         email: user.email,
         role: user.role || 'siswa',
         authProvider: user.auth_provider || 'local',

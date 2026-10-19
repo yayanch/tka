@@ -51,6 +51,7 @@ import {
 } from 'lucide-react';
 import { TeacherClassOverview, TeacherStudentSummary, UserProfile, ServerMetrics } from '../types/auth';
 import { HourlyLoginStatsCard } from './HourlyLoginStatsCard';
+import { normalizeSchoolName } from '../utils/schoolNormalization';
 import { 
   fetchTeacherOverview, 
   deleteStudentAccount,
@@ -481,7 +482,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
     if (!data?.students) return [];
     const set = new Set<string>();
     data.students.forEach(s => {
-      if (s.role !== 'admin' && s.asalSekolah) set.add(s.asalSekolah);
+      if (s.role !== 'admin') set.add(normalizeSchoolName(s.asalSekolah));
     });
     return Array.from(set);
   }, [data?.students]);
@@ -490,16 +491,16 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
     const set = new Set<string>();
     if (data?.students) {
       data.students.forEach(s => {
-        if (s.role !== 'admin' && s.asalSekolah && s.asalSekolah.trim()) {
-          set.add(s.asalSekolah.trim().toUpperCase());
+        if (s.role !== 'admin') {
+          set.add(normalizeSchoolName(s.asalSekolah));
         }
       });
     }
     if (data?.loginLogs) {
       data.loginLogs.forEach(l => {
-        const sch = l.asalSekolah || (l as any).asal_sekolah;
-        if (sch && sch.trim()) {
-          set.add(sch.trim().toUpperCase());
+        if (l.role !== 'admin') {
+          const sch = l.asalSekolah || (l as any).asal_sekolah;
+          set.add(normalizeSchoolName(sch));
         }
       });
     }

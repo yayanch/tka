@@ -24,7 +24,9 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertTriangle,
-  Award
+  Award,
+  MapPin,
+  Check
 } from 'lucide-react';
 import { UserProfile, TeacherClassOverview, TeacherStudentSummary } from '../types/auth';
 import { 
@@ -32,7 +34,8 @@ import {
   deleteStudentAccount, 
   resetRemoteUserProgress, 
   updateUserRole,
-  registerWithForm
+  registerWithForm,
+  updateStudentDataAdmin
 } from '../services/api';
 
 interface UserManagementViewProps {
@@ -80,6 +83,91 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
   });
   const [addUserError, setAddUserError] = useState<string | null>(null);
   const [addUserLoading, setAddUserLoading] = useState<boolean>(false);
+
+  // Full Student Edit Modal State
+  const [isEditStudentModalOpen, setIsEditStudentModalOpen] = useState<boolean>(false);
+  const [editStudentForm, setEditStudentForm] = useState({
+    userId: '',
+    originalEmail: '',
+    namaLengkap: '',
+    asalSekolah: '',
+    provinsi: '',
+    kabupatenKota: '',
+    email: '',
+    role: 'siswa' as 'siswa' | 'guru' | 'admin',
+    isVerified: true,
+    password: ''
+  });
+  const [editStudentError, setEditStudentError] = useState<string | null>(null);
+  const [editStudentLoading, setEditStudentLoading] = useState<boolean>(false);
+
+  const handleOpenEditStudentModal = (user: TeacherStudentSummary) => {
+    setEditStudentForm({
+      userId: user.userId,
+      originalEmail: user.email,
+      namaLengkap: user.namaLengkap,
+      asalSekolah: user.asalSekolah || '',
+      provinsi: user.provinsi || '',
+      kabupatenKota: user.kabupatenKota || '',
+      email: user.email,
+      role: (user.role as 'siswa' | 'guru' | 'admin') || 'siswa',
+      isVerified: Boolean(user.isVerified),
+      password: ''
+    });
+    setEditStudentError(null);
+    setIsEditStudentModalOpen(true);
+  };
+
+  const handleSaveEditStudent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEditStudentError(null);
+
+    if (!editStudentForm.namaLengkap.trim() || !editStudentForm.email.trim() || !editStudentForm.asalSekolah.trim()) {
+      setEditStudentError('Nama Lengkap, Asal Sekolah, dan Email wajib diisi.');
+      return;
+    }
+
+    setEditStudentLoading(true);
+    try {
+      const res = await updateStudentDataAdmin({
+        userId: editStudentForm.userId,
+        originalEmail: editStudentForm.originalEmail,
+        namaLengkap: editStudentForm.namaLengkap,
+        asalSekolah: editStudentForm.asalSekolah,
+        provinsi: editStudentForm.provinsi,
+        kabupatenKota: editStudentForm.kabupatenKota,
+        email: editStudentForm.email,
+        role: editStudentForm.role,
+        isVerified: editStudentForm.isVerified,
+        password: editStudentForm.password
+      });
+
+      if (res.success) {
+        setActionFeedback(`Data siswa/pengguna "${editStudentForm.namaLengkap}" berhasil diperbarui.`);
+        setIsEditStudentModalOpen(false);
+        if (selectedStudent?.userId === editStudentForm.userId) {
+          setSelectedStudent(prev => prev ? {
+            ...prev,
+            namaLengkap: editStudentForm.namaLengkap,
+            asalSekolah: editStudentForm.asalSekolah,
+            provinsi: editStudentForm.provinsi,
+            kabupatenKota: editStudentForm.kabupatenKota,
+            email: editStudentForm.email,
+            role: editStudentForm.role,
+            isVerified: editStudentForm.isVerified
+          } : null);
+        }
+        await loadData();
+        if (onRefresh) onRefresh();
+      } else {
+        setEditStudentError(res.message || 'Gagal menyimpan data siswa.');
+      }
+    } catch (err: any) {
+      setEditStudentError(err.message || 'Terjadi kesalahan sistem.');
+    } finally {
+      setEditStudentLoading(false);
+    }
+  };
 
   const isAdmin = currentUser.role === 'admin';
 
@@ -601,11 +689,12 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                       {isAdmin && (
                         <>
                           <button
-                            onClick={() => handleOpenRoleModal(usr)}
-                            className="p-1.5 text-blue-600 hover:text-blue-700 bg-blue-50 dark:bg-blue-950/50 rounded-lg cursor-pointer transition-colors"
-                            title="Ubah Role"
+                            onClick={() => handleOpenEditStudentModal(usr)}
+                            className="px-2 py-1 text-xs font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                            title="Edit Data Siswa (Nama, Sekolah, Kab/Kota, Provinsi, Email)"
                           >
-                            <Edit3 className="w-3.5 h-3.5" />
+                            <Edit3 className="w-3 h-3" />
+                            <span>Edit</span>
                           </button>
                           <button
                             onClick={() => handleResetProgress(usr)}
@@ -713,8 +802,14 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                         <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300 font-medium">
                           <div className="flex items-center gap-1.5">
                             <School className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <span className="uppercase">{usr.asalSekolah || '-'}</span>
+                            <span className="uppercase font-extrabold">{usr.asalSekolah || '-'}</span>
                           </div>
+                          {(usr.provinsi || usr.kabupatenKota) && (
+                            <div className="flex items-center gap-1 text-[10px] text-slate-400 mt-0.5">
+                              <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                              <span>{[usr.kabupatenKota, usr.provinsi].filter(Boolean).join(', ')}</span>
+                            </div>
+                          )}
                         </td>
 
                         <td className="py-3.5 px-3 text-center whitespace-nowrap">
@@ -780,11 +875,12 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                             {isAdmin && (
                               <>
                                 <button
-                                  onClick={() => handleOpenRoleModal(usr)}
-                                  className="p-1.5 text-blue-600 hover:text-blue-700 bg-blue-50 dark:bg-blue-950/50 dark:text-blue-400 hover:bg-blue-100 rounded-lg cursor-pointer transition-colors"
-                                  title="Ubah Role / Hak Akses User"
+                                  onClick={() => handleOpenEditStudentModal(usr)}
+                                  className="px-2.5 py-1 text-[11px] font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                                  title="Edit Lengkap Data Siswa (Sekolah, Kab/Kota, Provinsi, Email, Password, Dll)"
                                 >
                                   <Edit3 className="w-3.5 h-3.5" />
+                                  <span>Edit Data</span>
                                 </button>
 
                                 <button
@@ -863,8 +959,12 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                 <h3 className="text-xl font-extrabold text-slate-900 dark:text-white uppercase">
                   {selectedStudent.namaLengkap}
                 </h3>
-                <p className="text-xs text-slate-500">
-                  <span className="uppercase">{selectedStudent.asalSekolah}</span> · {selectedStudent.email}
+                <p className="text-xs text-slate-500 font-medium">
+                  <span className="uppercase font-bold">{selectedStudent.asalSekolah}</span>
+                  {(selectedStudent.kabupatenKota || selectedStudent.provinsi) && (
+                    <span> · {[selectedStudent.kabupatenKota, selectedStudent.provinsi].filter(Boolean).join(', ')}</span>
+                  )}
+                  <span> · {selectedStudent.email}</span>
                 </p>
               </div>
 
@@ -926,7 +1026,18 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
               </div>
             </div>
 
-            <div className="pt-2 flex justify-end">
+            <div className="pt-2 flex items-center justify-between">
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    handleOpenEditStudentModal(selectedStudent);
+                  }}
+                  className="px-4 py-2 text-xs font-bold text-blue-700 dark:text-blue-300 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/50 rounded-xl cursor-pointer transition-colors flex items-center gap-1.5"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  <span>Edit Data Siswa</span>
+                </button>
+              )}
               <button
                 onClick={() => setSelectedStudent(null)}
                 className="px-5 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl cursor-pointer transition-colors"
@@ -1145,6 +1256,182 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                 >
                   {addUserLoading && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                   <span>Tambah Pengguna</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Edit Complete Student Data (Nama, Email, Asal Sekolah, Provinsi, Kab/Kota, Role, Pass, Verification) */}
+      {isEditStudentModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                  <Edit3 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                    Edit Data Lengkap Siswa / Pengguna
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Administrator dapat memperbarui profil, lokasi daerah, sekolah, serta kata sandi akun
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsEditStudentModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 font-bold text-lg cursor-pointer p-1"
+              >
+                &times;
+              </button>
+            </div>
+
+            {editStudentError && (
+              <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-300 text-xs font-semibold">
+                {editStudentError}
+              </div>
+            )}
+
+            <form onSubmit={handleSaveEditStudent} className="space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Nama Lengkap */}
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">
+                    Nama Lengkap <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Isi nama lengkap"
+                    value={editStudentForm.namaLengkap}
+                    onChange={(e) => setEditStudentForm({ ...editStudentForm, namaLengkap: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white font-medium"
+                  />
+                </div>
+
+                {/* Email Akun */}
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">
+                    Email Akun <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="alamat.email@smk.belajar.id"
+                    value={editStudentForm.email}
+                    onChange={(e) => setEditStudentForm({ ...editStudentForm, email: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white font-medium"
+                  />
+                </div>
+              </div>
+
+              {/* Asal Sekolah */}
+              <div>
+                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">
+                  Asal Sekolah / Instansi <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Contoh: SMKN 1 Cimahi"
+                  value={editStudentForm.asalSekolah}
+                  onChange={(e) => setEditStudentForm({ ...editStudentForm, asalSekolah: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white font-medium"
+                />
+              </div>
+
+              {/* Wilayah / Lokasi: Provinsi & Kabupaten/Kota */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80">
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1 flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Provinsi</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: Jawa Barat"
+                    value={editStudentForm.provinsi}
+                    onChange={(e) => setEditStudentForm({ ...editStudentForm, provinsi: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1 flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Kabupaten / Kota</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: Kota Cimahi"
+                    value={editStudentForm.kabupatenKota}
+                    onChange={(e) => setEditStudentForm({ ...editStudentForm, kabupatenKota: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white font-medium"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Peran (Role) */}
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">Peran (Role)</label>
+                  <select
+                    value={editStudentForm.role}
+                    onChange={(e) => setEditStudentForm({ ...editStudentForm, role: e.target.value as any })}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white font-bold cursor-pointer"
+                  >
+                    <option value="siswa">Siswa (Peserta Ujian Modul)</option>
+                    <option value="guru">Guru / Instruktur</option>
+                    <option value="admin">Administrator System</option>
+                  </select>
+                </div>
+
+                {/* Status Verifikasi */}
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">Status Verifikasi Email</label>
+                  <select
+                    value={editStudentForm.isVerified ? 'verified' : 'unverified'}
+                    onChange={(e) => setEditStudentForm({ ...editStudentForm, isVerified: e.target.value === 'verified' })}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white font-bold cursor-pointer"
+                  >
+                    <option value="verified">Terverifikasi (OTP Selesai)</option>
+                    <option value="unverified">Pending Verifikasi (OTP)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Password Baru (Optional) */}
+              <div>
+                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">
+                  Ubah Kata Sandi Baru <span className="text-slate-400 font-normal">(Opsional, kosongkan jika tidak diubah)</span>
+                </label>
+                <input
+                  type="password"
+                  placeholder="Ketik kata sandi baru untuk pengguna ini"
+                  value={editStudentForm.password}
+                  onChange={(e) => setEditStudentForm({ ...editStudentForm, password: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsEditStudentModalOpen(false)}
+                  className="px-4 py-2.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={editStudentLoading}
+                  className="px-6 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-xl shadow-md transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                >
+                  {editStudentLoading && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+                  <span>Simpan Perubahan</span>
                 </button>
               </div>
             </form>

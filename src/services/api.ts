@@ -337,6 +337,26 @@ export async function updateUserRole(data: {
   return result;
 }
 
+export async function updateStudentDataAdmin(data: {
+  userId: string;
+  originalEmail: string;
+  namaLengkap: string;
+  asalSekolah: string;
+  provinsi: string;
+  kabupatenKota: string;
+  email: string;
+  role: 'siswa' | 'guru' | 'admin';
+  isVerified: boolean;
+  password?: string;
+}): Promise<{ success: boolean; message?: string }> {
+  const result = await safeFetch('/api/teacher/update-student', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return result;
+}
+
 export async function fetchLoginLogs(): Promise<any[]> {
   const data = await safeFetch('/api/teacher/login-logs');
   if (data && data.success) return data.logs || [];
