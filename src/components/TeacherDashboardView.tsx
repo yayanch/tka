@@ -409,6 +409,12 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
     return onlineStudentsList.slice(start, start + ITEMS_PER_PAGE);
   }, [onlineStudentsList, studentPage]);
 
+  const totalOnlineCount = useMemo(() => {
+    if (!data?.students) return liveMetrics?.activeOnlineStudents || onlineStudentsList.length;
+    const online = data.students.filter(s => s.role !== 'admin' && Boolean(s.isOnline)).length;
+    return online > 0 ? online : (liveMetrics?.activeOnlineStudents || onlineStudentsList.length);
+  }, [data?.students, liveMetrics?.activeOnlineStudents, onlineStudentsList.length]);
+
   // Top 10 Students who completed the most modules and passed (tuntas >= 75)
   const top10Students = useMemo(() => {
     if (!data?.students) return [];
@@ -746,13 +752,28 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
 
       {/* Container 2: Quick Summary Stats Grid (Transparent Outer Container) */}
       <section className="w-full">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
             <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium block">
               {isStudent ? 'Siswa' : 'Total Siswa Terdaftar'}
             </span>
             <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1 block">
               {data?.totalStudents || 0}
+            </span>
+          </div>
+
+          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium block">
+                Siswa Sedang Online
+              </span>
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+            </div>
+            <span className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1 block">
+              {totalOnlineCount}
             </span>
           </div>
 
