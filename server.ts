@@ -1649,6 +1649,9 @@ app.get('/api/teacher/overview', async (req: Request, res: Response) => {
         (lastHb && (Date.now() - lastHb < 120000)) ||
         (queryEmail && userEmailLower === queryEmail)
       );
+      const onlineAt = isOnline
+        ? (lastHb ? new Date(lastHb).toISOString() : new Date().toISOString())
+        : undefined;
 
       return {
         userId: user.id,
@@ -1663,8 +1666,9 @@ app.get('/api/teacher/overview', async (req: Request, res: Response) => {
         totalAttempts: userSessions.length,
         averageScore: parseFloat(avgScore.toFixed(1)),
         completedModulesCount: completedCount,
-        lastActive: lastSession ? lastSession.created_at : user.created_at,
+        lastActive: isOnline ? (onlineAt || new Date().toISOString()) : (lastSession ? lastSession.created_at : user.created_at),
         isOnline,
+        onlineAt,
       };
     });
 

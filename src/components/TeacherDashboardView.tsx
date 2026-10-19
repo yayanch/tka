@@ -728,6 +728,27 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
     }
   };
 
+  const formatOnlineTime = (isoString?: string) => {
+    if (!isoString) return 'Baru saja';
+    try {
+      const d = new Date(isoString);
+      if (isNaN(d.getTime())) return 'Baru saja';
+      const isToday = new Date().toDateString() === d.toDateString();
+      const timeStr = d.toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }) + ' WIB';
+
+      if (isToday) {
+        return timeStr;
+      }
+      return `${d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}, ${timeStr}`;
+    } catch {
+      return 'Baru saja';
+    }
+  };
+
   const handleDownloadCsv = () => {
     window.open('/api/teacher/export-csv', '_blank');
   };
@@ -1402,13 +1423,13 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="space-y-0.5">
-                      <div className="font-extrabold text-slate-900 dark:text-white uppercase text-xs flex items-center gap-1.5">
+                      <div className="font-normal text-slate-900 dark:text-white uppercase text-xs flex items-center gap-1.5">
                         <span>{s.namaLengkap}</span>
                         {s.email === currentUser?.email && (
                           <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded normal-case">Anda</span>
                         )}
                       </div>
-                      <div className="text-[11px] text-slate-500 flex items-center gap-1">
+                      <div className="text-[11px] font-normal text-slate-500 flex items-center gap-1">
                         <School className="w-3 h-3 text-slate-400 shrink-0" />
                         <span className="uppercase">{s.asalSekolah}</span>
                       </div>
@@ -1548,13 +1569,13 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                       className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
                     >
                       <td className="py-3 px-4">
-                        <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <div className="font-normal text-slate-900 dark:text-white flex items-center gap-1.5">
                           <span className="uppercase">{s.namaLengkap}</span>
                           {s.email === currentUser?.email && (
                             <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded normal-case">Anda</span>
                           )}
                         </div>
-                        <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
+                        <div className="text-[11px] font-normal text-slate-500 flex items-center gap-1.5 mt-0.5">
                           <School className="w-3 h-3 text-slate-400" />
                           <span className="uppercase">{s.asalSekolah}</span>
                         </div>
@@ -1682,10 +1703,10 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="space-y-0.5">
-                      <div className="font-extrabold text-slate-900 dark:text-white uppercase text-xs">
+                      <div className="font-normal text-slate-900 dark:text-white uppercase text-xs">
                         {s.namaLengkap}
                       </div>
-                      <div className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+                      <div className="flex items-center gap-1.5 text-[10px] font-normal text-slate-500 dark:text-slate-400">
                         <School className="w-3 h-3 text-slate-400 shrink-0" />
                         <span className="uppercase">{s.asalSekolah || '-'}</span>
                       </div>
@@ -1779,12 +1800,12 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                       </td>
 
                       <td className="py-3.5 px-4">
-                        <div className="font-bold text-slate-900 dark:text-white uppercase">
+                        <div className="font-normal text-slate-900 dark:text-white uppercase">
                           {s.namaLengkap}
                         </div>
                       </td>
 
-                      <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300 font-semibold">
+                      <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300 font-normal">
                         <div className="flex items-center gap-1.5">
                           <School className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                           <span className="uppercase">{s.asalSekolah || '-'}</span>
@@ -1855,14 +1876,14 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="space-y-0.5">
-                    <div className="font-extrabold text-slate-900 dark:text-white uppercase text-xs flex items-center gap-1.5">
+                    <div className="font-normal text-slate-900 dark:text-white uppercase text-xs flex items-center gap-1.5">
                       <span>{s.namaLengkap}</span>
                       <span className="relative flex h-2 w-2" title="Siswa Sedang Online Membuka Aplikasi">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                       </span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+                    <div className="flex items-center gap-1.5 text-[10px] font-normal text-slate-500 dark:text-slate-400">
                       <School className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       <span className="uppercase">{s.asalSekolah || '-'}</span>
                     </div>
@@ -1870,6 +1891,17 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                   <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 shrink-0">
                     Online
                   </span>
+                </div>
+
+                {/* Waktu Online Siswa */}
+                <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
+                  <span className="text-[10px] font-normal text-slate-500 dark:text-slate-400">
+                    Waktu Online:
+                  </span>
+                  <div className="inline-flex items-center gap-1.5 font-normal text-emerald-600 dark:text-emerald-400">
+                    <Clock className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    <span>{formatOnlineTime(s.onlineAt || s.lastActive)}</span>
+                  </div>
                 </div>
               </div>
             ))
@@ -1883,12 +1915,13 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
               <tr>
                 <th className="py-3.5 px-4">Nama Siswa</th>
                 <th className="py-3.5 px-4">Asal Sekolah</th>
+                <th className="py-3.5 px-4 text-center w-52">Waktu Online</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {paginatedOnlineStudents.length === 0 ? (
                 <tr>
-                  <td colSpan={2} className="py-12 text-center text-slate-400">
+                  <td colSpan={3} className="py-12 text-center text-slate-400">
                     Tidak ada siswa yang sedang online membuka aplikasi saat ini.
                   </td>
                 </tr>
@@ -1899,7 +1932,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                     className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
                   >
                     <td className="py-3.5 px-4">
-                      <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <div className="font-normal text-slate-900 dark:text-white flex items-center gap-2">
                         <span className="uppercase">{s.namaLengkap}</span>
                         <span className="relative flex h-2 w-2" title="Siswa Sedang Online Membuka Aplikasi">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -1908,10 +1941,20 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                       </div>
                     </td>
 
-                    <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300 font-semibold">
+                    <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300 font-normal">
                       <div className="flex items-center gap-1.5">
                         <School className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                         <span className="uppercase">{s.asalSekolah || '-'}</span>
+                      </div>
+                    </td>
+
+                    <td className="py-3.5 px-4 text-center">
+                      <div 
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 font-normal text-xs"
+                        title={`Aktivitas terakhir: ${formatDate(s.onlineAt || s.lastActive)}`}
+                      >
+                        <Clock className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <span>{formatOnlineTime(s.onlineAt || s.lastActive)}</span>
                       </div>
                     </td>
                   </tr>
