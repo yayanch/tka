@@ -30,7 +30,7 @@ export const BadgeDisplaySection: React.FC<BadgeDisplaySectionProps> = ({
   onNavigateToModules,
   compact = false,
 }) => {
-  const [isExpanded, setIsExpanded] = useState<boolean>(true);
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'all' | 'module' | 'accuracy' | 'milestone'>('all');
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
 
