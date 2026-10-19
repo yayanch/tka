@@ -285,6 +285,33 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
   );
 };
 
+const getRankBadgeClasses = (rank: number): string => {
+  switch (rank) {
+    case 1:
+      return 'bg-amber-500 text-white shadow-xs ring-2 ring-amber-300 dark:ring-amber-600';
+    case 2:
+      return 'bg-slate-400 dark:bg-slate-500 text-white shadow-xs ring-2 ring-slate-300 dark:ring-slate-600';
+    case 3:
+      return 'bg-amber-700 dark:bg-amber-800 text-white shadow-xs ring-2 ring-amber-600 dark:ring-amber-800';
+    case 4:
+      return 'bg-blue-500 text-white shadow-xs';
+    case 5:
+      return 'bg-indigo-500 text-white shadow-xs';
+    case 6:
+      return 'bg-violet-500 text-white shadow-xs';
+    case 7:
+      return 'bg-purple-500 text-white shadow-xs';
+    case 8:
+      return 'bg-teal-500 text-white shadow-xs';
+    case 9:
+      return 'bg-emerald-600 text-white shadow-xs';
+    case 10:
+      return 'bg-cyan-600 text-white shadow-xs';
+    default:
+      return 'bg-slate-500 text-white shadow-xs';
+  }
+};
+
 interface TeacherDashboardViewProps {
   currentUser?: UserProfile | null;
   onRefresh?: () => void;
@@ -1757,23 +1784,12 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                         <span className="uppercase">{s.asalSekolah || '-'}</span>
                       </div>
                     </div>
-                    {rank === 1 ? (
-                      <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-amber-500 text-white font-black text-xs shadow-xs shrink-0">
-                        🥇 #1
-                      </span>
-                    ) : rank === 2 ? (
-                      <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-slate-300 dark:bg-slate-600 text-slate-900 dark:text-white font-black text-xs shadow-xs shrink-0">
-                        🥈 #2
-                      </span>
-                    ) : rank === 3 ? (
-                      <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-amber-700 text-white font-black text-xs shadow-xs shrink-0">
-                        🥉 #3
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs shrink-0">
-                        #{rank}
-                      </span>
-                    )}
+                    <span 
+                      className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold shrink-0 ${getRankBadgeClasses(rank)}`}
+                      title={`Peringkat ${rank}`}
+                    >
+                      {rank}
+                    </span>
                   </div>
 
                   {/* Progress Bar Melingkar & Persentase Penyelesaian */}
@@ -1826,23 +1842,14 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                       }`}
                     >
                       <td className="py-3.5 px-4 text-center">
-                        {rank === 1 ? (
-                          <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-amber-500 text-white font-black text-xs shadow-xs">
-                            🥇 #1
+                        <div className="flex items-center justify-center">
+                          <span 
+                            className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${getRankBadgeClasses(rank)}`}
+                            title={`Peringkat ${rank}`}
+                          >
+                            {rank}
                           </span>
-                        ) : rank === 2 ? (
-                          <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-slate-300 dark:bg-slate-600 text-slate-900 dark:text-white font-black text-xs shadow-xs">
-                            🥈 #2
-                          </span>
-                        ) : rank === 3 ? (
-                          <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-amber-700 text-white font-black text-xs shadow-xs">
-                            🥉 #3
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs">
-                            #{rank}
-                          </span>
-                        )}
+                        </div>
                       </td>
 
                       <td className="py-3.5 px-4">
