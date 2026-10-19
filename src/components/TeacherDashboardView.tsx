@@ -42,7 +42,10 @@ import {
   Wifi,
   BookOpen,
   Plus,
-  PlusCircle
+  PlusCircle,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import { TeacherClassOverview, TeacherStudentSummary, UserProfile, ServerMetrics } from '../types/auth';
 import { 
@@ -379,6 +382,49 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
     return Array.from(set);
   }, [data?.students]);
 
+  // Table Rekap Sorting types & states
+  type StudentSortField = 'name' | 'school' | 'verification' | 'm1' | 'm2' | 'm3' | 'm4' | 'm5' | 'm6' | 'm7' | 'm8' | 'belumTuntas';
+  type SortDirection = 'asc' | 'desc';
+
+  const [sortField, setSortField] = useState<StudentSortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+  const handleSort = (field: StudentSortField) => {
+    if (sortField === field) {
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else {
+        setSortField(null);
+        setSortDirection('asc');
+      }
+    } else {
+      setSortField(field);
+      if (field.startsWith('m') || field === 'belumTuntas' || field === 'verification') {
+        setSortDirection('desc');
+      } else {
+        setSortDirection('asc');
+      }
+    }
+    setStudentPage(1);
+  };
+
+  const renderSortIndicator = (field: StudentSortField) => {
+    if (sortField === field) {
+      return (
+        <span className="inline-flex items-center text-blue-600 dark:text-blue-400 font-bold">
+          {sortDirection === 'asc' ? (
+            <ArrowUp className="w-3.5 h-3.5 inline shrink-0 ml-1" />
+          ) : (
+            <ArrowDown className="w-3.5 h-3.5 inline shrink-0 ml-1" />
+          )}
+        </span>
+      );
+    }
+    return (
+      <ArrowUpDown className="w-3 h-3 text-slate-300 dark:text-slate-500 opacity-40 group-hover:opacity-100 group-hover:text-slate-600 dark:group-hover:text-slate-300 inline shrink-0 ml-1 transition-opacity" />
+    );
+  };
+
   // Filtered students (Excludes Admin accounts from Peserta / Siswa)
   const filteredStudents = useMemo(() => {
     if (!data?.students) return [];
@@ -393,11 +439,40 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
     });
   }, [data?.students, searchQuery, selectedSchool]);
 
+  // Sorted students for Rekap Table
+  const sortedStudents = useMemo(() => {
+    if (!sortField) return filteredStudents;
+    return [...filteredStudents].sort((a, b) => {
+      let comparison = 0;
+      if (sortField === 'name') {
+        comparison = (a.namaLengkap || '').localeCompare(b.namaLengkap || '');
+      } else if (sortField === 'school') {
+        comparison = (a.asalSekolah || '').localeCompare(b.asalSekolah || '');
+      } else if (sortField === 'verification') {
+        const aVal = a.isVerified ? 1 : 0;
+        const bVal = b.isVerified ? 1 : 0;
+        comparison = aVal - bVal;
+      } else if (sortField.startsWith('m')) {
+        const modNum = parseInt(sortField.replace('m', ''), 10);
+        const aScore = a.moduleScores?.[modNum] ?? 0;
+        const bScore = b.moduleScores?.[modNum] ?? 0;
+        comparison = aScore - bScore;
+      } else if (sortField === 'belumTuntas') {
+        const aTuntas = [1, 2, 3, 4, 5, 6, 7, 8].filter(w => (a.moduleScores?.[w] ?? 0) >= 75).length;
+        const bTuntas = [1, 2, 3, 4, 5, 6, 7, 8].filter(w => (b.moduleScores?.[w] ?? 0) >= 75).length;
+        const aBelum = 8 - aTuntas;
+        const bBelum = 8 - bTuntas;
+        comparison = aBelum - bBelum;
+      }
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [filteredStudents, sortField, sortDirection]);
+
   // Apply student pagination
   const paginatedStudents = useMemo(() => {
     const start = (studentPage - 1) * ITEMS_PER_PAGE;
-    return filteredStudents.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredStudents, studentPage]);
+    return sortedStudents.slice(start, start + ITEMS_PER_PAGE);
+  }, [sortedStudents, studentPage]);
 
   // Filter for students currently online opening the application
   const onlineStudentsList = useMemo(() => {
@@ -1202,7 +1277,20 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  {sortField && (
+                    <button
+                      onClick={() => { setSortField(null); setSortDirection('asc'); }}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 px-3 py-1.5 rounded-xl border border-blue-200 dark:border-blue-800 transition-colors cursor-pointer shadow-2xs"
+                      title="Klik untuk menghapus pengurutan dan kembali ke default"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>
+                        Urut: <strong className="uppercase">{sortField.startsWith('m') ? `Modul ${sortField.replace('m', '')}` : sortField === 'belumTuntas' ? 'Belum Tuntas' : sortField === 'name' ? 'Nama Siswa' : sortField === 'verification' ? 'Verifikasi' : sortField}</strong> ({sortDirection === 'asc' ? 'A-Z / Naik' : 'Z-A / Turun'})
+                      </span>
+                      <span className="text-blue-400 dark:text-blue-500 font-bold ml-1">✕</span>
+                    </button>
+                  )}
                   <span className="text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
                     Total {filteredStudents.length} Siswa
                   </span>
@@ -1292,17 +1380,65 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
           <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
             <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white font-bold border-b border-slate-200 dark:border-slate-700">
               <tr>
-                <th className="py-3 px-4">Nama Siswa & Sekolah</th>
-                <th className="py-3 px-3 text-center">Verifikasi</th>
-                <th className="py-3 px-2.5 text-center">M1</th>
-                <th className="py-3 px-2.5 text-center">M2</th>
-                <th className="py-3 px-2.5 text-center">M3</th>
-                <th className="py-3 px-2.5 text-center">M4</th>
-                <th className="py-3 px-2.5 text-center">M5</th>
-                <th className="py-3 px-2.5 text-center">M6</th>
-                <th className="py-3 px-2.5 text-center">M7</th>
-                <th className="py-3 px-2.5 text-center">M8</th>
-                <th className="py-3 px-3 text-center">Belum Tuntas</th>
+                <th 
+                  onClick={() => handleSort('name')}
+                  className={`py-3 px-4 cursor-pointer select-none hover:bg-slate-100/90 dark:hover:bg-slate-700/60 transition-colors group ${
+                    sortField === 'name' ? 'bg-blue-50/80 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400' : ''
+                  }`}
+                  title="Klik untuk mengurutkan Nama Siswa (A-Z / Z-A)"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span>Nama Siswa & Sekolah</span>
+                    {renderSortIndicator('name')}
+                  </div>
+                </th>
+
+                <th 
+                  onClick={() => handleSort('verification')}
+                  className={`py-3 px-3 text-center cursor-pointer select-none hover:bg-slate-100/90 dark:hover:bg-slate-700/60 transition-colors group ${
+                    sortField === 'verification' ? 'bg-blue-50/80 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400' : ''
+                  }`}
+                  title="Klik untuk mengurutkan status Verifikasi (Aktif / Pending)"
+                >
+                  <div className="flex items-center justify-center gap-1">
+                    <span>Verifikasi</span>
+                    {renderSortIndicator('verification')}
+                  </div>
+                </th>
+
+                {[1, 2, 3, 4, 5, 6, 7, 8].map(mod => {
+                  const field = `m${mod}` as StudentSortField;
+                  const isActive = sortField === field;
+                  return (
+                    <th 
+                      key={mod}
+                      onClick={() => handleSort(field)}
+                      className={`py-3 px-2.5 text-center cursor-pointer select-none hover:bg-slate-100/90 dark:hover:bg-slate-700/60 transition-colors group ${
+                        isActive ? 'bg-blue-50/80 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400' : ''
+                      }`}
+                      title={`Klik untuk mengurutkan Nilai Modul ${mod} (Tertinggi / Terendah)`}
+                    >
+                      <div className="flex items-center justify-center gap-0.5">
+                        <span>M{mod}</span>
+                        {renderSortIndicator(field)}
+                      </div>
+                    </th>
+                  );
+                })}
+
+                <th 
+                  onClick={() => handleSort('belumTuntas')}
+                  className={`py-3 px-3 text-center cursor-pointer select-none hover:bg-slate-100/90 dark:hover:bg-slate-700/60 transition-colors group ${
+                    sortField === 'belumTuntas' ? 'bg-blue-50/80 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400' : ''
+                  }`}
+                  title="Klik untuk mengurutkan jumlah Modul Belum Tuntas (Terbanyak / Paling Sedikit)"
+                >
+                  <div className="flex items-center justify-center gap-1">
+                    <span>Belum Tuntas</span>
+                    {renderSortIndicator('belumTuntas')}
+                  </div>
+                </th>
+
                 <th className="py-3 px-3 text-right">Aksi</th>
               </tr>
             </thead>
@@ -1409,8 +1545,8 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
               )}
             </tbody>
           </table>
-          <Pagination currentPage={studentPage} totalItems={filteredStudents.length} onPageChange={setStudentPage} label="siswa" />
         </div>
+        <Pagination currentPage={studentPage} totalItems={filteredStudents.length} onPageChange={setStudentPage} label="siswa" />
       </div>
           </>
         ) : (
