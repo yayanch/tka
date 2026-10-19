@@ -59,7 +59,8 @@ import {
   recordCompletedSimulation,
   toggleBookmarkQuestion,
   toggleModuleCompleted,
-  resetAllUserProgress 
+  resetAllUserProgress,
+  syncUserProgressFromServer
 } from './utils/storage';
 import { calculateSessionSummary } from './utils/scoring';
 
@@ -475,10 +476,33 @@ export default function App() {
     }
   }, [navigateState]);
 
+  // Auto-sync user progress whenever currentUser changes (login, session restore)
+  useEffect(() => {
+    if (currentUser?.id || currentUser?.email) {
+      const userKey = currentUser.id || currentUser.email;
+      setUserProgress(loadUserProgress(userKey));
+      syncUserProgressFromServer(currentUser.id, currentUser.email).then((synced) => {
+        setUserProgress(synced);
+      });
+    } else {
+      setUserProgress(loadUserProgress());
+    }
+  }, [currentUser?.id, currentUser?.email]);
+
   // Sync user progress whenever updated
-  const refreshProgress = () => {
-    setUserProgress(loadUserProgress());
-  };
+  const refreshProgress = useCallback(() => {
+    const userKey = currentUser?.id || currentUser?.email;
+    setUserProgress(loadUserProgress(userKey));
+  }, [currentUser?.id, currentUser?.email]);
+
+  const handleSyncProgress = useCallback(async () => {
+    if (currentUser?.id || currentUser?.email) {
+      const synced = await syncUserProgressFromServer(currentUser.id, currentUser.email);
+      setUserProgress(synced);
+    } else {
+      refreshProgress();
+    }
+  }, [currentUser?.id, currentUser?.email, refreshProgress]);
 
   const handleOpenAuth = (mode: 'register' | 'login' = 'register') => {
     setAuthModalMode(mode);
@@ -696,9 +720,10 @@ export default function App() {
 
   // Toggle bookmark for a question
   const handleToggleBookmark = useCallback((questionId: string) => {
-    toggleBookmarkQuestion(questionId);
+    const userKey = currentUser?.id || currentUser?.email;
+    toggleBookmarkQuestion(questionId, userKey);
     refreshProgress();
-  }, []);
+  }, [currentUser?.id, currentUser?.email, refreshProgress]);
 
   // Jump question index
   const handleJumpToQuestion = useCallback((index: number) => {
@@ -735,7 +760,9 @@ export default function App() {
       },
     };
 
-    // 1. Save record to local persistent storage
+    const userKey = currentUser?.id || currentUser?.email;
+
+    // 1. Save record to local persistent storage (user-scoped)
     recordCompletedSession({
       sessionId: finishedSession.sessionId,
       date: new Date().toLocaleDateString('id-ID', {
@@ -751,7 +778,7 @@ export default function App() {
       total: summary.totalQuestions,
       timeSpentSeconds: elapsed,
       mode: finishedSession.mode,
-    });
+    }, userKey);
 
     // 2. Save record to remote MySQL backend via .env configuration
     const wrongQuestionIds = sessionQuestions
@@ -778,8 +805,8 @@ export default function App() {
     });
 
     if (currentSession.mode === 'simulation' && currentSession.simulationIndex) {
-      recordCompletedSimulation(currentSession.weekId, currentSession.simulationIndex);
-      setUserProgress(loadUserProgress());
+      recordCompletedSimulation(currentSession.weekId, currentSession.simulationIndex, userKey);
+      setUserProgress(loadUserProgress(userKey));
     }
 
     refreshProgress();
@@ -791,7 +818,7 @@ export default function App() {
       examWeekId: finishedSession.weekId,
     }, { replace: true });
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [currentSession, sessionQuestions, currentUser, navigateState]);
+  }, [currentSession, sessionQuestions, currentUser, navigateState, refreshProgress]);
 
   // Exit back to dashboard or previous view via history
   const handleExitSession = useCallback(() => {
@@ -831,7 +858,8 @@ export default function App() {
 
   // Reset all progress
   const handleResetProgress = useCallback(async () => {
-    resetAllUserProgress();
+    const userKey = currentUser?.id || currentUser?.email;
+    resetAllUserProgress(userKey);
     if (currentUser) {
       await resetRemoteUserProgress(currentUser.email, currentUser.id);
     }
@@ -840,9 +868,10 @@ export default function App() {
 
   // Toggle module completed
   const handleToggleModuleCompleted = useCallback((weekId: number) => {
-    toggleModuleCompleted(weekId);
+    const userKey = currentUser?.id || currentUser?.email;
+    toggleModuleCompleted(weekId, userKey);
     refreshProgress();
-  }, [refreshProgress]);
+  }, [currentUser?.id, currentUser?.email, refreshProgress]);
 
   return (
     <div className={`min-h-screen bg-slate-50/60 dark:bg-slate-950 text-slate-900 dark:text-slate-100 ${brandingConfig.fontStyle || 'font-sans'} selection:bg-blue-500 selection:text-white flex flex-col`}>
@@ -995,6 +1024,7 @@ export default function App() {
                 currentUser={currentUser}
                 onStartWeekExam={handleStartWeekSession}
                 onResetProgress={handleResetProgress}
+                onSyncProgress={handleSyncProgress}
                 onToggleModuleCompleted={handleToggleModuleCompleted}
               />
             )}

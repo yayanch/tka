@@ -1707,16 +1707,19 @@ app.post('/api/exams/test-notification-email', async (req: Request, res: Respons
 app.get('/api/exams/user-history/:userId', async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
+    const emailQuery = (req.query.email as string | undefined)?.trim().toLowerCase();
 
     if (isMySqlConnected && pool) {
       const [rows]: any = await pool.query(
-        'SELECT * FROM exam_sessions WHERE user_id = ? ORDER BY created_at DESC LIMIT 50',
-        [userId]
+        'SELECT * FROM exam_sessions WHERE user_id = ? OR user_email = ? OR user_email = ? ORDER BY created_at DESC LIMIT 100',
+        [userId, userId, emailQuery || userId]
       );
       return res.json({ sessions: rows });
     }
 
-    const filtered = memoryStore.examSessions.filter(s => s.user_id === userId);
+    const filtered = memoryStore.examSessions.filter(
+      s => s.user_id === userId || s.user_email === userId || (emailQuery && s.user_email?.toLowerCase() === emailQuery)
+    );
     return res.json({ sessions: filtered });
   } catch (err: any) {
     return res.status(500).json({ error: err.message });

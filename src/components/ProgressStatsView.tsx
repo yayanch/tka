@@ -42,6 +42,7 @@ interface ProgressStatsViewProps {
   allStudents?: StudentProfile[];
   onStartWeekExam: (weekId: number, mode: 'exam' | 'practice') => void;
   onResetProgress: () => void;
+  onSyncProgress?: () => Promise<void>;
   onOpenProfileModal?: () => void;
   onToggleModuleCompleted?: (weekId: number) => void;
   onSwitchStudent?: (studentId: string) => void;
@@ -65,12 +66,14 @@ export const ProgressStatsView: React.FC<ProgressStatsViewProps> = ({
   allStudents = [DEFAULT_ACTIVE_STUDENT],
   onStartWeekExam,
   onResetProgress,
+  onSyncProgress,
   onOpenProfileModal,
   onToggleModuleCompleted,
   onSwitchStudent,
 }) => {
   const [showConfirmReset, setShowConfirmReset] = useState<boolean>(false);
   const [showPrintReport, setShowPrintReport] = useState<boolean>(false);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
   // Compute active student profile from logged-in currentUser if available
   const displayStudent: StudentProfile = useMemo(() => {
@@ -81,7 +84,7 @@ export const ProgressStatsView: React.FC<ProgressStatsViewProps> = ({
         name: currentUser.namaLengkap,
         nisn: currentUser.email,
         kelas: currentUser.role === 'admin' ? 'Administrator' : currentUser.role === 'guru' ? 'Guru TJKT' : 'Siswa TJKT',
-        sekolah: currentUser.asalSekolah || 'SMKN 2 MAGETAN',
+        sekolah: currentUser.asalSekolah || 'SMK Kejuruan TJKT',
         createdAt: currentUser.createdAt ? new Date(currentUser.createdAt).getFullYear().toString() : '2026',
         avatarColor: '#2563eb',
         completedModuleWeeks: liveCompleted,
@@ -195,13 +198,35 @@ export const ProgressStatsView: React.FC<ProgressStatsViewProps> = ({
             <span>Rapor Belajar Siswa: <strong className="text-slate-900 dark:text-white font-bold">{displayStudent.name}</strong></span>
           </div>
 
-          <button
-            onClick={() => setShowConfirmReset(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 border border-red-200 dark:border-red-900/60 rounded-lg transition-colors cursor-pointer"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            <span>Reset Progres Belajar</span>
-          </button>
+          <div className="flex items-center gap-2">
+            {onSyncProgress && (
+              <button
+                type="button"
+                onClick={async () => {
+                  setIsSyncing(true);
+                  try {
+                    await onSyncProgress();
+                  } finally {
+                    setIsSyncing(false);
+                  }
+                }}
+                disabled={isSyncing}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 rounded-lg transition-colors cursor-pointer font-medium disabled:opacity-50"
+                title="Tarik & sinkronkan riwayat nilai ujian terbaru dari server"
+              >
+                <RotateCcw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-blue-600' : ''}`} />
+                <span>{isSyncing ? 'Menyinkronkan...' : 'Sinkronkan Progres'}</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => setShowConfirmReset(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 border border-red-200 dark:border-red-900/60 rounded-lg transition-colors cursor-pointer"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Reset Progres Belajar</span>
+            </button>
+          </div>
         </div>
 
         {/* Metrics Grid */}

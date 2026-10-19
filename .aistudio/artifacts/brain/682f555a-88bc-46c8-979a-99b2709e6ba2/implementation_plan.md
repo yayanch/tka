@@ -1,58 +1,42 @@
-# Rencana Implementasi: Kartu Cepat (Quick Cards) Beranda Admin & Siswa
+# Rencana Perbaikan: Visibilitas & Sinkronisasi Progres Akun Siswa
 
-Membuat komponen **Kartu Cepat (Quick Cards)** beranda yang dinamis, interaktif, dan disesuaikan dengan peran pengguna (Admin/Siswa) pada aplikasi Portal Kuis & Pembelajaran TJKT.
+## 1. Penjelasan Penyebab Utama (Root Cause)
 
----
+Progres belajar dan riwayat ujian siswa tidak terlihat ketika siswa login di akunnya disebabkan oleh faktor-faktor arsitektur berikut:
 
-## 1. Konsep & Tata Letak
-
-- **Gaya Visual:** Grid kartu interaktif (Responsive 3-Column / 2-Column Grid) dengan statistik waktu-nyata (*real-time stats*), badge indikator visual, serta tombol aksi cepat (*quick action buttons*) untuk navigasi langsung tanpa membuang waktu.
-- **Desain UI/UX:** Memanfaatkan Tailwind CSS dengan variasi warna gradients, border halus, serta mikro-interaksi kustom yang elegan dan responsif untuk tampilan desktop maupun mobile.
-
----
-
-## 2. Kartu Cepat Admin (Role: `admin`)
-
-Kartu Cepat khusus untuk Admin akan ditampilkan di bagian atas Beranda Admin (`TeacherDashboardView.tsx`):
-
-1. **Kartu 1: Ringkasan Pengguna (User Overview Card)**
-   - **Metrik:** Total pengguna terdaftar, rasio Siswa vs Admin, serta statistik status verifikasi email.
-   - **Aksi Langsung:** Tombol *"Kelola Daftar Pengguna"* yang langsung melakukan scroll atau memfilter tabel identitas pengguna.
-
-2. **Kartu 2: Monitoring Email OTP (SMTP Delivery Monitor Card)**
-   - **Metrik:** Total log pengiriman email OTP, persentase pengiriman sukses vs gagal, serta status layanan email.
-   - **Aksi Langsung:** Tombol *"Buka Log Email & Uji SMTP"* untuk mengirim email percobaan atau memantau kendala pengiriman OTP.
-
-3. **Kartu 3: Kelola Identitas & Keamanan (Identity & Security Card)**
-   - **Metrik:** Status Keamanan Sistem (*Single Admin Active*), proteksi akun admin utama (`admin@smk.belajar.id`).
-   - **Aksi Langsung:** Tombol *"Cetak / Ekspor Rekap Nilai Siswa"* untuk mengunduh laporan format CSV/Excel secara instan.
+1. **Penyimpanan Bersifat Client-Only (`localStorage` Lokal Browser)**:
+   - Aplikasi saat ini memuat data statistik (`userProgress`) menggunakan fungsi `loadUserProgress()` dari `localStorage` browser lokal dengan kunci global (`tka_smk_tjkt_progress_v1`).
+   - Apabila siswa melakukan login di peramban (browser) baru, komputer/HP berbeda, atau setelah membersihkan cache browser, `localStorage` bernilai kosong (`DEFAULT_PROGRESS` dengan 0 riwayat).
+2. **Tidak Ada Sinkronisasi Otomatis dari Database Server**:
+   - Meskipun backend (`server.ts`) berhasil menyimpan setiap sesi ujian siswa ke tabel database `exam_sessions` via `/api/exams/save-session`, frontend **belum pernah memanggil** endpoint riwayat (`/api/exams/user-history/:userId`) saat akun siswa login atau saat tab Progres dibuka.
+3. **Data Progres Belum Di-scope Berdasarkan User ID / Email**:
+   - `userProgress` disajikan secara global pada level browser tanpa dipisahkan berdasarkan identitas pengguna (`currentUser.id` / `currentUser.email`), sehingga pergantian akun pada perangkat yang sama dapat menampilkan data lama atau kosong.
 
 ---
 
-## 3. Kartu Cepat Siswa (Role: `siswa`)
+## 2. Rencana Perbaikan (Implementation Plan)
 
-Kartu Cepat khusus untuk Siswa akan ditampilkan di bagian atas Beranda Siswa (`DashboardView.tsx`):
+### Tahap 1: Penambahan Endpoint API Service pada Frontend (`src/services/api.ts`)
+- Menambahkan fungsi `fetchUserExamHistory(userIdOrEmail: string)` untuk mengambil seluruh riwayat pengerjaan dari `/api/exams/user-history/:userId`.
+- Memastikan response memuat detail modul (`week_id`), mode ujian/praktik, skor, jumlah benar, dan waktu pengerjaan.
 
-1. **Kartu 1: Modul Latihan Aktif (Active Learning Module Card)**
-   - **Metrik:** Minggu modul kuis terakhir yang diakses, status kelulusan (>=75%), dan jumlah percobaan.
-   - **Aksi Langsung:** Tombol *"Lanjutkan Kuis"* atau *"Mulai Ujian"* yang menavigasi langsung ke sesi kuis modul terkait.
+### Tahap 2: Mekanisme Sinkronisasi Progres Server & User-Scoped Storage (`src/utils/storage.ts` & `src/App.tsx`)
+- Mengubah Kunci Storage menjadi User-Scoped: `tka_progress_${userId}` agar data tiap siswa terisolasi dengan aman di lokal browser.
+- Menambahkan fungsi `syncUserProgressWithServer(user: UserProfile)`:
+  - Mengunduh riwayat ujian dari server database.
+  - Membangun kembali `categoryStats`, `history`, `totalAttempts`, dan persentase penguasaan modul murni berdasarkan data ujian autentik dari server database.
+  - Memadukan (merge) modul selesai dan bookmark pertanyaan siswa.
 
-2. **Kartu 2: Progres Belajar (Learning Progress Card)**
-   - **Metrik:** Persentase penguasaan 8 modul (Minggu 1–8), rata-rata nilai tertinggi, serta lencana kelulusan.
-   - **Aksi Langsung:** Tombol *"Lihat Analisis Statistik"* untuk berpindah ke tab Statistik Lengkap.
+### Tahap 3: Pemanggilan Auto-Sync saat Login & Mount (`src/App.tsx`)
+- Pada hook `useEffect` saat `currentUser` terdeteksi/login, otomatis jalankan `syncUserProgressWithServer(currentUser)`.
+- Memperbarui state `userProgress` secara realtime sehingga tampilan `ProgressStatsView` langsung menyajikan data progres yang akurat.
 
-3. **Kartu 3: Status Akun & Profil (Account Status Card)**
-   - **Metrik:** Status verifikasi email (Terverifikasi / Pending), metode login (Google / Form Registrasi), dan identitas siswa.
-   - **Aksi Langsung:** Tombol *"Perbarui Status / Verifikasi"* jika belum terverifikasi atau untuk melihat detail akun.
+### Tahap 4: Tampilan & Indikator Sinkronisasi pada `ProgressStatsView.tsx`
+- Menambahkan tombol **"Sinkronkan Progres"** / **"Refresh Data Server"** pada header profil siswa di `ProgressStatsView.tsx`.
+- Menampilkan status terakhir kali sinkronisasi dilakukan agar siswa yakin data mereka tersimpan aman di server database.
 
 ---
 
-## 4. Langkah-Langkah Integrasi Kuis & Dashboard
-
-1. **Pengembangan Komponen Quick Cards:**
-   - Membuat sub-komponen `AdminQuickCards` di `src/components/TeacherDashboardView.tsx`.
-   - Membuat sub-komponen `StudentQuickCards` di `src/components/DashboardView.tsx`.
-2. **Penyambungan State & Handlers:**
-   - Hubungkan aksi tombol dengan fungsi navigasi yang ada (`onStartExam`, `onReadMaterial`, scroll to element ID, modal trigger).
-3. **Pengujian & Validasi Build:**
-   - Jalankan `compile_applet` dan `lint_applet` untuk memastikan kompilasi berjalan tanpa error.
+## 3. Hasil yang Diharapkan
+- Siswa dapat melihat statistik progres, riwayat ujian, skor modul, dan sertifikat/keterangan kompetensi mereka dari perangkat atau browser apa pun setelah login.
+- Data progres tersimpan permanen di database MySQL dan tersinkronisasi otomatis saat login.

@@ -285,6 +285,15 @@ export async function saveExamToDatabase(payload: {
   return result;
 }
 
+export async function fetchUserExamHistory(userId: string, email?: string): Promise<any[]> {
+  const query = email ? `?email=${encodeURIComponent(email)}` : '';
+  const result = await safeFetch(`/api/exams/user-history/${encodeURIComponent(userId)}${query}`);
+  if (result && Array.isArray(result.sessions)) {
+    return result.sessions;
+  }
+  return [];
+}
+
 export async function fetchTeacherOverview(email?: string, role?: string): Promise<TeacherClassOverview | null> {
   const params = new URLSearchParams();
   if (email) params.append('email', email);
