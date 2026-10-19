@@ -783,46 +783,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
         </div>
       </section>
 
-      {/* Navigation Section Tabs: Rekap Nilai vs Log Login Siswa */}
-      {!isStudent && (
-        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
-          <button
-            type="button"
-            onClick={() => setActiveSection('grades')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              activeSection === 'grades'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-            }`}
-          >
-            Rekapitulasi Nilai & Siswa Aktif
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSection('loginLogs')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeSection === 'loginLogs'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-            }`}
-          >
-            <Clock className="w-3.5 h-3.5" />
-            <span>Log Login Siswa ({data?.loginLogs?.length || 0})</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSection('questionBank')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeSection === 'questionBank'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-            }`}
-          >
-            <BookOpen className="w-3.5 h-3.5 text-amber-500" />
-            <span>Manajemen Bank Soal ({questionBankList.length})</span>
-          </button>
-        </div>
-      )}
+
 
       {/* Conditional View: Login Logs vs Grades Recap */}
       {activeSection === 'loginLogs' && !isStudent ? (
