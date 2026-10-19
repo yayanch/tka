@@ -251,30 +251,110 @@ const SAMPLE_EMAIL_LOGS = [
 
 SAMPLE_EMAIL_LOGS.forEach(log => memoryStore.emailLogs.push(log));
 
-const SAMPLE_LOGIN_LOGS = [
-  {
-    id: 'log_01',
-    user_id: 'usr_sample_1',
-    user_email: 'budi.raharjo@smk.belajar.id',
-    user_name: 'Budi Raharjo',
-    asal_sekolah: 'SMKN 1 Cimahi',
-    role: 'siswa',
-    login_method: 'local',
-    ip_address: '192.168.1.45',
-    login_at: new Date(Date.now() - 3600000 * 2).toISOString(),
-  },
-  {
-    id: 'log_02',
-    user_id: 'usr_sample_2',
-    user_email: 'siti.aminah@smk.belajar.id',
-    user_name: 'Siti Aminah',
-    asal_sekolah: 'SMKN 2 Bandung',
-    role: 'siswa',
-    login_method: 'google',
-    ip_address: '192.168.1.88',
-    login_at: new Date(Date.now() - 3600000 * 5).toISOString(),
+// Generate realistic student participant login records for today starting from 06:00 WIB
+function generateInitialTodayLoginLogs(): any[] {
+  const logs: any[] = [];
+  const now = new Date();
+
+  // Extract today's date in WIB (Asia/Jakarta)
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Jakarta',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: 'numeric',
+    hour12: false
+  });
+  const parts = formatter.formatToParts(now);
+  const year = parts.find(p => p.type === 'year')?.value;
+  const month = parts.find(p => p.type === 'month')?.value;
+  const day = parts.find(p => p.type === 'day')?.value;
+  let currentWibHour = parseInt(parts.find(p => p.type === 'hour')?.value || '16', 10);
+  if (currentWibHour === 24) currentWibHour = 0;
+
+  const dateStr = `${year}-${month}-${day}`;
+  const pad = (n: number) => String(n).padStart(2, '0');
+
+  const studentPool = [
+    { id: 'usr_sample_1', name: 'Budi Raharjo', email: 'budi.raharjo@smk.belajar.id', school: 'SMKN 1 Cimahi' },
+    { id: 'usr_sample_2', name: 'Siti Aminah', email: 'siti.aminah@smk.belajar.id', school: 'SMKN 2 Bandung' },
+    { id: 'usr_sample_3', name: 'Fajar Nugraha', email: 'fajar.nugraha@smk.belajar.id', school: 'SMK Telkom Malang' },
+    { id: 'usr_sample_4', name: 'Dewi Sartika', email: 'dewi.sartika@smk.belajar.id', school: 'SMKN 4 Bandung' },
+    { id: 'usr_sample_5', name: 'Rian Hidayat', email: 'rian.hidayat@smk.belajar.id', school: 'SMKN 1 Cimahi' },
+    { id: 'usr_sample_6', name: 'Ahmad Fauzi', email: 'ahmad.fauzi@smk.belajar.id', school: 'SMKN 1 Surabaya' },
+    { id: 'usr_sample_7', name: 'Putri Ayu', email: 'putri.ayu@smk.belajar.id', school: 'SMKN 7 Semarang' },
+    { id: 'usr_sample_8', name: 'Dimas Saputra', email: 'dimas.saputra@smk.belajar.id', school: 'SMK Negeri 2 Depok' },
+    { id: 'usr_sample_9', name: 'Nadia Safitri', email: 'nadia.safitri@smk.belajar.id', school: 'SMKN 1 Cimahi' },
+    { id: 'usr_sample_10', name: 'Kevin Sanjaya', email: 'kevin.sanjaya@smk.belajar.id', school: 'SMKN 2 Bandung' },
+    { id: 'usr_sample_11', name: 'Lestari Indah', email: 'lestari.indah@smk.belajar.id', school: 'SMK Telkom Malang' },
+    { id: 'usr_sample_12', name: 'Bayu Pratama', email: 'bayu.pratama@smk.belajar.id', school: 'SMKN 4 Bandung' },
+    { id: 'usr_sample_13', name: 'Annisa Rahma', email: 'annisa.rahma@smk.belajar.id', school: 'SMKN 1 Cimahi' },
+    { id: 'usr_sample_14', name: 'Rizky Firmansyah', email: 'rizky.firmansyah@smk.belajar.id', school: 'SMKN 1 Surabaya' },
+    { id: 'usr_sample_15', name: 'Nurul Hidayah', email: 'nurul.hidayah@smk.belajar.id', school: 'SMKN 7 Semarang' },
+    { id: 'usr_sample_16', name: 'Muhammad Ilham', email: 'muhammad.ilham@smk.belajar.id', school: 'SMKN 2 Bandung' },
+    { id: 'usr_sample_17', name: 'Tasya Kamila', email: 'tasya.kamila@smk.belajar.id', school: 'SMK Negeri 2 Depok' },
+    { id: 'usr_sample_18', name: 'Gilang Ramadhan', email: 'gilang.ramadhan@smk.belajar.id', school: 'SMKN 1 Cimahi' },
+    { id: 'usr_sample_19', name: 'Fitri Handayani', email: 'fitri.handayani@smk.belajar.id', school: 'SMK Telkom Malang' },
+    { id: 'usr_sample_20', name: 'Alif Kurniawan', email: 'alif.kurniawan@smk.belajar.id', school: 'SMKN 4 Bandung' }
+  ];
+
+  // Natural hourly traffic distribution starting from 06:00
+  const countProfile: Record<number, number> = {
+    6: 7,   // Pagi persiapan awal
+    7: 21,  // Masuk sekolah sesi 1
+    8: 38,  // Puncak ujian CBT serentak
+    9: 29,  // Sesi pengerjaan modul 2
+    10: 17, // Istirahat & pergantian jam
+    11: 24, // Sesi sebelum istirahat siang
+    12: 12, // Istirahat siang
+    13: 31, // Sesi modul & kuis siang
+    14: 23, // Diskusi & remedi
+    15: 18, // Evaluasi & latihan sore
+    16: 14, // Sesi aktif saat ini
+  };
+
+  const maxHour = Math.max(currentWibHour, 16);
+  let idCounter = 1;
+
+  for (let h = 6; h <= maxHour; h++) {
+    const targetCount = countProfile[h] || 10;
+    for (let i = 0; i < targetCount; i++) {
+      const student = studentPool[(i * 3 + h) % studentPool.length];
+      const minute = Math.min(58, Math.floor((i * 59) / targetCount));
+      const second = (i * 23) % 60;
+
+      // Construct Date in WIB offset (+07:00)
+      const isoStr = `${dateStr}T${pad(h)}:${pad(minute)}:${pad(second)}+07:00`;
+      const logDate = new Date(isoStr);
+
+      // If in current hour, avoid timestamps in the future
+      if (logDate.getTime() > now.getTime()) {
+        continue;
+      }
+
+      const method = (i % 3 === 0) ? 'google' : 'local';
+      const ip = `192.168.${1 + (h % 4)}.${20 + ((i * 7) % 210)}`;
+
+      logs.push({
+        id: `log_today_${idCounter++}`,
+        user_id: student.id,
+        user_email: student.email,
+        user_name: student.name,
+        asal_sekolah: student.school,
+        role: 'siswa',
+        login_method: method,
+        ip_address: ip,
+        login_at: logDate.toISOString(),
+      });
+    }
   }
-];
+
+  // Sort descending (newest first)
+  logs.sort((a, b) => new Date(b.login_at).getTime() - new Date(a.login_at).getTime());
+  return logs;
+}
+
+const SAMPLE_LOGIN_LOGS = generateInitialTodayLoginLogs();
 
 SAMPLE_LOGIN_LOGS.forEach(log => memoryStore.loginLogs.push(log));
 
@@ -308,7 +388,7 @@ async function recordLoginLog(user: any, loginMethod: string, req: Request) {
   }
 
   memoryStore.loginLogs.unshift(logEntry);
-  if (memoryStore.loginLogs.length > 200) {
+  if (memoryStore.loginLogs.length > 1000) {
     memoryStore.loginLogs.pop();
   }
 }

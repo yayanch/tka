@@ -46,9 +46,11 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  TrendingUp
+  TrendingUp,
+  BarChart3
 } from 'lucide-react';
 import { TeacherClassOverview, TeacherStudentSummary, UserProfile, ServerMetrics } from '../types/auth';
+import { HourlyLoginStatsCard } from './HourlyLoginStatsCard';
 import { 
   fetchTeacherOverview, 
   deleteStudentAccount,
@@ -928,6 +930,63 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                       )}
 
                       <div className="my-1.5 border-t border-slate-100 dark:border-slate-800" />
+
+                      <div className="px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                        Navigasi & Analitik
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsActionMenuOpen(false);
+                          setActiveSection('loginLogs');
+                        }}
+                        className="w-full flex items-center gap-3 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                      >
+                        <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-950/80 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                          <BarChart3 className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-slate-800 dark:text-slate-200">Statistik & Log Login</div>
+                          <div className="text-[10px] text-slate-400 font-normal">Grafik per jam & audit login</div>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsActionMenuOpen(false);
+                          setActiveSection('questionBank');
+                        }}
+                        className="w-full flex items-center gap-3 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer text-left"
+                      >
+                        <div className="w-7 h-7 rounded-lg bg-purple-100 dark:bg-purple-950/80 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0">
+                          <BookOpen className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-slate-800 dark:text-slate-200">Bank Soal TKA</div>
+                          <div className="text-[10px] text-slate-400 font-normal">Kelola & tambah butir soal</div>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsActionMenuOpen(false);
+                          setActiveSection('grades');
+                        }}
+                        className="w-full flex items-center gap-3 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer text-left"
+                      >
+                        <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 shrink-0">
+                          <GraduationCap className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-slate-800 dark:text-slate-200">Dashboard Utama</div>
+                          <div className="text-[10px] text-slate-400 font-normal">Ringkasan Top 10 & siswa online</div>
+                        </div>
+                      </button>
+
+                      <div className="my-1.5 border-t border-slate-100 dark:border-slate-800" />
                     </>
                   )}
 
@@ -1064,24 +1123,40 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
 
       {/* Conditional View: Login Logs vs Grades Recap */}
       {activeSection === 'loginLogs' && !isStudent ? (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
-          <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-            <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                Log Aktivitas Login Siswa (Real-Time)
-              </h3>
-              <p className="text-xs text-slate-500">
-                Catatan riwayat masuk (login) akun siswa beserta metode autentikasi dan alamat IP
-              </p>
-            </div>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setActiveSection('grades')}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-2xs transition-colors cursor-pointer"
+            >
+              <span>&larr; Kembali ke Ringkasan Dashboard</span>
+            </button>
             <button
               onClick={loadData}
-              className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors cursor-pointer flex items-center gap-1.5"
+              className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors cursor-pointer flex items-center gap-1.5"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Muat Ulang Log</span>
+              <RotateCcw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+              <span>Muat Ulang Data</span>
             </button>
           </div>
+
+          {/* Hourly Login Stats Card */}
+          <HourlyLoginStatsCard 
+            loginLogs={data?.loginLogs} 
+            schoolOptions={schoolOptions}
+          />
+
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+            <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Log Audit Riwayat Login Siswa (Tabel Lengkap)
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Catatan riwayat masuk (login) akun siswa beserta metode autentikasi dan alamat IP
+                </p>
+              </div>
+            </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
@@ -1146,7 +1221,8 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
             </table>
           </div>
         </div>
-      ) : null}
+      </div>
+    ) : null}
 
       {activeSection === 'questionBank' && !isStudent && (
         <div className="space-y-6">
@@ -2028,6 +2104,15 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
       </div>
     </div>
         )
+      )}
+
+      {/* Container: Statistik Jumlah Login Peserta Per Jam (Mulai Sejak 06:00 WIB Pagi) */}
+      {!showScoreRecap && !isStudent && (
+        <HourlyLoginStatsCard 
+          loginLogs={data?.loginLogs} 
+          schoolOptions={schoolOptions}
+          onViewAllLogs={() => setActiveSection('loginLogs')}
+        />
       )}
 
       {/* Container Monitoring Server VPS (Hanya pada Dashboard Admin) */}
