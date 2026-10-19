@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { CATEGORIES } from '../data/categories';
 import { OverallUserProgress } from '../types/quiz';
 import { UserProfile } from '../types/auth';
+import { BadgeDisplaySection } from './BadgeDisplaySection';
 import { 
   BarChart3, 
   Award, 
@@ -283,6 +284,9 @@ export const ProgressStatsView: React.FC<ProgressStatsViewProps> = ({
           </div>
         </div>
       </section>
+
+      {/* Lencana & Pencapaian Siswa (Badges) */}
+      <BadgeDisplaySection progress={progress} />
 
       {/* Track 8 Modul Mingguan (Materi & Ujian) */}
           <section className="space-y-4">
