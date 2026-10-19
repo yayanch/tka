@@ -25,21 +25,21 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
     const isAdmin = currentUser.role === 'admin';
     return (
       <div className="pb-16 space-y-6">
-        <div className="relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        <div className="relative overflow-hidden bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white border border-blue-600/30 rounded-3xl p-6 sm:p-8 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           {/* Subtle Watermark Icon */}
-          <div className="absolute -right-6 -bottom-6 pointer-events-none text-slate-100 dark:text-slate-800/40 select-none">
+          <div className="absolute -right-6 -bottom-6 pointer-events-none text-white/5 select-none">
             <Network className="w-56 h-56 stroke-[1] transform rotate-12" />
           </div>
 
           <div className="space-y-2 relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
-              <GraduationCap className="w-4 h-4" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-white/15 text-blue-100 border border-white/20 backdrop-blur-md">
+              <GraduationCap className="w-4 h-4 text-blue-200" />
               <span>{isAdmin ? 'Portal Admin & Instruktur' : 'Dasbor Pembelajaran Siswa'}</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
               Selamat Datang Kembali, {currentUser.namaLengkap}!
             </h1>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-xl">
+            <p className="text-xs sm:text-sm text-blue-100/90 max-w-xl leading-relaxed">
               {isAdmin 
                 ? 'Kelola identitas pengguna terdaftar, pantau log email OTP, dan unduh rekapitulasi nilai kelas.'
                 : 'Akses 8 modul kuis TKA TJKT, pantau progres belajar, dan pelajari materi kompetensi.'
@@ -51,20 +51,20 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
             {isAdmin && onOpenHeroSettings && (
               <button
                 onClick={onOpenHeroSettings}
-                className="px-4 py-3 text-xs sm:text-sm font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 border border-amber-200 dark:border-amber-800 rounded-2xl transition-colors cursor-pointer flex items-center gap-2 shrink-0"
+                className="px-4 py-3 text-xs sm:text-sm font-bold text-amber-200 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/30 rounded-2xl transition-colors cursor-pointer flex items-center gap-2 shrink-0 backdrop-blur-md"
                 title="Pengaturan Teks Hero Banner"
               >
-                <Edit3 className="w-4 h-4" />
+                <Edit3 className="w-4 h-4 text-amber-300" />
                 <span>Pengaturan Hero</span>
               </button>
             )}
 
             <button
               onClick={onOpenDashboard}
-              className="px-6 py-3 text-xs sm:text-sm font-extrabold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-2xl shadow-sm transition-colors cursor-pointer flex items-center gap-2 shrink-0"
+              className="px-6 py-3 text-xs sm:text-sm font-extrabold text-blue-950 bg-white hover:bg-blue-50 active:bg-blue-100 rounded-2xl shadow-sm transition-colors cursor-pointer flex items-center gap-2 shrink-0"
             >
               <span>{isAdmin ? 'Buka Dasbor Admin' : 'Buka 8 Modul Ujian'}</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 text-blue-900" />
             </button>
           </div>
         </div>

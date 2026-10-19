@@ -522,24 +522,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     <div className="space-y-6 pb-16">
       {/* 8 Modul Pembelajaran Header (when viewMode is 'modules') */}
       {viewMode === 'modules' && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-xs font-bold text-blue-600 dark:text-blue-400">
-              <Layers className="w-4 h-4" />
+        <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white border border-blue-600/30 rounded-2xl p-5 sm:p-6 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden">
+          <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-white/5 rounded-full blur-xl pointer-events-none" />
+          <div className="space-y-1 relative z-10">
+            <div className="flex items-center gap-2 text-xs font-bold text-blue-200">
+              <Layers className="w-4 h-4 text-blue-300" />
               <span>8 Modul Pembelajaran TKA</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
               Paket Ujian & Pembelajaran CBT TKA SMK TJKT
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-2xl">
+            <p className="text-xs sm:text-sm text-blue-100/90 max-w-2xl leading-relaxed">
               Tersedia 8 modul kurikulum kejuruan (total 400 bank soal terstandar). Pilih modul di bawah ini untuk memulai latihan kuis mandiri atau membaca materi rangkuman.
             </p>
           </div>
-          <div className="flex items-center gap-2.5 shrink-0 self-stretch sm:self-center justify-end">
-            <div className="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+          <div className="flex items-center gap-2.5 shrink-0 self-stretch sm:self-center justify-end relative z-10">
+            <div className="px-3 py-1.5 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md text-xs font-bold text-white shadow-2xs">
               KKM: &ge; 75.0
             </div>
-            <div className="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-xs font-bold text-blue-700 dark:text-blue-300">
+            <div className="px-3 py-1.5 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md text-xs font-bold text-white shadow-2xs">
               8 Modul · 400 Soal
             </div>
           </div>
@@ -549,27 +550,27 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* Student Account & MySQL Persistence Status Banner (shown on home or guest) */}
       {viewMode !== 'modules' && (
         currentUser ? (
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold text-base shrink-0 shadow-xs">
+          <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white border border-blue-600/30 rounded-2xl p-4 sm:p-5 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden">
+            <div className="flex items-center gap-3 relative z-10">
+              <div className="w-11 h-11 rounded-2xl bg-white/20 border border-white/30 text-white flex items-center justify-center font-bold text-base shrink-0 shadow-xs backdrop-blur-md">
                 {currentUser.namaLengkap.charAt(0).toUpperCase()}
               </div>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">
+                  <span className="font-extrabold text-white text-sm sm:text-base">
                     {currentUser.namaLengkap}
                   </span>
-                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full flex items-center gap-1 border border-emerald-200 dark:border-emerald-800">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                  <span className="text-[10px] font-bold text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1 border border-emerald-400/30">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-300" />
                     <span>Email Terverifikasi</span>
                   </span>
-                  <span className="text-[10px] text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full uppercase tracking-wider font-semibold">
+                  <span className="text-[10px] text-blue-100 bg-white/15 px-2 py-0.5 rounded-full uppercase tracking-wider font-semibold border border-white/20">
                     {currentUser.authProvider === 'google' ? 'Google Auth' : 'Form Registrasi'}
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-1">
-                  <School className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                  <span className="font-medium text-slate-700 dark:text-slate-300">{currentUser.asalSekolah}</span>
+                <p className="text-xs text-blue-100/90 flex items-center gap-1.5 mt-1">
+                  <School className="w-3.5 h-3.5 text-blue-200 shrink-0" />
+                  <span className="font-semibold text-white">{currentUser.asalSekolah}</span>
                   <span aria-hidden="true">·</span>
                   <span>{currentUser.email}</span>
                 </p>
@@ -577,39 +578,39 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
 
             {onOpenTeacher && currentUser?.role === 'admin' && (
-              <div className="flex flex-wrap items-center gap-2.5 self-stretch sm:self-center justify-end">
+              <div className="flex flex-wrap items-center gap-2.5 self-stretch sm:self-center justify-end relative z-10">
                 <button
                   onClick={onOpenTeacher}
-                  className="text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 px-3 py-1.5 rounded-xl transition-colors cursor-pointer flex items-center gap-1"
+                  className="text-xs font-bold text-white bg-white/20 hover:bg-white/30 border border-white/30 px-3.5 py-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs backdrop-blur-md"
                 >
-                  <GraduationCap className="w-3.5 h-3.5" />
+                  <GraduationCap className="w-4 h-4 text-blue-200" />
                   <span>Portal Admin</span>
                 </button>
               </div>
             )}
           </div>
         ) : (
-          <div className="bg-gradient-to-r from-blue-50/90 to-indigo-50/90 dark:from-slate-900 dark:to-slate-800/80 border border-blue-200/80 dark:border-slate-700 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-xs font-bold text-blue-700 dark:text-blue-400">
-                <Database className="w-4 h-4 text-blue-600 shrink-0" />
+          <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white border border-blue-600/30 rounded-2xl p-4 sm:p-5 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden">
+            <div className="space-y-1 relative z-10">
+              <div className="flex items-center gap-2 text-xs font-bold text-blue-200">
+                <Database className="w-4 h-4 text-blue-300 shrink-0" />
                 <span>Pencatatan Riwayat Ujian & Hasil Kuis ke Basis Data MySQL</span>
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
+              <p className="text-xs text-blue-100/90 max-w-2xl leading-relaxed">
                 Daftarkan diri Anda melalui formulir isian (Nama Lengkap, Asal Sekolah, Email) atau Masuk Cepat dengan Akun Google. Seluruh hasil pengerjaan quiz Anda akan otomatis tersimpan di database MySQL.
               </p>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0 relative z-10">
               <button
                 onClick={() => onOpenAuth?.('register')}
-                className="px-3.5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition-colors cursor-pointer whitespace-nowrap"
+                className="px-4 py-2 text-xs font-bold text-blue-900 bg-white hover:bg-blue-50 rounded-xl shadow-2xs transition-colors cursor-pointer whitespace-nowrap"
               >
                 Daftar
               </button>
               <button
                 onClick={() => onOpenAuth?.('login')}
-                className="px-3.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer whitespace-nowrap"
+                className="px-4 py-2 text-xs font-bold text-white bg-white/15 hover:bg-white/25 rounded-xl border border-white/25 backdrop-blur-md transition-colors cursor-pointer whitespace-nowrap"
               >
                 Masuk
               </button>

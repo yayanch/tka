@@ -90,18 +90,19 @@ export const QuestionBankView: React.FC<QuestionBankViewProps> = ({
   return (
     <div className="space-y-6 pb-20">
       {/* Header & Search Control Strip */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 sm:p-7 shadow-xs space-y-5">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white rounded-2xl border border-blue-600/30 p-5 sm:p-7 shadow-md space-y-5 relative overflow-hidden">
+        <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-white/5 rounded-full blur-xl pointer-events-none" />
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
           <div>
-            <div className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+            <div className="flex items-center gap-2 text-xs font-semibold text-blue-200">
               <span>Repositori Resmi TKA</span>
               <span aria-hidden="true">·</span>
               <span>400 Butir Soal Terbuka</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
               Eksplorasi Seluruh Bank Soal TKA SMK TJKT
             </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-blue-100/90 leading-relaxed">
               Telusuri pertanyaan, opsi jawaban, kunci resmi, serta pembahasan terperinci dari 8 modul mingguan
             </p>
           </div>
@@ -115,19 +116,19 @@ export const QuestionBankView: React.FC<QuestionBankViewProps> = ({
                   window.history.back();
                 }
               }}
-              className="px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+              className="px-3.5 py-2 text-xs font-bold text-white bg-white/15 hover:bg-white/25 border border-white/25 backdrop-blur-md rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
               title="Kembali ke halaman sebelumnya"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
+              <ArrowLeft className="w-3.5 h-3.5 text-blue-200" />
               <span>Kembali</span>
             </button>
 
             {selectedWeek !== 0 && (
               <button
                 onClick={() => onStartExam(selectedWeek, 'exam')}
-                className="px-3.5 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-xs cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2 text-xs font-extrabold text-blue-900 bg-white hover:bg-blue-50 rounded-xl shadow-2xs cursor-pointer flex items-center gap-1.5 transition-colors"
               >
-                <Play className="w-3.5 h-3.5 fill-current" />
+                <Play className="w-3.5 h-3.5 fill-current text-blue-900" />
                 <span>Mulai Ujian Modul {selectedWeek}</span>
               </button>
             )}

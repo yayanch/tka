@@ -311,18 +311,18 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
   return (
     <div className="space-y-6 pb-12 animate-fade-in">
       {/* Page Header Banner */}
-      <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 text-white rounded-2xl p-5 sm:p-6 shadow-md relative overflow-hidden">
-        <div className="absolute right-0 top-0 translate-x-12 -translate-y-8 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white rounded-2xl p-5 sm:p-6 shadow-md relative overflow-hidden border border-blue-600/30">
+        <div className="absolute right-0 top-0 translate-x-12 -translate-y-8 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
           <div className="space-y-1.5 max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 bg-purple-500/20 border border-purple-400/30 rounded-full text-xs font-bold text-purple-300 backdrop-blur-md">
-              <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 bg-white/15 border border-white/20 rounded-full text-xs font-bold text-blue-200 backdrop-blur-md">
+              <ShieldCheck className="w-3.5 h-3.5 text-blue-300" />
               <span>Halaman Terpisah · Pengaturan Hak Akses User</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
               Daftar Pengguna Terdaftar & Identitas System
             </h1>
-            <p className="text-xs sm:text-sm text-purple-100/80 leading-relaxed">
+            <p className="text-xs sm:text-sm text-blue-100/90 leading-relaxed">
               Kelola akun terdaftar (Admin, Guru, Siswa), pantau verifikasi email, ubah role, reset progres, serta ekspor data.
             </p>
           </div>
