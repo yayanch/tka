@@ -224,6 +224,8 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
     try {
       const res = await registerWithForm({
         namaLengkap: addUserForm.namaLengkap,
+        provinsi: '-',
+        kabupatenKota: '-',
         asalSekolah: addUserForm.asalSekolah || 'SMKN 1 Cimahi',
         email: addUserForm.email,
         password: addUserForm.password || '123456'

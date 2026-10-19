@@ -675,6 +675,11 @@ async function initDatabase() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
 
+    // Add new columns if missing
+    try { await conn.query("ALTER TABLE users ADD COLUMN provinsi VARCHAR(255) NULL"); } catch (e) {}
+    try { await conn.query("ALTER TABLE users ADD COLUMN kabupaten_kota VARCHAR(255) NULL"); } catch (e) {}
+
+
     await conn.query(`
       CREATE TABLE IF NOT EXISTS exam_sessions (
         id VARCHAR(64) PRIMARY KEY,
@@ -798,10 +803,10 @@ initDatabase();
 // 1. Register with Form
 app.post('/api/auth/register', async (req: Request, res: Response) => {
   try {
-    const { namaLengkap, asalSekolah, email, password } = req.body;
+    const { namaLengkap, provinsi, kabupatenKota, asalSekolah, email, password } = req.body;
 
-    if (!namaLengkap || !asalSekolah || !email || !password || !password.trim()) {
-      return res.status(400).json({ error: 'Nama Lengkap, Asal Sekolah, Email, dan Kata Sandi wajib diisi' });
+    if (!namaLengkap || !provinsi || !kabupatenKota || !asalSekolah || !email || !password || !password.trim()) {
+      return res.status(400).json({ error: 'Nama Lengkap, Provinsi, Kabupaten/Kota, Asal Sekolah, Email, dan Kata Sandi wajib diisi' });
     }
 
     const cleanEmail = email.trim().toLowerCase();
@@ -815,9 +820,9 @@ app.post('/api/auth/register', async (req: Request, res: Response) => {
       }
 
       await pool.query(
-        `INSERT INTO users (id, nama_lengkap, asal_sekolah, email, password_hash, role, auth_provider, is_verified, verification_code, verification_expires_at)
-         VALUES (?, ?, ?, ?, ?, 'siswa', 'local', 1, NULL, NULL)`,
-        [userId, namaLengkap, asalSekolah, cleanEmail, password || '123456']
+        `INSERT INTO users (id, nama_lengkap, provinsi, kabupaten_kota, asal_sekolah, email, password_hash, role, auth_provider, is_verified, verification_code, verification_expires_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 'siswa', 'local', 1, NULL, NULL)`,
+        [userId, namaLengkap, provinsi, kabupatenKota, asalSekolah, cleanEmail, password || '123456']
       );
     } else {
       // Fallback Store
@@ -829,6 +834,8 @@ app.post('/api/auth/register', async (req: Request, res: Response) => {
       memoryStore.users.set(cleanEmail, {
         id: userId,
         nama_lengkap: namaLengkap,
+        provinsi: provinsi,
+        kabupaten_kota: kabupatenKota,
         asal_sekolah: asalSekolah,
         email: cleanEmail,
         password_hash: password || '123456',

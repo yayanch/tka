@@ -123,6 +123,8 @@ export async function checkUserSession(email: string): Promise<{
 
 export async function registerWithForm(data: {
   namaLengkap: string;
+  provinsi: string;
+  kabupatenKota: string;
   asalSekolah: string;
   email: string;
   password?: string;
