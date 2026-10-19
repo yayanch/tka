@@ -156,14 +156,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               </>
             )}
-
-            <button
-              onClick={onOpenContact}
-              className="flex items-center gap-1.5 py-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
-            >
-              <Phone className="w-4 h-4 text-blue-500" />
-              <span>Kontak</span>
-            </button>
           </nav>
         )}
 

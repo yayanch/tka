@@ -10,6 +10,7 @@ import { TeacherDashboardView } from './components/TeacherDashboardView';
 import { UserManagementView } from './components/UserManagementView';
 import { QuestionBankView } from './components/QuestionBankView';
 import { ScrollToTop } from './components/ScrollToTop';
+import { Phone } from 'lucide-react';
 import { AuthModal } from './components/AuthModal';
 import { AccountSettingsModal } from './components/AccountSettingsModal';
 import { HeroSettingsModal } from './components/HeroSettingsModal';
@@ -54,6 +55,7 @@ import {
   loadUserProgress, 
   saveUserProgress, 
   recordCompletedSession, 
+  recordCompletedSimulation,
   toggleBookmarkQuestion,
   toggleModuleCompleted,
   resetAllUserProgress 
@@ -562,6 +564,46 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [navigateState]);
 
+  // Start simulation (1 to 5, 10 questions each)
+  const handleStartSimulation = useCallback((weekId: number, simIndex: number) => {
+    const allQs = getQuestionsForWeek(weekId);
+    const startIdx = (simIndex - 1) * 10;
+    const simQuestions = allQs.slice(startIdx, startIdx + 10);
+    if (simQuestions.length === 0) return;
+
+    const initialAnswers: Record<string, QuestionState> = {};
+    simQuestions.forEach(q => {
+      initialAnswers[q.id] = { answered: false, isFlagged: false };
+    });
+
+    const newSession: ExamSession = {
+      sessionId: `sim_${weekId}_${simIndex}_${Date.now()}`,
+      weekId,
+      title: `Simulasi ${simIndex} - Modul Minggu ${weekId} (10 Soal)`,
+      mode: 'simulation',
+      simulationIndex: simIndex,
+      startTime: Date.now(),
+      timeLimitMinutes: 0,
+      elapsedSeconds: 0,
+      isFinished: false,
+      questionIds: simQuestions.map(q => q.id),
+      currentIndex: 0,
+      answers: initialAnswers,
+    };
+
+    setSessionQuestions(simQuestions);
+    setCurrentSession(newSession);
+
+    navigateState({
+      tab: currentTabRef.current,
+      isExamActive: true,
+      isExamFinished: false,
+      examWeekId: weekId,
+      examMode: 'practice',
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [navigateState]);
+
   // Drill specifically on missed questions
   const handleDrillWrong = useCallback((wrongQuestions: Question[]) => {
     if (!wrongQuestions || wrongQuestions.length === 0) return;
@@ -729,6 +771,11 @@ export default function App() {
       wrongQuestionIds,
     });
 
+    if (currentSession.mode === 'simulation' && currentSession.simulationIndex) {
+      recordCompletedSimulation(currentSession.weekId, currentSession.simulationIndex);
+      setUserProgress(loadUserProgress());
+    }
+
     refreshProgress();
     setCurrentSession(finishedSession);
     navigateState({
@@ -873,6 +920,7 @@ export default function App() {
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   onStartExam={handleStartWeekSession}
+                  onStartSimulation={handleStartSimulation}
                   onExploreWeek={handleExploreWeek}
                   onReadMaterial={handleReadMaterial}
                   currentUser={currentUser}
@@ -894,6 +942,7 @@ export default function App() {
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 onStartExam={handleStartWeekSession}
+                onStartSimulation={handleStartSimulation}
                 onExploreWeek={handleExploreWeek}
                 onReadMaterial={handleReadMaterial}
                 currentUser={currentUser}
@@ -1051,7 +1100,7 @@ export default function App() {
 
       {/* Clean Footer */}
       <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-6 text-xs text-slate-500 dark:text-slate-400">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-slate-800 dark:text-slate-200">
               Simulasi TKA SMK TJKT
@@ -1059,12 +1108,17 @@ export default function App() {
             <span aria-hidden="true">·</span>
             <span>Bank Soal 8 Minggu (400 Butir)</span>
           </div>
-          <div className="flex items-center gap-4">
-            <span>Sistem Skor Real-Time</span>
-            <span aria-hidden="true">·</span>
-            <span>Pembahasan Otomatis Sesi</span>
-            <span aria-hidden="true">·</span>
-            <span>Pelacakan Progres Terpadu</span>
+          <div className="flex items-center gap-4 flex-wrap justify-center">
+            <span className="hidden md:inline">Sistem Skor Real-Time</span>
+            <span aria-hidden="true" className="hidden md:inline">·</span>
+            <span className="hidden md:inline">Pembahasan Otomatis Sesi</span>
+            <button
+              onClick={() => setIsContactModalOpen(true)}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition-colors cursor-pointer flex items-center gap-2"
+            >
+              <Phone className="w-3.5 h-3.5" />
+              <span>Hubungi Kami</span>
+            </button>
           </div>
         </div>
       </footer>

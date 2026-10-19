@@ -36,6 +36,7 @@ import {
 interface DashboardViewProps {
   progress: OverallUserProgress;
   onStartExam: (weekId: number, mode: 'exam' | 'practice') => void;
+  onStartSimulation?: (weekId: number, simIndex: number) => void;
   onExploreWeek?: (weekId: number) => void;
   onReadMaterial?: (weekId: number) => void;
   currentUser?: UserProfile | null;
@@ -474,6 +475,7 @@ export const StatistikSingkat: React.FC<StatistikSingkatProps> = ({
 export const DashboardView: React.FC<DashboardViewProps> = ({
   progress,
   onStartExam,
+  onStartSimulation,
   onExploreWeek,
   onReadMaterial,
   currentUser,
@@ -878,6 +880,38 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         <span className="text-slate-500">Dikerjakan {stat.attempts}x</span>
                       </>
                     )}
+                  </div>
+                </div>
+
+                {/* 5 Simulation Circles (1 to 5, 10 questions each) */}
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
+                  <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                    Simulasi per Modul (5 Sesi x 10 Soal):
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {[1, 2, 3, 4, 5].map(simNum => {
+                      const isSimCompleted = progress.completedSimulations?.[cat.id]?.includes(simNum);
+                      return (
+                        <button
+                          key={simNum}
+                          onClick={() => {
+                            if (onStartSimulation) {
+                              onStartSimulation(cat.id, simNum);
+                            } else {
+                              onStartExam(cat.id, 'practice');
+                            }
+                          }}
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shadow-xs transition-transform hover:scale-110 cursor-pointer ${
+                            isSimCompleted
+                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                              : 'bg-blue-600 hover:bg-blue-700 text-white'
+                          }`}
+                          title={`Simulasi ${simNum} Modul ${cat.id} (10 Soal). ${isSimCompleted ? 'Status: Selesai (Hijau)' : 'Status: Belum Selesai (Biru)'}`}
+                        >
+                          {simNum}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 

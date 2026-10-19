@@ -467,6 +467,37 @@ export const QuizSessionView: React.FC<QuizSessionViewProps> = ({
                   </div>
                 </div>
               )}
+
+              {/* Instant Answer Feedback (Simulation Mode) */}
+              {session.mode === 'simulation' && currentState?.answered && (
+                <div className="mt-5 p-4 rounded-xl border bg-slate-50 dark:bg-slate-800/80 border-blue-200 dark:border-blue-800 space-y-2 animate-fadeIn">
+                  <div className="flex items-center gap-2 font-extrabold text-xs">
+                    {currentQ.type === 'PG' && (
+                      <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
+                        Number(currentAnswerVal) === (currentQ.correctOptionIndex ?? (currentQ.correctAnswer ? currentQ.correctAnswer.toUpperCase().charCodeAt(0) - 65 : 0))
+                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                          : 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300'
+                      }`}>
+                        {Number(currentAnswerVal) === (currentQ.correctOptionIndex ?? (currentQ.correctAnswer ? currentQ.correctAnswer.toUpperCase().charCodeAt(0) - 65 : 0)) ? '✓ Jawaban Anda Benar!' : '✕ Jawaban Anda Kurang Tepat'}
+                      </span>
+                    )}
+                    {currentQ.type !== 'PG' && (
+                      <span className="text-blue-600 dark:text-blue-400">Jawaban Sesi Simulasi Tercatat:</span>
+                    )}
+                  </div>
+
+                  <div className="text-xs text-slate-700 dark:text-slate-300 space-y-1 pt-1">
+                    {currentQ.correctAnswer && (
+                      <div><strong>Kunci Jawaban Resmi:</strong> Opsi <strong>{currentQ.correctAnswer}</strong></div>
+                    )}
+                    {currentQ.pembahasan && (
+                      <div className="pt-1.5 border-t border-slate-200 dark:border-slate-700">
+                        <strong>Pembahasan:</strong> {currentQ.pembahasan}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

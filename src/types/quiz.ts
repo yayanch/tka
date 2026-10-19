@@ -58,7 +58,8 @@ export interface ExamSession {
   sessionId: string;
   weekId: number; // 1-8, or 0 for comprehensive full test
   title: string;
-  mode: 'exam' | 'practice' | 'drill_wrong';
+  mode: 'exam' | 'practice' | 'drill_wrong' | 'simulation';
+  simulationIndex?: number;
   startTime: number;
   timeLimitMinutes: number;
   elapsedSeconds: number;
@@ -92,6 +93,7 @@ export interface OverallUserProgress {
   totalAttempts: number;
   totalQuestionsAnswered: number;
   completedModuleWeeks?: number[];
+  completedSimulations?: Record<number, number[]>;
   categoryStats: Record<number, {
     attempts: number;
     highestScore: number;

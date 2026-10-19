@@ -138,10 +138,28 @@ export function toggleModuleCompleted(weekId: number): number[] {
   return updated;
 }
 
+export function recordCompletedSimulation(weekId: number, simIndex: number): OverallUserProgress {
+  const current = loadUserProgress();
+  const comps = current.completedSimulations || {};
+  const weekComps = comps[weekId] || [];
+  if (!weekComps.includes(simIndex)) {
+    weekComps.push(simIndex);
+  }
+  const updated: OverallUserProgress = {
+    ...current,
+    completedSimulations: {
+      ...comps,
+      [weekId]: weekComps,
+    },
+  };
+  saveUserProgress(updated);
+  return updated;
+}
 export function resetAllUserProgress(): void {
   saveUserProgress({
     ...DEFAULT_PROGRESS,
     completedModuleWeeks: [],
+    completedSimulations: {},
   });
   try {
     localStorage.removeItem(LEGACY_MODULES_KEY);
