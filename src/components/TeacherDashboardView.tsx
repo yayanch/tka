@@ -1330,7 +1330,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
       </div>
 
       {/* Main Student Performance Table with Score Recap (Modul 1 s.d. 8) */}
-      <div id="section-students" className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+      <div id="section-students" className="hidden">
         <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <div>
             <h3 className="text-base font-bold text-slate-900 dark:text-white">
