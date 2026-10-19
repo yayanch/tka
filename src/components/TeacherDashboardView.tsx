@@ -1635,13 +1635,12 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                 <th className="py-3.5 px-4 text-center w-20">Peringkat</th>
                 <th className="py-3.5 px-4">Nama Siswa</th>
                 <th className="py-3.5 px-4">Asal Sekolah</th>
-                <th className="py-3.5 px-4 text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {top10Students.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="py-12 text-center text-slate-400">
+                  <td colSpan={3} className="py-12 text-center text-slate-400">
                     Belum ada data pengerjaan modul siswa.
                   </td>
                 </tr>
@@ -1686,26 +1685,6 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                         <div className="flex items-center gap-1.5">
                           <School className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                           <span className="uppercase">{s.asalSekolah || '-'}</span>
-                        </div>
-                      </td>
-
-                      <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => setSelectedStudent(s)}
-                            className="px-3 py-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 rounded-xl transition-colors cursor-pointer"
-                          >
-                            Detail Rapor
-                          </button>
-                          {isAdmin && (
-                            <button
-                              onClick={() => handleDeleteStudent(s)}
-                              title="Hapus Siswa"
-                              className="p-1.5 text-rose-600 hover:text-rose-700 bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 rounded-xl transition-colors cursor-pointer"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
                         </div>
                       </td>
                     </tr>
