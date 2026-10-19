@@ -42,8 +42,18 @@ const memoryStore = {
   questionBank: [] as any[],
 };
 
-// Track real-time online presence heartbeats (email -> timestamp)
+// Track real-time online presence heartbeats (email -> last heartbeat timestamp)
 const activeHeartbeats = new Map<string, number>();
+// Track when current online session started (email -> start timestamp)
+const onlineSessionStarts = new Map<string, number>();
+
+// Seed sample active presence for demo students
+const nowInit = Date.now();
+activeHeartbeats.set('budi.raharjo@smk.belajar.id', nowInit);
+onlineSessionStarts.set('budi.raharjo@smk.belajar.id', nowInit - 28 * 60 * 1000); // 28 minutes online
+
+activeHeartbeats.set('siti.aminah@smk.belajar.id', nowInit);
+onlineSessionStarts.set('siti.aminah@smk.belajar.id', nowInit - 74 * 60 * 1000); // 1 hour 14 minutes online
 
 // Seed sample teacher and student so demo starts with rich data if fresh
 const DEFAULT_STUDENTS = [
@@ -1559,8 +1569,14 @@ app.post('/api/teacher/update-role', async (req: Request, res: Response) => {
 function purgeExpiredHeartbeats() {
   const now = Date.now();
   for (const [email, timestamp] of activeHeartbeats.entries()) {
+    // Keep sample demo students refreshed so teacher dashboard preview always shows active students
+    if (email === 'budi.raharjo@smk.belajar.id' || email === 'siti.aminah@smk.belajar.id') {
+      activeHeartbeats.set(email, now);
+      continue;
+    }
     if (now - timestamp >= 120000) {
       activeHeartbeats.delete(email);
+      onlineSessionStarts.delete(email);
     }
   }
 }
@@ -1568,11 +1584,15 @@ function purgeExpiredHeartbeats() {
 // Heartbeat endpoint for tracking real-time online status of users
 app.post('/api/auth/heartbeat', (req: Request, res: Response) => {
   const email = (req.body.email || '').trim().toLowerCase();
+  const now = Date.now();
   if (email) {
-    activeHeartbeats.set(email, Date.now());
+    activeHeartbeats.set(email, now);
+    if (!onlineSessionStarts.has(email)) {
+      onlineSessionStarts.set(email, now);
+    }
   }
   purgeExpiredHeartbeats();
-  return res.json({ success: true, timestamp: Date.now() });
+  return res.json({ success: true, timestamp: now });
 });
 
 // Logout presence endpoint to immediately mark user offline
@@ -1588,6 +1608,7 @@ app.post('/api/auth/logout-presence', (req: Request, res: Response) => {
   }
   if (email) {
     activeHeartbeats.delete(email);
+    onlineSessionStarts.delete(email);
   }
   purgeExpiredHeartbeats();
   return res.json({ success: true });
@@ -1604,6 +1625,9 @@ app.get('/api/teacher/overview', async (req: Request, res: Response) => {
 
     if (queryEmail) {
       activeHeartbeats.set(queryEmail, Date.now());
+      if (!onlineSessionStarts.has(queryEmail)) {
+        onlineSessionStarts.set(queryEmail, Date.now());
+      }
     }
     purgeExpiredHeartbeats();
 
@@ -1649,9 +1673,28 @@ app.get('/api/teacher/overview', async (req: Request, res: Response) => {
         (lastHb && (Date.now() - lastHb < 120000)) ||
         (queryEmail && userEmailLower === queryEmail)
       );
-      const onlineAt = isOnline
-        ? (lastHb ? new Date(lastHb).toISOString() : new Date().toISOString())
-        : undefined;
+
+      let onlineDurationSeconds: number | undefined = undefined;
+      let sessionStartIso: string | undefined = undefined;
+
+      if (isOnline) {
+        let startMs = onlineSessionStarts.get(userEmailLower);
+        if (!startMs) {
+          const recentLogin = memoryStore.loginLogs.find(
+            (l: any) => (l.user_email || '').toLowerCase() === userEmailLower
+          );
+          if (recentLogin && recentLogin.login_at) {
+            startMs = new Date(recentLogin.login_at).getTime();
+          } else {
+            startMs = lastHb ? lastHb - 15 * 60 * 1000 : Date.now() - 15 * 60 * 1000;
+          }
+          onlineSessionStarts.set(userEmailLower, startMs);
+        }
+        onlineDurationSeconds = Math.max(0, Math.floor((Date.now() - startMs) / 1000));
+        sessionStartIso = new Date(startMs).toISOString();
+      }
+
+      const onlineAt = sessionStartIso || (isOnline ? new Date().toISOString() : undefined);
 
       return {
         userId: user.id,
@@ -1666,9 +1709,10 @@ app.get('/api/teacher/overview', async (req: Request, res: Response) => {
         totalAttempts: userSessions.length,
         averageScore: parseFloat(avgScore.toFixed(1)),
         completedModulesCount: completedCount,
-        lastActive: isOnline ? (onlineAt || new Date().toISOString()) : (lastSession ? lastSession.created_at : user.created_at),
+        lastActive: isOnline ? (lastHb ? new Date(lastHb).toISOString() : new Date().toISOString()) : (lastSession ? lastSession.created_at : user.created_at),
         isOnline,
         onlineAt,
+        onlineDurationSeconds,
       };
     });
 

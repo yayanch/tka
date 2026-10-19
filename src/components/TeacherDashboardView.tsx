@@ -446,6 +446,15 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
     return () => clearInterval(interval);
   }, [autoRefreshMetrics, currentUser?.email, currentUser?.role]);
 
+  // Periodic 10-second ticker to smoothly advance displayed online duration
+  const [, setDurationTicker] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setDurationTicker(prev => prev + 1);
+    }, 10000);
+    return () => clearInterval(timer);
+  }, []);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {
@@ -747,6 +756,43 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
     } catch {
       return 'Baru saja';
     }
+  };
+
+  const formatOnlineDuration = (seconds?: number, startIso?: string) => {
+    let s = seconds;
+    if ((s === undefined || s === null || isNaN(s)) && startIso) {
+      try {
+        const d = new Date(startIso).getTime();
+        if (!isNaN(d)) {
+          s = Math.max(0, Math.floor((Date.now() - d) / 1000));
+        }
+      } catch {
+        // fallback
+      }
+    }
+
+    if (s === undefined || s === null || isNaN(s) || s < 0) {
+      return '< 1 menit';
+    }
+
+    if (s < 60) {
+      return `${Math.max(1, s)} detik`;
+    }
+
+    const minutes = Math.floor(s / 60);
+    if (minutes < 60) {
+      return `${minutes} menit`;
+    }
+
+    const hours = Math.floor(minutes / 60);
+    const remainingMins = minutes % 60;
+    if (hours < 24) {
+      return remainingMins > 0 ? `${hours} jam ${remainingMins} menit` : `${hours} jam`;
+    }
+
+    const days = Math.floor(hours / 24);
+    const remainingHours = hours % 24;
+    return remainingHours > 0 ? `${days} hari ${remainingHours} jam` : `${days} hari`;
   };
 
   const handleDownloadCsv = () => {
@@ -1893,14 +1939,19 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                   </span>
                 </div>
 
-                {/* Waktu Online Siswa */}
+                {/* Durasi Online Siswa */}
                 <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
                   <span className="text-[10px] font-normal text-slate-500 dark:text-slate-400">
-                    Waktu Online:
+                    Durasi Online:
                   </span>
-                  <div className="inline-flex items-center gap-1.5 font-normal text-emerald-600 dark:text-emerald-400">
-                    <Clock className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                    <span>{formatOnlineTime(s.onlineAt || s.lastActive)}</span>
+                  <div className="flex flex-col items-end">
+                    <div className="inline-flex items-center gap-1.5 font-normal text-emerald-600 dark:text-emerald-400">
+                      <Clock className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                      <span>{formatOnlineDuration(s.onlineDurationSeconds, s.onlineAt || s.lastActive)}</span>
+                    </div>
+                    <span className="text-[9px] text-slate-400 dark:text-slate-500 font-normal">
+                      sejak {formatOnlineTime(s.onlineAt || s.lastActive)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1915,7 +1966,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
               <tr>
                 <th className="py-3.5 px-4">Nama Siswa</th>
                 <th className="py-3.5 px-4">Asal Sekolah</th>
-                <th className="py-3.5 px-4 text-center w-52">Waktu Online</th>
+                <th className="py-3.5 px-4 text-center w-56">Durasi Online</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -1949,12 +2000,17 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                     </td>
 
                     <td className="py-3.5 px-4 text-center">
-                      <div 
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 font-normal text-xs"
-                        title={`Aktivitas terakhir: ${formatDate(s.onlineAt || s.lastActive)}`}
-                      >
-                        <Clock className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                        <span>{formatOnlineTime(s.onlineAt || s.lastActive)}</span>
+                      <div className="inline-flex flex-col items-center">
+                        <div 
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 font-normal text-xs shadow-2xs"
+                          title={`Online sejak ${formatOnlineTime(s.onlineAt || s.lastActive)} (${formatDate(s.onlineAt || s.lastActive)})`}
+                        >
+                          <Clock className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                          <span>{formatOnlineDuration(s.onlineDurationSeconds, s.onlineAt || s.lastActive)}</span>
+                        </div>
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal mt-0.5">
+                          sejak {formatOnlineTime(s.onlineAt || s.lastActive)}
+                        </span>
                       </div>
                     </td>
                   </tr>
