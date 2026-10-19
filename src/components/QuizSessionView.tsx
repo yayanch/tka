@@ -197,7 +197,7 @@ export const QuizSessionView: React.FC<QuizSessionViewProps> = ({
             {/* Batal Button */}
             <button
               onClick={() => setShowExitModal(true)}
-              className="px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg transition-colors cursor-pointer"
+              className="px-3.5 py-1.5 text-xs font-semibold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 dark:text-rose-400 dark:hover:text-white dark:bg-rose-950/40 dark:hover:bg-rose-900 rounded-lg border border-rose-200 dark:border-rose-800 transition-colors cursor-pointer"
             >
               <span>Batal</span>
             </button>
