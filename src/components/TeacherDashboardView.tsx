@@ -606,11 +606,19 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
         const bScore = b.moduleScores?.[modNum] ?? 0;
         comparison = aScore - bScore;
       } else if (sortField === 'belumTuntas') {
-        const aTuntas = [1, 2, 3, 4, 5, 6, 7, 8].filter(w => (a.moduleScores?.[w] ?? 0) >= 75).length;
-        const bTuntas = [1, 2, 3, 4, 5, 6, 7, 8].filter(w => (b.moduleScores?.[w] ?? 0) >= 75).length;
-        const aBelum = 8 - aTuntas;
-        const bBelum = 8 - bTuntas;
-        comparison = aBelum - bBelum;
+        const aComp = Math.min(8, Math.max(a.completedModulesCount || 0, Object.keys(a.moduleScores || {}).length));
+        const bComp = Math.min(8, Math.max(b.completedModulesCount || 0, Object.keys(b.moduleScores || {}).length));
+        if (aComp !== bComp) {
+          comparison = aComp - bComp;
+        } else {
+          const aTuntas = [1, 2, 3, 4, 5, 6, 7, 8].filter(w => (a.moduleScores?.[w] ?? 0) >= 75).length;
+          const bTuntas = [1, 2, 3, 4, 5, 6, 7, 8].filter(w => (b.moduleScores?.[w] ?? 0) >= 75).length;
+          if (aTuntas !== bTuntas) {
+            comparison = aTuntas - bTuntas;
+          } else {
+            comparison = (a.averageScore || 0) - (b.averageScore || 0);
+          }
+        }
       }
       return sortDirection === 'asc' ? comparison : -comparison;
     });
@@ -2061,7 +2069,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
                       <span>
-                        Urut: <strong className="uppercase">{sortField.startsWith('m') ? `Modul ${sortField.replace('m', '')}` : sortField === 'belumTuntas' ? 'Belum Tuntas' : sortField === 'name' ? 'Nama Siswa' : sortField === 'verification' ? 'Verifikasi' : sortField}</strong> ({sortDirection === 'asc' ? 'A-Z / Naik' : 'Z-A / Turun'})
+                        Urut: <strong className="uppercase">{sortField.startsWith('m') ? `Modul ${sortField.replace('m', '')}` : sortField === 'belumTuntas' ? 'Status' : sortField === 'name' ? 'Nama Siswa' : sortField === 'verification' ? 'Verifikasi' : sortField}</strong> ({sortDirection === 'asc' ? 'A-Z / Naik' : 'Z-A / Turun'})
                       </span>
                       <span className="text-blue-400 dark:text-blue-500 font-bold ml-1">✕</span>
                     </button>
@@ -2079,8 +2087,8 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
             </div>
           ) : (
             paginatedStudents.map((s) => {
-              const tuntasCount = [1, 2, 3, 4, 5, 6, 7, 8].filter(w => (s.moduleScores[w] ?? 0) >= 75).length;
-              const belumTuntasCount = 8 - tuntasCount;
+              const completedCount = Math.min(8, Math.max(s.completedModulesCount || 0, Object.keys(s.moduleScores || {}).length));
+              const completionPct = Math.round((completedCount / 8) * 100);
 
               return (
                 <div 
@@ -2114,16 +2122,13 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                   </div>
 
                   <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100 dark:border-slate-800">
-                    <div>
-                      {belumTuntasCount === 0 ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
-                          0 Belum Tuntas (Tuntas)
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">
-                          {belumTuntasCount} Modul Belum Tuntas
-                        </span>
-                      )}
+                    <div className="flex items-center">
+                      <CircularProgress 
+                        value={completionPct}
+                        size={36}
+                        strokeWidth={3.5}
+                        subLabel={`${completedCount}/8 Modul`}
+                      />
                     </div>
 
                     <div className="flex items-center gap-1.5">
@@ -2203,13 +2208,13 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
 
                 <th 
                   onClick={() => handleSort('belumTuntas')}
-                  className={`py-3 px-3 text-center cursor-pointer select-none hover:bg-slate-100/90 dark:hover:bg-slate-700/60 transition-colors group ${
+                  className={`py-3.5 px-4 text-center cursor-pointer select-none hover:bg-slate-100/90 dark:hover:bg-slate-700/60 transition-colors group min-w-[140px] ${
                     sortField === 'belumTuntas' ? 'bg-blue-50/80 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400' : ''
                   }`}
-                  title="Klik untuk mengurutkan jumlah Modul Belum Tuntas (Terbanyak / Paling Sedikit)"
+                  title="Klik untuk mengurutkan status penyelesaian modul (Tertinggi / Terendah)"
                 >
                   <div className="flex items-center justify-center gap-1">
-                    <span>Belum Tuntas</span>
+                    <span>Status</span>
                     {renderSortIndicator('belumTuntas')}
                   </div>
                 </th>
@@ -2226,8 +2231,8 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                 </tr>
               ) : (
                 paginatedStudents.map((s) => {
-                  const tuntasCount = [1, 2, 3, 4, 5, 6, 7, 8].filter(w => (s.moduleScores[w] ?? 0) >= 75).length;
-                  const belumTuntasCount = 8 - tuntasCount;
+                  const completedCount = Math.min(8, Math.max(s.completedModulesCount || 0, Object.keys(s.moduleScores || {}).length));
+                  const completionPct = Math.round((completedCount / 8) * 100);
 
                   return (
                     <tr 
@@ -2281,17 +2286,16 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                         );
                       })}
 
-                      {/* Jumlah Modul Belum Tuntas */}
-                      <td className="py-3 px-3 text-center">
-                        {belumTuntasCount === 0 ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
-                            0 Modul (Tuntas)
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">
-                            {belumTuntasCount} Modul
-                          </span>
-                        )}
+                      {/* Status Progress Penyelesaian Modul (Grafik Lingkaran seperti Top Ten) */}
+                      <td className="py-3.5 px-4 text-center">
+                        <div className="flex items-center justify-center">
+                          <CircularProgress 
+                            value={completionPct}
+                            size={40}
+                            strokeWidth={3.5}
+                            subLabel={`${completedCount} dari 8 Modul`}
+                          />
+                        </div>
                       </td>
 
                       <td className="py-3 px-3 text-right">
