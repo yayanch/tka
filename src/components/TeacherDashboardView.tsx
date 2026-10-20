@@ -410,7 +410,11 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
   // Pagination states
   const [studentPage, setStudentPage] = useState(1);
   const [userPage, setUserPage] = useState(1);
+  const [topPage, setTopPage] = useState(1);
+  const [onlinePage, setOnlinePage] = useState(1);
   const ITEMS_PER_PAGE = 10;
+  const TOP_PER_PAGE = 5;
+  const ONLINE_PER_PAGE = 5;
 
   // State for Registered User List (Admin View)
   const [userSearchQuery, setUserSearchQuery] = useState('');
@@ -600,9 +604,9 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
   }, [filteredStudents]);
 
   const paginatedOnlineStudents = useMemo(() => {
-    const start = (studentPage - 1) * ITEMS_PER_PAGE;
-    return onlineStudentsList.slice(start, start + ITEMS_PER_PAGE);
-  }, [onlineStudentsList, studentPage]);
+    const start = (onlinePage - 1) * ONLINE_PER_PAGE;
+    return onlineStudentsList.slice(start, start + ONLINE_PER_PAGE);
+  }, [onlineStudentsList, onlinePage]);
 
   const totalOnlineCount = useMemo(() => {
     if (!data?.students) return liveMetrics?.activeOnlineStudents || onlineStudentsList.length;
@@ -610,11 +614,11 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
     return online > 0 ? online : (liveMetrics?.activeOnlineStudents || onlineStudentsList.length);
   }, [data?.students, liveMetrics?.activeOnlineStudents, onlineStudentsList.length]);
 
-  // Top 10 Students who completed the most modules and passed (tuntas >= 75)
-  const top10Students = useMemo(() => {
+  // Top Students list sorted and paginated (5 per page)
+  const topStudentsList = useMemo(() => {
     if (!data?.students) return [];
     const studentList = data.students.filter(s => s.role !== 'admin');
-    const sorted = [...studentList].sort((a, b) => {
+    return [...studentList].sort((a, b) => {
       const aTuntas = [1, 2, 3, 4, 5, 6, 7, 8].filter(w => (a.moduleScores[w] ?? 0) >= 75).length;
       const bTuntas = [1, 2, 3, 4, 5, 6, 7, 8].filter(w => (b.moduleScores[w] ?? 0) >= 75).length;
       if (bTuntas !== aTuntas) return bTuntas - aTuntas;
@@ -629,8 +633,12 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
 
       return a.namaLengkap.localeCompare(b.namaLengkap);
     });
-    return sorted.slice(0, 10);
   }, [data?.students]);
+
+  const paginatedTopStudents = useMemo(() => {
+    const start = (topPage - 1) * TOP_PER_PAGE;
+    return topStudentsList.slice(start, start + TOP_PER_PAGE);
+  }, [topStudentsList, topPage]);
 
 
 
@@ -668,17 +676,19 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
     currentPage, 
     totalItems, 
     onPageChange,
-    label = 'data'
+    label = 'data',
+    itemsPerPage = ITEMS_PER_PAGE
   }: { 
     currentPage: number; 
     totalItems: number; 
     onPageChange: (p: number) => void;
     label?: string;
+    itemsPerPage?: number;
   }) => {
-    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
     if (totalPages <= 1) return null;
-    const startItem = (currentPage - 1) * ITEMS_PER_PAGE + 1;
-    const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalItems);
+    const startItem = (currentPage - 1) * itemsPerPage + 1;
+    const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
     return (
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-3 border-t border-slate-100 dark:border-slate-800 text-xs bg-slate-50/50 dark:bg-slate-800/40">
@@ -1890,13 +1900,13 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
 
         {/* Tampilan Mobile: Grid Card Layout */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:hidden gap-3 p-4 bg-slate-50/50 dark:bg-slate-900/50">
-          {top10Students.length === 0 ? (
+          {paginatedTopStudents.length === 0 ? (
             <div className="col-span-full py-8 text-center text-slate-400 text-xs">
               Belum ada data pengerjaan modul siswa.
             </div>
           ) : (
-            top10Students.map((s, idx) => {
-              const rank = idx + 1;
+            paginatedTopStudents.map((s, idx) => {
+              const rank = (topPage - 1) * TOP_PER_PAGE + idx + 1;
               const completedCount = Math.min(8, Math.max(s.completedModulesCount || 0, Object.keys(s.moduleScores || {}).length));
               const completionPct = Math.round((completedCount / 8) * 100);
 
@@ -1953,15 +1963,15 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {top10Students.length === 0 ? (
+              {paginatedTopStudents.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="py-12 text-center text-slate-400">
                     Belum ada data pengerjaan modul siswa.
                   </td>
                 </tr>
               ) : (
-                top10Students.map((s, idx) => {
-                  const rank = idx + 1;
+                paginatedTopStudents.map((s, idx) => {
+                  const rank = (topPage - 1) * TOP_PER_PAGE + idx + 1;
                   const completedCount = Math.min(8, Math.max(s.completedModulesCount || 0, Object.keys(s.moduleScores || {}).length));
                   const completionPct = Math.round((completedCount / 8) * 100);
 
@@ -2011,6 +2021,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
             </tbody>
           </table>
         </div>
+        <Pagination currentPage={topPage} totalItems={topStudentsList.length} onPageChange={setTopPage} label="peringkat" itemsPerPage={TOP_PER_PAGE} />
       </div>
 
       {/* Container 2: Tabel Siswa Sedang Online */}
@@ -2155,8 +2166,8 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
               )}
             </tbody>
           </table>
-          <Pagination currentPage={studentPage} totalItems={onlineStudentsList.length} onPageChange={setStudentPage} label="siswa online" />
         </div>
+        <Pagination currentPage={onlinePage} totalItems={onlineStudentsList.length} onPageChange={setOnlinePage} label="siswa online" itemsPerPage={ONLINE_PER_PAGE} />
       </div>
     </div>
         )
