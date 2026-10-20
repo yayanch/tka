@@ -2017,16 +2017,17 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
         {/* Header Filter & Status Online Siswa */}
         <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-800/20">
-          <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="flex items-center gap-3.5 w-full md:w-auto">
             <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-emerald-600 shrink-0">
               <UserCheck className="w-5 h-5" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-                  Online
-                </h3>
-              </div>
+            <div className="flex items-center gap-3">
+              <span className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
+                {totalOnlineCount}
+              </span>
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                Online
+              </h3>
             </div>
           </div>
 
