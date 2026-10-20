@@ -12,7 +12,8 @@ import {
   Moon,
   Phone,
   Users,
-  Building2
+  Building2,
+  Trophy
 } from 'lucide-react';
 import { UserProfile } from '../types/auth';
 import { Theme } from '../utils/theme';
@@ -25,6 +26,7 @@ interface NavbarProps {
   onOpenAuth: (mode: 'register' | 'login') => void;
   onLogout: () => void;
   onOpenSettings?: () => void;
+  onOpenTopScores?: () => void;
   theme?: Theme;
   onToggleTheme?: () => void;
   onOpenContact?: () => void;
@@ -38,6 +40,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenAuth,
   onLogout,
   onOpenSettings,
+  onOpenTopScores,
   theme,
   onToggleTheme,
   onOpenContact,
@@ -128,6 +131,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                 >
                   <BarChart3 className="w-4 h-4" />
                   <span>Progres Belajar</span>
+                </button>
+
+                <button
+                  onClick={onOpenTopScores}
+                  className="flex items-center gap-1.5 py-1.5 text-amber-600 dark:text-amber-400 hover:text-amber-700 font-bold transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                  title="Lihat Peringkat Top Skor & Leaderboard"
+                >
+                  <Trophy className="w-4 h-4 text-amber-500" />
+                  <span>Top Skor</span>
                 </button>
               </>
             )}

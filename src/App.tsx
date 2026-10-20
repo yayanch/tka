@@ -891,6 +891,7 @@ export default function App() {
         theme={theme}
         onToggleTheme={handleToggleTheme}
         onOpenContact={() => setIsContactModalOpen(true)}
+        onOpenTopScores={() => setIsTopScoresOpen(true)}
         brandingConfig={brandingConfig}
       />
 
@@ -967,6 +968,7 @@ export default function App() {
                     setCurrentTab('teacher');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
+                  onOpenTopScores={() => setIsTopScoresOpen(true)}
                 />
               )
             )}
@@ -989,6 +991,7 @@ export default function App() {
                   setCurrentTab('teacher');
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
+                onOpenTopScores={() => setIsTopScoresOpen(true)}
               />
             )}
 

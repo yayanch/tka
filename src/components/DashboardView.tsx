@@ -31,7 +31,8 @@ import {
   ChevronDown,
   ChevronUp,
   X,
-  Sparkles
+  Sparkles,
+  Trophy
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -43,6 +44,7 @@ interface DashboardViewProps {
   currentUser?: UserProfile | null;
   onOpenAuth?: (mode: 'register' | 'login') => void;
   onOpenTeacher?: () => void;
+  onOpenTopScores?: () => void;
   onNavigateToModules?: () => void;
   viewMode?: 'home' | 'modules' | 'all';
 }
@@ -483,6 +485,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   currentUser,
   onOpenAuth,
   onOpenTeacher,
+  onOpenTopScores,
   onNavigateToModules,
   viewMode = 'all',
 }) => {
@@ -578,8 +581,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
             </div>
 
-            {onOpenTeacher && currentUser?.role === 'admin' && (
-              <div className="flex flex-wrap items-center gap-2.5 self-stretch sm:self-center justify-end relative z-10">
+            <div className="flex flex-wrap items-center gap-2.5 self-stretch sm:self-center justify-end relative z-10">
+              {onOpenTopScores && (
+                <button
+                  onClick={onOpenTopScores}
+                  className="text-xs font-black text-slate-950 bg-amber-400 hover:bg-amber-300 active:bg-amber-500 px-4 py-2.5 rounded-xl transition-colors cursor-pointer flex items-center gap-2 shadow-md shrink-0"
+                >
+                  <Trophy className="w-4 h-4 text-slate-950" />
+                  <span>🏆 Top Skor & Leaderboard</span>
+                </button>
+              )}
+
+              {onOpenTeacher && currentUser?.role === 'admin' && (
                 <button
                   onClick={onOpenTeacher}
                   className="text-xs font-bold text-white bg-white/20 hover:bg-white/30 border border-white/30 px-3.5 py-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs backdrop-blur-md"
@@ -587,8 +600,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <GraduationCap className="w-4 h-4 text-blue-200" />
                   <span>Portal Admin</span>
                 </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         ) : (
           <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white border border-blue-600/30 rounded-2xl p-4 sm:p-5 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden">
