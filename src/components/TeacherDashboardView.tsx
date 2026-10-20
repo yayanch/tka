@@ -2220,22 +2220,6 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                     Online
                   </span>
                 </div>
-
-                {/* Durasi Online Siswa */}
-                <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
-                  <span className="text-[10px] font-normal text-slate-500 dark:text-slate-400">
-                    Durasi Online:
-                  </span>
-                  <div className="flex flex-col items-end">
-                    <div className="inline-flex items-center gap-1.5 font-normal text-emerald-600 dark:text-emerald-400">
-                      <Clock className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                      <span>{formatOnlineDuration(s.onlineDurationSeconds, s.onlineAt || s.lastActive)}</span>
-                    </div>
-                    <span className="text-[9px] text-slate-400 dark:text-slate-500 font-normal">
-                      sejak {formatOnlineTime(s.onlineAt || s.lastActive)}
-                    </span>
-                  </div>
-                </div>
               </div>
             ))
           )}
@@ -2248,13 +2232,12 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
               <tr>
                 <th className="py-3.5 px-4">Nama Siswa</th>
                 <th className="py-3.5 px-4">Asal Sekolah</th>
-                <th className="py-3.5 px-4 text-center w-56">Durasi Online</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {paginatedOnlineStudents.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="py-12 text-center text-slate-400">
+                  <td colSpan={2} className="py-12 text-center text-slate-400">
                     Tidak ada siswa yang sedang online membuka aplikasi saat ini.
                   </td>
                 </tr>
@@ -2278,21 +2261,6 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                       <div className="flex items-center gap-1.5">
                         <School className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                         <span className="uppercase">{s.asalSekolah || '-'}</span>
-                      </div>
-                    </td>
-
-                    <td className="py-3.5 px-4 text-center">
-                      <div className="inline-flex flex-col items-center">
-                        <div 
-                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 font-normal text-xs shadow-2xs"
-                          title={`Online sejak ${formatOnlineTime(s.onlineAt || s.lastActive)} (${formatDate(s.onlineAt || s.lastActive)})`}
-                        >
-                          <Clock className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                          <span>{formatOnlineDuration(s.onlineDurationSeconds, s.onlineAt || s.lastActive)}</span>
-                        </div>
-                        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal mt-0.5">
-                          sejak {formatOnlineTime(s.onlineAt || s.lastActive)}
-                        </span>
                       </div>
                     </td>
                   </tr>
