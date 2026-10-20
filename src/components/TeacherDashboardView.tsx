@@ -51,7 +51,8 @@ import {
   ArrowUp,
   ArrowDown,
   TrendingUp,
-  BarChart3
+  BarChart3,
+  Trophy
 } from 'lucide-react';
 import { TeacherClassOverview, TeacherStudentSummary, UserProfile, ServerMetrics } from '../types/auth';
 import { HourlyLoginStatsCard } from './HourlyLoginStatsCard';
@@ -295,6 +296,17 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
 
 const getRankBadgeClasses = (_rank?: number): string => {
   return 'bg-blue-500 text-white shadow-xs';
+};
+
+const MODULE_SHORT_NAMES: Record<number, string> = {
+  1: 'Dunia Kerja & Bisnis',
+  2: 'Hardware, OS & Server',
+  3: 'Switch, VLAN & Routing',
+  4: 'K3LH & Budaya 5R',
+  5: 'Kabel & Topologi',
+  6: 'Fiber Optik & FTTH',
+  7: 'OSI/TCP-IP & WLAN',
+  8: 'Alat Ukur & SOP TKA',
 };
 
 interface TeacherDashboardViewProps {
@@ -651,6 +663,75 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
     const start = (topPage - 1) * TOP_PER_PAGE;
     return topStudentsList.slice(start, start + TOP_PER_PAGE);
   }, [topStudentsList, topPage]);
+
+  // Module 1 - 8 Completion Statistics (for Rekap Nilai Siswa)
+  const moduleCompletionStats = useMemo(() => {
+    const list = filteredStudents || [];
+    const totalCount = list.length;
+
+    // Modul 1 s.d. 8 individual statistics
+    const modules = [1, 2, 3, 4, 5, 6, 7, 8].map(modNum => {
+      const completedStudents = list.filter(s => s.moduleScores?.[modNum] !== undefined && s.moduleScores?.[modNum] !== null);
+      const completedCount = completedStudents.length;
+
+      const passedStudents = list.filter(s => (s.moduleScores?.[modNum] ?? 0) >= 75);
+      const passedCount = passedStudents.length;
+
+      const totalScore = completedStudents.reduce((acc, s) => acc + (s.moduleScores?.[modNum] || 0), 0);
+      const avgScore = completedCount > 0 ? (totalScore / completedCount).toFixed(1) : '-';
+
+      const completionPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+      const passPercentage = totalCount > 0 ? Math.round((passedCount / totalCount) * 100) : 0;
+
+      return {
+        modNum,
+        completedCount,
+        passedCount,
+        avgScore,
+        completionPercentage,
+        passPercentage,
+      };
+    });
+
+    // Students who completed all 8 modules (has scores for all 8 modules or completedModulesCount >= 8)
+    const all8Completed = list.filter(s => {
+      const completedModules = [1, 2, 3, 4, 5, 6, 7, 8].filter(w => s.moduleScores?.[w] !== undefined && s.moduleScores?.[w] !== null).length;
+      return completedModules === 8 || (s.completedModulesCount || 0) >= 8;
+    });
+
+    // Students who passed all 8 modules (all scores >= 75)
+    const all8Passed = list.filter(s => {
+      return [1, 2, 3, 4, 5, 6, 7, 8].every(w => (s.moduleScores?.[w] ?? 0) >= 75);
+    });
+
+    // Students currently in progress (1 - 7 modules)
+    const inProgress = list.filter(s => {
+      const count = [1, 2, 3, 4, 5, 6, 7, 8].filter(w => s.moduleScores?.[w] !== undefined && s.moduleScores?.[w] !== null).length;
+      return count >= 1 && count < 8;
+    });
+
+    // Students who have not started (0 modules completed)
+    const notStarted = list.filter(s => {
+      const count = [1, 2, 3, 4, 5, 6, 7, 8].filter(w => s.moduleScores?.[w] !== undefined && s.moduleScores?.[w] !== null).length;
+      return count === 0;
+    });
+
+    const totalTuntasAll = list.reduce((acc, s) => {
+      const tuntas = [1, 2, 3, 4, 5, 6, 7, 8].filter(w => (s.moduleScores?.[w] ?? 0) >= 75).length;
+      return acc + tuntas;
+    }, 0);
+    const avgTuntasPerStudent = totalCount > 0 ? (totalTuntasAll / totalCount).toFixed(1) : '0';
+
+    return {
+      totalCount,
+      all8CompletedCount: all8Completed.length,
+      all8PassedCount: all8Passed.length,
+      inProgressCount: inProgress.length,
+      notStartedCount: notStarted.length,
+      avgTuntasPerStudent,
+      modules,
+    };
+  }, [filteredStudents]);
 
 
 
@@ -1686,6 +1767,241 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
       {activeSection === 'grades' && (
         showScoreRecap ? (
           <>
+            {/* Card Statistik Jumlah yang Sudah Selesai Modul 1 - 8 */}
+            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-5">
+              {/* Card Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
+                    <Trophy className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                      <span>{isStudent ? 'Status Penyelesaian Modul 1 - 8' : 'Penyelesaian Modul 1 s.d. 8'}</span>
+                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300">
+                        {selectedSchool === 'all' ? 'Semua Sekolah' : selectedSchool}
+                      </span>
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {isStudent 
+                        ? 'Capaian dan kelengkapan 8 modul pembelajaran yang telah Anda selesaikan.' 
+                        : 'Ringkasan jumlah siswa yang telah menyelesaikan Modul 1 sampai 8 beserta rincian capaian per modul.'}
+                    </p>
+                  </div>
+                </div>
+
+                {!isStudent && (
+                  <div className="flex items-center gap-2 self-start sm:self-center">
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                      Total Terdata: <strong className="text-slate-900 dark:text-white font-bold">{moduleCompletionStats.totalCount} Siswa</strong>
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Highlight Stat Cards: Selesai Penuh 1-8, Berproses, Belum Mulai */}
+              {!isStudent ? (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {/* Card 1: Selesai Seluruh Modul 1-8 */}
+                  <div 
+                    onClick={() => handleSort('belumTuntas')}
+                    className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/60 dark:from-indigo-950/40 dark:via-slate-900 dark:to-purple-950/30 border border-indigo-200/80 dark:border-indigo-800/80 shadow-2xs hover:shadow-sm hover:border-indigo-300 dark:hover:border-indigo-700 transition-all cursor-pointer group"
+                    title="Klik untuk mengurutkan siswa berdasarkan ketuntasan modul"
+                  >
+                    <div className="flex items-center justify-between gap-1 mb-2">
+                      <span className="text-[11px] font-bold text-indigo-700 dark:text-indigo-300 flex items-center gap-1.5 truncate">
+                        <Trophy className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                        <span>Selesai Modul 1 - 8</span>
+                      </span>
+                      <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300">
+                        {moduleCompletionStats.totalCount > 0 ? Math.round((moduleCompletionStats.all8CompletedCount / moduleCompletionStats.totalCount) * 100) : 0}%
+                      </span>
+                    </div>
+                    <div className="text-2xl font-black text-indigo-950 dark:text-white tabular-nums">
+                      {moduleCompletionStats.all8CompletedCount} <span className="text-xs font-semibold text-slate-500">Siswa</span>
+                    </div>
+                    <div className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3 shrink-0" />
+                      <span>{moduleCompletionStats.all8PassedCount} tuntas KKM (≥75)</span>
+                    </div>
+                  </div>
+
+                  {/* Card 2: Berproses (1 - 7 Modul) */}
+                  <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs">
+                    <div className="flex items-center justify-between gap-1 mb-2">
+                      <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 truncate">
+                        <Clock className="w-3.5 h-3.5 text-amber-500" />
+                        <span>Sedang Berproses (1-7)</span>
+                      </span>
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400">
+                        {moduleCompletionStats.totalCount > 0 ? Math.round((moduleCompletionStats.inProgressCount / moduleCompletionStats.totalCount) * 100) : 0}%
+                      </span>
+                    </div>
+                    <div className="text-2xl font-black text-slate-900 dark:text-white tabular-nums">
+                      {moduleCompletionStats.inProgressCount} <span className="text-xs font-semibold text-slate-500">Siswa</span>
+                    </div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                      Menyelesaikan 1 s.d. 7 modul
+                    </div>
+                  </div>
+
+                  {/* Card 3: Belum Memulai (0 Modul) */}
+                  <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs">
+                    <div className="flex items-center justify-between gap-1 mb-2">
+                      <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 truncate">
+                        <AlertCircle className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Belum Mulai (0 Modul)</span>
+                      </span>
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                        {moduleCompletionStats.totalCount > 0 ? Math.round((moduleCompletionStats.notStartedCount / moduleCompletionStats.totalCount) * 100) : 0}%
+                      </span>
+                    </div>
+                    <div className="text-2xl font-black text-slate-900 dark:text-white tabular-nums">
+                      {moduleCompletionStats.notStartedCount} <span className="text-xs font-semibold text-slate-500">Siswa</span>
+                    </div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                      Belum mengerjakan ujian
+                    </div>
+                  </div>
+
+                  {/* Card 4: Rata-Rata Modul Tuntas */}
+                  <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs">
+                    <div className="flex items-center justify-between gap-1 mb-2">
+                      <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 truncate">
+                        <Award className="w-3.5 h-3.5 text-blue-500" />
+                        <span>Rata-Rata Modul Tuntas</span>
+                      </span>
+                    </div>
+                    <div className="text-2xl font-black text-slate-900 dark:text-white tabular-nums">
+                      {moduleCompletionStats.avgTuntasPerStudent} <span className="text-xs font-semibold text-slate-500">/ 8 Modul</span>
+                    </div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                      Standar kelulusan KKM ≥ 75.0
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <div className="text-xs font-bold text-blue-700 dark:text-blue-300 mb-0.5">
+                      Progres Pembelajaran Anda
+                    </div>
+                    <div className="text-xl font-extrabold text-slate-900 dark:text-white">
+                      {data?.students?.[0]?.completedModulesCount || 0} dari 8 Modul Selesai
+                    </div>
+                  </div>
+                  <div className="w-full sm:w-64 bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
+                    <div 
+                      className="bg-blue-600 h-full rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min(100, Math.round(((data?.students?.[0]?.completedModulesCount || 0) / 8) * 100))}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Grid 8 Cards: Modul 1 s.d. Modul 8 */}
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-2.5">
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-blue-500" />
+                    <span>Rincian Jumlah Siswa Selesai per Modul (Modul 1 - 8)</span>
+                  </span>
+                  {!isStudent && (
+                    <span className="text-[11px] text-slate-400 hidden sm:inline">
+                      Klik card modul untuk mengurutkan nilai di tabel
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5 sm:gap-3">
+                  {moduleCompletionStats.modules.map(mod => {
+                    const isCurrentSorted = sortField === `m${mod.modNum}`;
+                    const studentScore = isStudent ? data?.students?.[0]?.moduleScores?.[mod.modNum] : undefined;
+
+                    return (
+                      <div
+                        key={mod.modNum}
+                        onClick={() => {
+                          if (!isStudent) {
+                            handleSort(('m' + mod.modNum) as StudentSortField);
+                          }
+                        }}
+                        className={`p-3 rounded-2xl border transition-all flex flex-col justify-between gap-2 ${
+                          !isStudent ? 'cursor-pointer' : ''
+                        } ${
+                          isCurrentSorted
+                            ? 'bg-blue-50/90 dark:bg-blue-950/50 border-blue-400 dark:border-blue-600 ring-2 ring-blue-500/30 shadow-xs'
+                            : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-800 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700'
+                        }`}
+                        title={!isStudent ? `Klik untuk mengurutkan tabel berdasarkan Nilai Modul ${mod.modNum}` : undefined}
+                      >
+                        <div>
+                          <div className="flex items-center justify-between gap-1 mb-1">
+                            <span className="text-[11px] font-black text-blue-600 dark:text-blue-400">
+                              Modul {mod.modNum}
+                            </span>
+                            {isCurrentSorted && (
+                              <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400">
+                                {sortDirection === 'asc' ? '▲' : '▼'}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 line-clamp-1 leading-snug" title={MODULE_SHORT_NAMES[mod.modNum]}>
+                            {MODULE_SHORT_NAMES[mod.modNum]}
+                          </div>
+                        </div>
+
+                        <div>
+                          {isStudent ? (
+                            <div>
+                              <div className="text-lg font-black text-slate-900 dark:text-white tabular-nums leading-none">
+                                {studentScore !== undefined ? studentScore.toFixed(0) : '-'}
+                              </div>
+                              <div className="text-[10px] mt-1">
+                                {studentScore !== undefined ? (
+                                  studentScore >= 75 ? (
+                                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">Tuntas</span>
+                                  ) : (
+                                    <span className="text-amber-600 dark:text-amber-400 font-bold">Belum Tuntas</span>
+                                  )
+                                ) : (
+                                  <span className="text-slate-400">Belum Selesai</span>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <div>
+                              <div className="text-xl font-black text-slate-900 dark:text-white tabular-nums leading-none">
+                                {mod.completedCount}
+                                <span className="text-[10px] font-medium text-slate-500 ml-1">selesai</span>
+                              </div>
+                              
+                              {/* Progress Bar */}
+                              <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden mt-1.5 mb-1">
+                                <div 
+                                  className="bg-blue-600 dark:bg-blue-400 h-full rounded-full transition-all duration-300"
+                                  style={{ width: `${Math.min(100, mod.completionPercentage)}%` }}
+                                />
+                              </div>
+
+                              <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 pt-0.5">
+                                <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                                  {mod.passedCount} tuntas
+                                </span>
+                                <span className="tabular-nums">
+                                  {mod.completionPercentage}%
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
             {/* Search and School Filter Bar */}
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="relative w-full sm:max-w-md">
