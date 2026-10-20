@@ -19,6 +19,7 @@ import { ContactSettingsModal } from './components/ContactSettingsModal';
 import { ContactModal } from './components/ContactModal';
 import { BrandingSettingsModal } from './components/BrandingSettingsModal';
 import { TopScoresModal } from './components/TopScoresModal';
+import { FeedbackNotificationModal } from './components/FeedbackNotificationModal';
 import { HeroConfig, DEFAULT_HERO_CONFIG } from './utils/heroStorage';
 import { ContactConfig, DEFAULT_CONTACT_CONFIG } from './utils/contactStorage';
 import { BrandingConfig, DEFAULT_BRANDING_CONFIG, applyBrandingToDOM } from './utils/brandingStorage';
@@ -1097,6 +1098,9 @@ export default function App() {
         onClose={() => setIsTopScoresOpen(false)}
         onOpenAuth={handleOpenAuth}
       />
+
+      {/* Feedback / Kritik dan Saran Notification Notification */}
+      <FeedbackNotificationModal currentUser={currentUser} />
 
       {/* Account Settings Modal */}
       {currentUser && (
