@@ -35,21 +35,44 @@ export const FeedbackNotificationModal: React.FC<FeedbackNotificationModalProps>
     return () => clearTimeout(timer);
   }, [currentUser]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) return;
 
-    // Save feedback to localStorage
-    const feedbackList = JSON.parse(localStorage.getItem('tka_user_feedbacks') || '[]');
-    feedbackList.push({
+    const newFeedback = {
       user: currentUser ? currentUser.namaLengkap : 'Pengunjung',
       email: currentUser ? currentUser.email : '-',
       category,
       rating,
       message,
       createdAt: new Date().toISOString(),
-    });
-    localStorage.setItem('tka_user_feedbacks', JSON.stringify(feedbackList));
+    };
+
+    try {
+      // Fetch existing feedbacks from server settings
+      const res = await fetch('/api/settings/tka_user_feedbacks');
+      let feedbackList: any[] = [];
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success && Array.isArray(data.value)) {
+          feedbackList = data.value;
+        }
+      }
+
+      feedbackList.unshift(newFeedback);
+
+      // Save back to server settings
+      await fetch('/api/settings/tka_user_feedbacks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(feedbackList),
+      });
+    } catch {
+      // Fallback to localStorage if offline
+      const localList = JSON.parse(localStorage.getItem('tka_user_feedbacks') || '[]');
+      localList.unshift(newFeedback);
+      localStorage.setItem('tka_user_feedbacks', JSON.stringify(localList));
+    }
 
     if (dontShowAgain && currentUser) {
       const hideKey = `tka_hide_feedback_${currentUser.email}`;

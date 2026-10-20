@@ -13,7 +13,8 @@ import {
   Phone,
   Users,
   Building2,
-  Trophy
+  Trophy,
+  MessageSquarePlus
 } from 'lucide-react';
 import { UserProfile } from '../types/auth';
 import { Theme } from '../utils/theme';
@@ -27,6 +28,7 @@ interface NavbarProps {
   onLogout: () => void;
   onOpenSettings?: () => void;
   onOpenTopScores?: () => void;
+  onOpenFeedback?: () => void;
   theme?: Theme;
   onToggleTheme?: () => void;
   onOpenContact?: () => void;
@@ -41,6 +43,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onLogout,
   onOpenSettings,
   onOpenTopScores,
+  onOpenFeedback,
   theme,
   onToggleTheme,
   onOpenContact,
@@ -141,6 +144,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <Trophy className="w-4 h-4 text-amber-500" />
                   <span>Top Skor</span>
                 </button>
+
+                <button
+                  onClick={onOpenFeedback}
+                  className="flex items-center gap-1.5 py-1.5 text-blue-600 dark:text-blue-400 hover:text-blue-700 font-bold transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                  title="Kirim Kritik & Saran"
+                >
+                  <MessageSquarePlus className="w-4 h-4 text-blue-500" />
+                  <span>Kritik & Saran</span>
+                </button>
               </>
             )}
 
@@ -236,6 +248,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                     {currentUser.asalSekolah}
                   </span>
                 </div>
+
+                <button
+                  onClick={onOpenFeedback}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors cursor-pointer"
+                  title="Kirim Kritik & Saran"
+                >
+                  <MessageSquarePlus className="w-3.5 h-3.5" />
+                </button>
 
                 <button
                   onClick={onOpenSettings}
@@ -350,6 +370,15 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             </>
           )}
+
+          <button
+            onClick={onOpenFeedback}
+            className="py-1 px-2 whitespace-nowrap cursor-pointer flex items-center gap-1 text-blue-600 font-bold"
+            title="Kritik & Saran"
+          >
+            <MessageSquarePlus className="w-3.5 h-3.5" />
+            <span>Kritik & Saran</span>
+          </button>
         </div>
       )}
     </header>

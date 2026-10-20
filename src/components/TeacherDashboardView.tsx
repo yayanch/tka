@@ -339,7 +339,19 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
   const [activeSection, setActiveSection] = useState<'grades' | 'users' | 'loginLogs' | 'questionBank' | 'security' | 'feedback'>('grades');
   const [feedbacksList, setFeedbacksList] = useState<any[]>([]);
 
-  const loadFeedbacks = () => {
+  const loadFeedbacks = async () => {
+    try {
+      const res = await fetch('/api/settings/tka_user_feedbacks');
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success && Array.isArray(data.value)) {
+          setFeedbacksList(data.value);
+          return;
+        }
+      }
+    } catch {
+      // ignore
+    }
     const list = JSON.parse(localStorage.getItem('tka_user_feedbacks') || '[]');
     setFeedbacksList(list);
   };
@@ -1687,8 +1699,17 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
               </button>
               {feedbacksList.length > 0 && (
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     if (window.confirm('Hapus semua riwayat kritik dan saran?')) {
+                      try {
+                        await fetch('/api/settings/tka_user_feedbacks', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify([]),
+                        });
+                      } catch {
+                        // ignore
+                      }
                       localStorage.removeItem('tka_user_feedbacks');
                       setFeedbacksList([]);
                     }

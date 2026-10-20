@@ -2540,6 +2540,48 @@ app.post('/api/settings/:key', async (req: Request, res: Response) => {
   }
 });
 
+// Feedback (Kritik & Saran) Storage & API
+const memoryFeedbacks: any[] = [];
+
+app.get('/api/feedbacks', async (_req: Request, res: Response) => {
+  try {
+    return res.json({ success: true, feedbacks: memoryFeedbacks });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/feedbacks', async (req: Request, res: Response) => {
+  try {
+    const { user, email, category, rating, message } = req.body;
+    if (!message || !message.trim()) {
+      return res.status(400).json({ success: false, error: 'Pesan kritik/saran tidak boleh kosong' });
+    }
+    const feedbackItem = {
+      id: 'fb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+      user: user || 'Pengguna',
+      email: email || '-',
+      category: category || 'fitur',
+      rating: Number(rating) || 5,
+      message: message.trim(),
+      createdAt: new Date().toISOString()
+    };
+    memoryFeedbacks.unshift(feedbackItem);
+    return res.json({ success: true, feedback: feedbackItem });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/feedbacks', async (_req: Request, res: Response) => {
+  try {
+    memoryFeedbacks.length = 0;
+    return res.json({ success: true });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // CSV Export for Teachers
 app.get('/api/teacher/export-csv', async (_req: Request, res: Response) => {
   try {

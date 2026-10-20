@@ -187,6 +187,7 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => getStoredUser());
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isTopScoresOpen, setIsTopScoresOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isHeroSettingsOpen, setIsHeroSettingsOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -196,6 +197,21 @@ export default function App() {
   const [brandingConfig, setBrandingConfig] = useState<BrandingConfig>(DEFAULT_BRANDING_CONFIG);
   const [isBrandingSettingsOpen, setIsBrandingSettingsOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'register' | 'login'>('register');
+
+  // Trigger Kritik & Saran pop-up automatically when entering individual account
+  useEffect(() => {
+    if (currentUser?.email) {
+      const hideKey = `tka_hide_feedback_${currentUser.email}`;
+      const sessionKey = `tka_fb_shown_${currentUser.email}`;
+      if (localStorage.getItem(hideKey) !== 'true' && !sessionStorage.getItem(sessionKey)) {
+        sessionStorage.setItem(sessionKey, 'true');
+        const timer = setTimeout(() => {
+          setIsFeedbackOpen(true);
+        }, 800);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [currentUser?.email]);
 
   useEffect(() => {
     applyBrandingToDOM(brandingConfig);
@@ -520,6 +536,14 @@ export default function App() {
     const destinationTab: AppTab = 'home';
     setCurrentTab(destinationTab);
     navigateState({ tab: destinationTab, isAuthOpen: false }, { replace: true });
+
+    // Show Kritik & Saran modal automatically upon login (if not disabled by user)
+    const hideKey = `tka_hide_feedback_${user.email}`;
+    if (localStorage.getItem(hideKey) !== 'true') {
+      setTimeout(() => {
+        setIsFeedbackOpen(true);
+      }, 500);
+    }
   };
 
   const handleLogout = () => {
@@ -893,6 +917,7 @@ export default function App() {
         onToggleTheme={handleToggleTheme}
         onOpenContact={() => setIsContactModalOpen(true)}
         onOpenTopScores={() => setIsTopScoresOpen(true)}
+        onOpenFeedback={() => setIsFeedbackOpen(true)}
         brandingConfig={brandingConfig}
       />
 
@@ -1099,8 +1124,12 @@ export default function App() {
         onOpenAuth={handleOpenAuth}
       />
 
-      {/* Feedback / Kritik dan Saran Notification Notification */}
-      <FeedbackNotificationModal currentUser={currentUser} />
+      {/* Feedback / Kritik dan Saran Notification Modal */}
+      <FeedbackNotificationModal 
+        currentUser={currentUser} 
+        isOpen={isFeedbackOpen}
+        onClose={() => setIsFeedbackOpen(false)}
+      />
 
       {/* Account Settings Modal */}
       {currentUser && (

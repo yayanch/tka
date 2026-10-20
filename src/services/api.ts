@@ -413,3 +413,31 @@ export async function runSecurityAuditScan(): Promise<{ success: boolean; messag
   return result;
 }
 
+export async function submitFeedback(feedback: {
+  user: string;
+  email: string;
+  category: string;
+  rating: number;
+  message: string;
+}): Promise<any> {
+  return safeFetch('/api/feedbacks', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(feedback),
+  });
+}
+
+export async function fetchFeedbacks(): Promise<any[]> {
+  const res = await safeFetch('/api/feedbacks');
+  if (res?.success && Array.isArray(res.feedbacks)) {
+    return res.feedbacks;
+  }
+  return [];
+}
+
+export async function clearAllFeedbacks(): Promise<boolean> {
+  const res = await safeFetch('/api/feedbacks', { method: 'DELETE' });
+  return Boolean(res?.success);
+}
+
+
