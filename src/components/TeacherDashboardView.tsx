@@ -38,6 +38,8 @@ import {
   Cpu,
   HardDrive,
   Activity,
+  MessageSquarePlus,
+  Star,
   Zap,
   RefreshCw,
   Radio,
@@ -321,8 +323,18 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
   const [selectedStudent, setSelectedStudent] = useState<TeacherStudentSummary | null>(null);
   const [showStudentPasswordModal, setShowStudentPasswordModal] = useState(false);
 
-  // Active section state: 'grades' (Rekapitulasi Nilai), 'users' (Daftar Pengguna), 'loginLogs' (Log Login Siswa), 'questionBank' (Manajemen Bank Soal), 'security' (Monitoring Keamanan)
-  const [activeSection, setActiveSection] = useState<'grades' | 'users' | 'loginLogs' | 'questionBank' | 'security'>('grades');
+  // Active section state
+  const [activeSection, setActiveSection] = useState<'grades' | 'users' | 'loginLogs' | 'questionBank' | 'security' | 'feedback'>('grades');
+  const [feedbacksList, setFeedbacksList] = useState<any[]>([]);
+
+  const loadFeedbacks = () => {
+    const list = JSON.parse(localStorage.getItem('tka_user_feedbacks') || '[]');
+    setFeedbacksList(list);
+  };
+
+  useEffect(() => {
+    loadFeedbacks();
+  }, []);
 
   // Question Bank Management States
   const [questionBankList, setQuestionBankList] = useState<any[]>([]);
@@ -1018,6 +1030,24 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                         type="button"
                         onClick={() => {
                           setIsActionMenuOpen(false);
+                          loadFeedbacks();
+                          setActiveSection('feedback');
+                        }}
+                        className="w-full flex items-center gap-3 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:text-amber-600 dark:hover:text-amber-400 transition-colors cursor-pointer text-left"
+                      >
+                        <div className="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-950/80 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+                          <MessageSquarePlus className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-slate-800 dark:text-slate-200">Kritik & Saran Siswa</div>
+                          <div className="text-[10px] text-slate-400 font-normal">Kotak masuk masukan & rating</div>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsActionMenuOpen(false);
                           setActiveSection('grades');
                         }}
                         className="w-full flex items-center gap-3 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer text-left"
@@ -1547,6 +1577,110 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
 
       {activeSection === 'security' && !isStudent && currentUser && (
         <SecurityMonitoringView currentUser={currentUser} onRefresh={onRefresh} />
+      )}
+
+      {activeSection === 'feedback' && !isStudent && (
+        <div className="space-y-6 animate-fadeIn">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setActiveSection('grades')}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-2xs transition-colors cursor-pointer"
+            >
+              <span>&larr; Kembali ke Ringkasan Dashboard</span>
+            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={loadFeedbacks}
+                className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors cursor-pointer flex items-center gap-1.5"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Muat Ulang</span>
+              </button>
+              {feedbacksList.length > 0 && (
+                <button
+                  onClick={() => {
+                    if (window.confirm('Hapus semua riwayat kritik dan saran?')) {
+                      localStorage.removeItem('tka_user_feedbacks');
+                      setFeedbacksList([]);
+                    }
+                  }}
+                  className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Bersihkan Semua</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+            <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-amber-500/10 via-blue-500/5 to-transparent">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+                  <MessageSquarePlus className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
+                    Kotak Masuk Kritik & Saran Siswa
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Menampilkan seluruh masukan, ide fitur, evaluasi soal, dan laporan bug yang dikirimkan oleh siswa.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 sm:p-6 space-y-3">
+              {feedbacksList.length === 0 ? (
+                <div className="py-16 text-center text-slate-400 space-y-2">
+                  <MessageSquarePlus className="w-12 h-12 mx-auto opacity-40" />
+                  <p className="text-sm font-semibold">Belum ada kritik atau saran yang dikirimkan siswa.</p>
+                  <p className="text-xs text-slate-400">Siswa dapat mengirimkan masukan melalui pop-up notifikasi di akun masing-masing.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {feedbacksList.map((item, idx) => (
+                    <div key={idx} className="p-4 rounded-2xl bg-slate-50/60 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 space-y-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
+                        <div className="flex items-center gap-2.5">
+                          <span className="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm uppercase">
+                            {item.user}
+                          </span>
+                          <span className="text-[11px] text-slate-400">
+                            ({item.email})
+                          </span>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 uppercase">
+                            {item.category}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-0.5">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                className={`w-3.5 h-3.5 ${
+                                  star <= (item.rating || 5) ? 'text-amber-400 fill-amber-400' : 'text-slate-300 dark:text-slate-700'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-[10px] text-slate-400">
+                            {new Date(item.createdAt).toLocaleString('id-ID')}
+                          </span>
+                        </div>
+                      </div>
+
+                      <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed font-normal">
+                        {item.message}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       {activeSection === 'grades' && (
