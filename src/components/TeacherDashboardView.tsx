@@ -867,7 +867,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
       )}
 
       {/* Container 1: Header Title & Actions Banner */}
-      <section className="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white rounded-3xl border border-blue-600/30 p-6 sm:p-8 shadow-md relative overflow-hidden">
+      <section className="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white rounded-3xl border border-blue-600/30 p-6 sm:p-8 shadow-md relative overflow-visible">
         {/* Decorative background glow circle */}
         <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-white/5 rounded-full blur-2xl pointer-events-none" />
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
