@@ -116,14 +116,6 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
               <Trophy className="w-4 h-4 text-slate-950" />
               <span>🏆 Top Skor & Leaderboard</span>
             </button>
-
-            <button
-              onClick={() => onOpenAuth?.('login')}
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 active:bg-white/30 text-white font-bold text-xs sm:text-sm border border-white/20 backdrop-blur-md transition-all cursor-pointer"
-            >
-              <span>Masuk / Login</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
           </div>
 
           {/* Stats Bar - Positioned at bottom inside full page hero */}

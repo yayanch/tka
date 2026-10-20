@@ -173,23 +173,6 @@ export const TopScoresModal: React.FC<TopScoresModalProps> = ({
           )}
         </div>
 
-        {/* Footer */}
-        <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 flex items-center justify-between gap-4">
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Ingin masuk leaderboard? Masuk atau daftar sekarang untuk mengerjakan ujian.
-          </p>
-          {onOpenAuth && (
-            <button
-              onClick={() => {
-                onClose();
-                onOpenAuth('login');
-              }}
-              className="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors cursor-pointer shrink-0 shadow-sm"
-            >
-              Masuk Sekarang
-            </button>
-          )}
-        </div>
       </div>
     </div>
   );
