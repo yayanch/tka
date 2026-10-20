@@ -18,6 +18,7 @@ import { HeroSettingsModal } from './components/HeroSettingsModal';
 import { ContactSettingsModal } from './components/ContactSettingsModal';
 import { ContactModal } from './components/ContactModal';
 import { BrandingSettingsModal } from './components/BrandingSettingsModal';
+import { TopScoresModal } from './components/TopScoresModal';
 import { HeroConfig, DEFAULT_HERO_CONFIG } from './utils/heroStorage';
 import { ContactConfig, DEFAULT_CONTACT_CONFIG } from './utils/contactStorage';
 import { BrandingConfig, DEFAULT_BRANDING_CONFIG, applyBrandingToDOM } from './utils/brandingStorage';
@@ -184,6 +185,7 @@ export default function App() {
   // Authentication & MySQL User State
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => getStoredUser());
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isTopScoresOpen, setIsTopScoresOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isHeroSettingsOpen, setIsHeroSettingsOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -931,6 +933,7 @@ export default function App() {
             onOpenAuth={handleOpenAuth}
             onOpenDashboard={() => handleOpenAuth('login')}
             onOpenHeroSettings={() => setIsHeroSettingsOpen(true)}
+            onOpenTopScores={() => setIsTopScoresOpen(true)}
             heroConfig={heroConfig}
           />
         ) : (
@@ -1083,6 +1086,13 @@ export default function App() {
         }}
         onSuccess={handleAuthSuccess}
         initialMode={authModalMode}
+      />
+
+      {/* Top Scores / Leaderboard Modal */}
+      <TopScoresModal
+        isOpen={isTopScoresOpen}
+        onClose={() => setIsTopScoresOpen(false)}
+        onOpenAuth={handleOpenAuth}
       />
 
       {/* Account Settings Modal */}

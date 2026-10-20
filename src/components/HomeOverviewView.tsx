@@ -1,5 +1,5 @@
 import React from 'react';
-import { GraduationCap, ArrowRight, Edit3, Network, Server, Wifi } from 'lucide-react';
+import { GraduationCap, ArrowRight, Edit3, Network, Server, Wifi, Trophy } from 'lucide-react';
 import { UserProfile } from '../types/auth';
 import { HeroConfig, getStoredHeroConfig } from '../utils/heroStorage';
 
@@ -8,6 +8,7 @@ interface HomeOverviewViewProps {
   onOpenAuth?: (mode: 'register' | 'login') => void;
   onOpenDashboard?: () => void;
   onOpenHeroSettings?: () => void;
+  onOpenTopScores?: () => void;
   heroConfig?: HeroConfig;
 }
 
@@ -16,6 +17,7 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
   onOpenAuth,
   onOpenDashboard,
   onOpenHeroSettings,
+  onOpenTopScores,
   heroConfig,
 }) => {
   const config = heroConfig || getStoredHeroConfig();
@@ -105,6 +107,24 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
           <p className={`${config.descFontSize || 'text-base sm:text-lg lg:text-xl'} text-slate-300 leading-relaxed max-w-4xl whitespace-pre-line font-normal`}>
             {config.description}
           </p>
+
+          <div className="flex items-center gap-3 pt-2">
+            <button
+              onClick={onOpenTopScores}
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-amber-500/25 transition-all cursor-pointer transform hover:-translate-y-0.5"
+            >
+              <Trophy className="w-4 h-4 text-slate-950" />
+              <span>🏆 Top Skor & Leaderboard</span>
+            </button>
+
+            <button
+              onClick={() => onOpenAuth?.('login')}
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 active:bg-white/30 text-white font-bold text-xs sm:text-sm border border-white/20 backdrop-blur-md transition-all cursor-pointer"
+            >
+              <span>Masuk / Login</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
 
           {/* Stats Bar - Positioned at bottom inside full page hero */}
           <div className="pt-8 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-6 text-left">
