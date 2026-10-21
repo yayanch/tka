@@ -53,7 +53,8 @@ import {
   TrendingUp,
   BarChart3,
   Trophy,
-  Target
+  Target,
+  FileText
 } from 'lucide-react';
 import { TeacherClassOverview, TeacherStudentSummary, UserProfile, ServerMetrics } from '../types/auth';
 import { HourlyLoginStatsCard } from './HourlyLoginStatsCard';
@@ -2207,6 +2208,41 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                       <span className="text-blue-400 dark:text-blue-500 font-bold ml-1">✕</span>
                     </button>
                   )}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => window.open('/api/teacher/export-csv', '_blank')}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3.5 py-1.5 rounded-xl shadow-xs transition-colors cursor-pointer"
+                      title="Unduh Rekap Nilai Format CSV (.csv)"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Ekspor CSV</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        // Export Excel / Tab-separated CSV
+                        let csv = 'No,Nama Siswa,Asal Sekolah,Email,Verifikasi,M1,M2,M3,M4,M5,M6,M7,M8,Rata-Rata,Status\n';
+                        filteredStudents.forEach((s, idx) => {
+                          const scores = [1, 2, 3, 4, 5, 6, 7, 8].map(w => s.moduleScores?.[w] !== undefined ? s.moduleScores[w] : '-');
+                          const avg = s.averageScore !== undefined ? s.averageScore.toFixed(1) : '0';
+                          const status = (s.averageScore || 0) >= 75 ? 'KOMPETEN' : 'BELUM KOMPETEN';
+                          csv += `${idx + 1},"${s.namaLengkap}","${s.asalSekolah}","${s.email}","${s.isVerified ? 'Aktif' : 'Belum'}",${scores.join(',')},${avg},"${status}"\n`;
+                        });
+                        const blob = new Blob([csv], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.setAttribute('download', `Rekap_Nilai_TKA_SMK_TJKT_${selectedSchool}.xls`);
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 px-3.5 py-1.5 rounded-xl shadow-xs transition-colors cursor-pointer"
+                      title="Unduh Rekap Format Excel (.xls)"
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>Ekspor Excel</span>
+                    </button>
+                  </div>
                   <span className="text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
                     Total {filteredStudents.length} Siswa
                   </span>
