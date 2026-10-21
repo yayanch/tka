@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Trophy, X, School, Award, Loader2, CheckCircle2 } from 'lucide-react';
 import { TeacherStudentSummary } from '../types/auth';
 import { fetchTeacherOverview } from '../services/api';
+import { maskStudentName } from '../utils/maskName';
 
 interface TopScoresModalProps {
   isOpen: boolean;
@@ -135,7 +136,7 @@ export const TopScoresModal: React.FC<TopScoresModalProps> = ({
 
                       <div className="min-w-0 space-y-0.5">
                         <div className="font-extrabold text-slate-900 dark:text-white uppercase text-xs sm:text-sm truncate flex items-center gap-1.5">
-                          <span className="truncate">{s.namaLengkap}</span>
+                          <span className="truncate">{maskStudentName(s.namaLengkap)}</span>
                           {s.isVerified && (
                             <span title="Akun Terverifikasi" className="inline-flex items-center">
                               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />

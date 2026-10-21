@@ -58,6 +58,7 @@ import { TeacherClassOverview, TeacherStudentSummary, UserProfile, ServerMetrics
 import { HourlyLoginStatsCard } from './HourlyLoginStatsCard';
 import { SecurityMonitoringView } from './SecurityMonitoringView';
 import { StudentReportModal } from './StudentReportModal';
+import { maskStudentName } from '../utils/maskName';
 import { 
   fetchTeacherOverview, 
   deleteStudentAccount,
@@ -2426,7 +2427,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                   <div className="flex items-start justify-between gap-2">
                     <div className="space-y-0.5">
                       <div className="font-normal text-slate-900 dark:text-white uppercase text-xs">
-                        {s.namaLengkap}
+                        {maskStudentName(s.namaLengkap)}
                       </div>
                       <div className="flex items-center gap-1.5 text-[10px] font-normal text-slate-500 dark:text-slate-400">
                         <School className="w-3 h-3 text-slate-400 shrink-0" />
@@ -2501,7 +2502,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
 
                       <td className="py-3.5 px-4">
                         <div className="font-normal text-slate-900 dark:text-white uppercase">
-                          {s.namaLengkap}
+                          {maskStudentName(s.namaLengkap)}
                         </div>
                       </td>
 
