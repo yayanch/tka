@@ -6,6 +6,7 @@ import {
   ExamSession 
 } from '../types/quiz';
 import { calculateSessionSummary } from '../utils/scoring';
+import { getExamDurationForWeek, getExamSettings } from '../utils/examSettingsStorage';
 import { renderTechnicalDiagram, getQuestionDiagramId } from './NetworkIllustrations';
 import { 
   Clock, 
@@ -50,7 +51,8 @@ export const QuizSessionView: React.FC<QuizSessionViewProps> = ({
   const [showConfirmFinishModal, setShowConfirmFinishModal] = useState<boolean>(false);
   const [showExitModal, setShowExitModal] = useState<boolean>(false);
   const [remainingSeconds, setRemainingSeconds] = useState<number>(() => {
-    const totalSec = (session.timeLimitMinutes || 50) * 60;
+    const mins = session.timeLimitMinutes || getExamDurationForWeek(session.weekId);
+    const totalSec = mins * 60;
     return Math.max(0, totalSec - session.elapsedSeconds);
   });
 

@@ -1223,7 +1223,11 @@ async function initDatabase() {
 }
 
 initDatabase().then(() => {
-  ensureYayanCahyanaPerfectScores();
+  ensureYayanCahyanaPerfectScores().catch(err => {
+    console.error('[Database] ensureYayanCahyanaPerfectScores error:', err);
+  });
+}).catch(err => {
+  console.error('[Database] initDatabase error:', err);
 });
 
 // ---------------------------------------------------------------------------
@@ -2815,4 +2819,6 @@ async function startServer() {
   });
 }
 
-startServer();
+startServer().catch(err => {
+  console.error('[Server] Fatal server startup error:', err);
+});

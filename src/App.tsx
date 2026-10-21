@@ -19,6 +19,8 @@ import { ContactSettingsModal } from './components/ContactSettingsModal';
 import { ContactModal } from './components/ContactModal';
 import { BrandingSettingsModal } from './components/BrandingSettingsModal';
 import { TopScoresModal } from './components/TopScoresModal';
+import { ExamSettingsModal } from './components/ExamSettingsModal';
+import { getExamDurationForWeek } from './utils/examSettingsStorage';
 import { FeedbackNotificationModal } from './components/FeedbackNotificationModal';
 import { HeroConfig, DEFAULT_HERO_CONFIG } from './utils/heroStorage';
 import { ContactConfig, DEFAULT_CONTACT_CONFIG } from './utils/contactStorage';
@@ -196,6 +198,7 @@ export default function App() {
   const [contactConfig, setContactConfig] = useState<ContactConfig>(DEFAULT_CONTACT_CONFIG);
   const [brandingConfig, setBrandingConfig] = useState<BrandingConfig>(DEFAULT_BRANDING_CONFIG);
   const [isBrandingSettingsOpen, setIsBrandingSettingsOpen] = useState(false);
+  const [isExamSettingsOpen, setIsExamSettingsOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'register' | 'login'>('register');
 
   // Trigger Kritik & Saran pop-up automatically when entering individual account
@@ -599,7 +602,7 @@ export default function App() {
       title: `Modul Minggu ${weekId} (${questions.length} Soal)`,
       mode,
       startTime: Date.now(),
-      timeLimitMinutes: mode === 'exam' ? 50 : 0,
+      timeLimitMinutes: mode === 'exam' ? getExamDurationForWeek(weekId) : 0,
       elapsedSeconds: 0,
       isFinished: false,
       questionIds: questions.map(q => q.id),
@@ -1069,6 +1072,7 @@ export default function App() {
                 onOpenHeroSettings={() => setIsHeroSettingsOpen(true)}
                 onOpenContactSettings={() => setIsContactSettingsOpen(true)}
                 onOpenBrandingSettings={() => setIsBrandingSettingsOpen(true)}
+                onOpenExamSettings={() => setIsExamSettingsOpen(true)}
                 showScoreRecap={true}
                 onNavigateToUsers={() => {
                   setCurrentTab('users');
@@ -1190,6 +1194,12 @@ export default function App() {
         onConfigChange={(newConfig) => {
           setBrandingConfig(newConfig);
         }}
+      />
+
+      {/* Exam Duration Settings Modal */}
+      <ExamSettingsModal
+        isOpen={isExamSettingsOpen}
+        onClose={() => setIsExamSettingsOpen(false)}
       />
 
       {/* Clean Footer */}

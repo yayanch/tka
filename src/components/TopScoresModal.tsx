@@ -82,7 +82,7 @@ export const TopScoresModal: React.FC<TopScoresModalProps> = ({
               <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                 <span>Top Skor & Leaderboard Peserta</span>
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300">
-                  Live Rankings
+                  Peringkat Resmi
                 </span>
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
