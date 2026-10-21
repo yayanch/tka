@@ -52,12 +52,14 @@ import {
   ArrowDown,
   TrendingUp,
   BarChart3,
-  Trophy
+  Trophy,
+  Target
 } from 'lucide-react';
 import { TeacherClassOverview, TeacherStudentSummary, UserProfile, ServerMetrics } from '../types/auth';
 import { HourlyLoginStatsCard } from './HourlyLoginStatsCard';
 import { SecurityMonitoringView } from './SecurityMonitoringView';
 import { StudentReportModal } from './StudentReportModal';
+import { ItemAnalysisView } from './ItemAnalysisView';
 import { 
   fetchTeacherOverview, 
   deleteStudentAccount,
@@ -339,7 +341,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
   const [showStudentPasswordModal, setShowStudentPasswordModal] = useState(false);
 
   // Active section state
-  const [activeSection, setActiveSection] = useState<'grades' | 'users' | 'loginLogs' | 'questionBank' | 'security' | 'feedback'>('grades');
+  const [activeSection, setActiveSection] = useState<'grades' | 'users' | 'loginLogs' | 'questionBank' | 'security' | 'feedback' | 'itemAnalysis'>('grades');
   const [feedbacksList, setFeedbacksList] = useState<any[]>([]);
 
   const loadFeedbacks = async () => {
@@ -1168,6 +1170,23 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                         type="button"
                         onClick={() => {
                           setIsActionMenuOpen(false);
+                          setActiveSection('itemAnalysis');
+                        }}
+                        className="w-full flex items-center gap-3 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer text-left"
+                      >
+                        <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-950/80 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
+                          <Target className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-slate-800 dark:text-slate-200">Analisis Butir Soal</div>
+                          <div className="text-[10px] text-slate-400 font-normal">Tingkat kesukaran, daya pembeda & pengecoh</div>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsActionMenuOpen(false);
                           setActiveSection('security');
                         }}
                         className="w-full flex items-center gap-3 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer text-left"
@@ -1732,6 +1751,24 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
 
       {activeSection === 'security' && !isStudent && currentUser && (
         <SecurityMonitoringView currentUser={currentUser} onRefresh={onRefresh} />
+      )}
+
+      {activeSection === 'itemAnalysis' && !isStudent && (
+        <div className="space-y-6 animate-fadeIn">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setActiveSection('grades')}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-2xs transition-colors cursor-pointer"
+            >
+              <span>&larr; Kembali ke Ringkasan Dashboard</span>
+            </button>
+          </div>
+
+          <ItemAnalysisView 
+            sessionAnswersList={[]}
+            onBackToDashboard={() => setActiveSection('grades')}
+          />
+        </div>
       )}
 
       {activeSection === 'feedback' && !isStudent && (
