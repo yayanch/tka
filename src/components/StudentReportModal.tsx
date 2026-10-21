@@ -1206,9 +1206,8 @@ export const StudentReportModal: React.FC<StudentReportModalProps> = ({
                   <div className="text-slate-500">Mengetahui,</div>
                   <div className="font-bold">Orang Tua / Wali Siswa</div>
                 </div>
-                <div className="space-y-1">
-                  <div className="border-b border-slate-400 w-44 mx-auto mb-1" />
-                  <div className="text-[10px] text-transparent select-none font-mono">NIP.</div>
+                <div>
+                  <div className="border-b border-slate-400 w-44 mx-auto" />
                 </div>
               </div>
 
@@ -1217,9 +1216,8 @@ export const StudentReportModal: React.FC<StudentReportModalProps> = ({
                   <div className="text-slate-500">Kabupaten/Kota, {currentDateFormatted}</div>
                   <div className="font-bold">Guru Pengampu / Wali Kelas</div>
                 </div>
-                <div className="space-y-1">
-                  <div className="border-b border-slate-400 w-44 mx-auto mb-1" />
-                  <div className="text-[10px] text-slate-500 font-mono">NIP. ........................................</div>
+                <div>
+                  <div className="border-b border-slate-400 w-44 mx-auto" />
                 </div>
               </div>
 
@@ -1228,9 +1226,8 @@ export const StudentReportModal: React.FC<StudentReportModalProps> = ({
                   <div className="text-slate-500">Mengesahkan,</div>
                   <div className="font-bold">Kepala Sekolah</div>
                 </div>
-                <div className="space-y-1">
-                  <div className="border-b border-slate-400 w-44 mx-auto mb-1" />
-                  <div className="text-[10px] text-slate-500 font-mono">NIP. ........................................</div>
+                <div>
+                  <div className="border-b border-slate-400 w-44 mx-auto" />
                 </div>
               </div>
             </div>

@@ -635,14 +635,12 @@ export const ProgressStatsView: React.FC<ProgressStatsViewProps> = ({
               {/* Tanda Tangan */}
               <div className="pt-6 grid grid-cols-2 gap-8 text-center text-xs">
                 <div>
-                  <span className="block text-slate-500 mb-16">Mengetahui,<br />Kepala Program Keahlian TJKT</span>
+                  <span className="block text-slate-500 mb-16">Mengetahui,<br />Kepala Sekolah</span>
                   <span className="font-bold underline block">_________________________</span>
-                  <span className="text-slate-500">NIP. ........................................</span>
                 </div>
                 <div>
                   <span className="block text-slate-500 mb-16">Guru Pengampu / Instruktur,<br />Teknik Jaringan Komputer</span>
                   <span className="font-bold underline block">_________________________</span>
-                  <span className="text-slate-500">NIP. ........................................</span>
                 </div>
               </div>
             </div>
