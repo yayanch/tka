@@ -2219,28 +2219,35 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                     </button>
                     <button
                       onClick={() => {
-                        // Export Excel / Tab-separated CSV
-                        let csv = 'No,Nama Siswa,Asal Sekolah,Email,Verifikasi,M1,M2,M3,M4,M5,M6,M7,M8,Rata-Rata,Status\n';
+                        // Generate TSV data optimized for Google Sheets clipboard copy or import
+                        let tsv = 'No\tNama Siswa\tAsal Sekolah\tEmail\tVerifikasi\tM1\tM2\tM3\tM4\tM5\tM6\tM7\tM8\tRata-Rata\tStatus\n';
                         filteredStudents.forEach((s, idx) => {
                           const scores = [1, 2, 3, 4, 5, 6, 7, 8].map(w => s.moduleScores?.[w] !== undefined ? s.moduleScores[w] : '-');
                           const avg = s.averageScore !== undefined ? s.averageScore.toFixed(1) : '0';
                           const status = (s.averageScore || 0) >= 75 ? 'KOMPETEN' : 'BELUM KOMPETEN';
-                          csv += `${idx + 1},"${s.namaLengkap}","${s.asalSekolah}","${s.email}","${s.isVerified ? 'Aktif' : 'Belum'}",${scores.join(',')},${avg},"${status}"\n`;
+                          tsv += `${idx + 1}\t${s.namaLengkap}\t${s.asalSekolah}\t${s.email}\t${s.isVerified ? 'Aktif' : 'Belum'}\t${scores.join('\t')}\t${avg}\t${status}\n`;
                         });
-                        const blob = new Blob([csv], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-                        const url = URL.createObjectURL(blob);
-                        const link = document.createElement('a');
-                        link.href = url;
-                        link.setAttribute('download', `Rekap_Nilai_TKA_SMK_TJKT_${selectedSchool}.xls`);
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
+                        
+                        // Copy to clipboard so user can instantly paste into Google Sheets (Ctrl+V)
+                        navigator.clipboard.writeText(tsv).then(() => {
+                          alert('Data rekap nilai berhasil disalin ke Clipboard! \n\nCara Membuka di Google Sheets:\n1. Buat Google Spreadsheet baru (sheets.new)\n2. Klik sel A1, lalu tekan Ctrl+V / Paste.\n\nTabel dan format nilai 8 modul akan langsung tersusun rapi.');
+                        }).catch(() => {
+                          // Fallback download as .tsv file
+                          const blob = new Blob([tsv], { type: 'text/tab-separated-values;charset=utf-8;' });
+                          const url = URL.createObjectURL(blob);
+                          const link = document.createElement('a');
+                          link.href = url;
+                          link.setAttribute('download', `Rekap_Nilai_TKA_SMK_TJKT_GoogleSheets.tsv`);
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        });
                       }}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 px-3.5 py-1.5 rounded-xl shadow-xs transition-colors cursor-pointer"
-                      title="Unduh Rekap Format Excel (.xls)"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-3.5 py-1.5 rounded-xl shadow-xs transition-colors cursor-pointer"
+                      title="Salin data rekap untuk langsung di-paste ke Google Sheets"
                     >
-                      <FileText className="w-3.5 h-3.5" />
-                      <span>Ekspor Excel</span>
+                      <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                      <span>Ekspor ke Google Sheets</span>
                     </button>
                   </div>
                   <span className="text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
