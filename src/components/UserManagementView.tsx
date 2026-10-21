@@ -39,6 +39,7 @@ import {
   registerWithForm,
   updateStudentDataAdmin
 } from '../services/api';
+import { StudentReportModal } from './StudentReportModal';
 
 interface UserManagementViewProps {
   currentUser: UserProfile;
@@ -71,6 +72,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
 
   // Modals state
   const [selectedStudent, setSelectedStudent] = useState<TeacherStudentSummary | null>(null);
+  const [isReportOpen, setIsReportOpen] = useState<boolean>(false);
   const [editingUser, setEditingUser] = useState<TeacherStudentSummary | null>(null);
   const [newRoleInput, setNewRoleInput] = useState<'siswa' | 'guru' | 'admin'>('siswa');
   const [isRoleModalOpen, setIsRoleModalOpen] = useState<boolean>(false);
@@ -1100,27 +1102,47 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
               </div>
             </div>
 
-            <div className="pt-2 flex items-center justify-between">
-              {isAdmin && (
-                <button
-                  onClick={() => {
-                    handleOpenEditStudentModal(selectedStudent);
-                  }}
-                  className="px-4 py-2 text-xs font-bold text-blue-700 dark:text-blue-300 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/50 rounded-xl cursor-pointer transition-colors flex items-center gap-1.5"
-                >
-                  <Edit3 className="w-4 h-4" />
-                  <span>Edit Data Siswa</span>
-                </button>
-              )}
+            <div className="pt-2 flex items-center justify-between gap-2 flex-wrap">
               <button
-                onClick={() => setSelectedStudent(null)}
-                className="px-5 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl cursor-pointer transition-colors"
+                onClick={() => setIsReportOpen(true)}
+                className="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-xl cursor-pointer transition-colors flex items-center gap-1.5 shadow-xs"
+                title="Buka 10 Rancangan Rapor Siswa"
               >
-                Tutup Detail
+                <Award className="w-4 h-4 text-amber-300" />
+                <span>10 Desain Rapor</span>
               </button>
+
+              <div className="flex items-center gap-2">
+                {isAdmin && (
+                  <button
+                    onClick={() => {
+                      handleOpenEditStudentModal(selectedStudent);
+                    }}
+                    className="px-3.5 py-2 text-xs font-bold text-blue-700 dark:text-blue-300 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/50 rounded-xl cursor-pointer transition-colors flex items-center gap-1.5"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                    <span>Edit</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => setSelectedStudent(null)}
+                  className="px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl cursor-pointer transition-colors"
+                >
+                  Tutup
+                </button>
+              </div>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal 10 Rancangan Rapor Siswa */}
+      {isReportOpen && selectedStudent && (
+        <StudentReportModal
+          student={selectedStudent}
+          onClose={() => setIsReportOpen(false)}
+          currentUser={currentUser}
+        />
       )}
 
       {/* Modal: Edit Role */}

@@ -4,12 +4,17 @@ import { UserProfile } from '../types/auth';
 
 interface FeedbackNotificationModalProps {
   currentUser?: UserProfile | null;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 export const FeedbackNotificationModal: React.FC<FeedbackNotificationModalProps> = ({
   currentUser,
+  isOpen: controlledIsOpen,
+  onClose,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
   const [category, setCategory] = useState<'fitur' | 'soal' | 'bug' | 'lainnya'>('fitur');
   const [rating, setRating] = useState<number>(5);
   const [message, setMessage] = useState('');
@@ -18,8 +23,8 @@ export const FeedbackNotificationModal: React.FC<FeedbackNotificationModalProps>
 
   useEffect(() => {
     // Only show after logging into an individual account
-    if (!currentUser) {
-      setIsOpen(false);
+    if (!currentUser || controlledIsOpen !== undefined) {
+      if (!currentUser) setInternalIsOpen(false);
       return;
     }
 
@@ -29,11 +34,11 @@ export const FeedbackNotificationModal: React.FC<FeedbackNotificationModalProps>
 
     // Show after 3 seconds upon entering the student account dashboard
     const timer = setTimeout(() => {
-      setIsOpen(true);
+      setInternalIsOpen(true);
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [currentUser]);
+  }, [currentUser, controlledIsOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,7 +86,8 @@ export const FeedbackNotificationModal: React.FC<FeedbackNotificationModalProps>
 
     setIsSubmitted(true);
     setTimeout(() => {
-      setIsOpen(false);
+      setInternalIsOpen(false);
+      onClose?.();
       setIsSubmitted(false);
       setMessage('');
     }, 2500);
@@ -92,7 +98,8 @@ export const FeedbackNotificationModal: React.FC<FeedbackNotificationModalProps>
       const hideKey = `tka_hide_feedback_${currentUser.email}`;
       localStorage.setItem(hideKey, 'true');
     }
-    setIsOpen(false);
+    setInternalIsOpen(false);
+    onClose?.();
   };
 
   if (!isOpen || !currentUser) return null;
