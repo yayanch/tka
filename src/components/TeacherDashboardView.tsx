@@ -2096,20 +2096,41 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                                 <span className="text-[10px] font-medium text-slate-500 ml-1">selesai</span>
                               </div>
                               
-                              {/* Progress Bar */}
-                              <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden mt-1.5 mb-1">
-                                <div 
-                                  className="bg-blue-600 dark:bg-blue-400 h-full rounded-full transition-all duration-300"
-                                  style={{ width: `${Math.min(100, mod.completionPercentage)}%` }}
-                                />
+                              {/* Circular Donut Chart */}
+                              <div className="flex items-center justify-center my-2">
+                                <div className="relative w-14 h-14 flex items-center justify-center">
+                                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                                    <path
+                                      className="text-slate-200 dark:text-slate-700"
+                                      strokeWidth="3.5"
+                                      stroke="currentColor"
+                                      fill="none"
+                                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                    />
+                                    <path
+                                      className="text-blue-600 dark:text-blue-400 transition-all duration-500"
+                                      strokeDasharray={`${mod.completionPercentage}, 100`}
+                                      strokeWidth="3.5"
+                                      strokeLinecap="round"
+                                      stroke="currentColor"
+                                      fill="none"
+                                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                    />
+                                  </svg>
+                                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                                    <span className="text-[10px] font-black text-slate-900 dark:text-white tabular-nums leading-none">
+                                      {mod.completionPercentage}%
+                                    </span>
+                                  </div>
+                                </div>
                               </div>
 
-                              <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 pt-0.5">
+                              <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800">
+                                <span className="font-bold text-slate-700 dark:text-slate-300">
+                                  {mod.completedCount} selesai
+                                </span>
                                 <span className="text-emerald-600 dark:text-emerald-400 font-bold">
                                   {mod.passedCount} tuntas
-                                </span>
-                                <span className="tabular-nums">
-                                  {mod.completionPercentage}%
                                 </span>
                               </div>
                             </div>
