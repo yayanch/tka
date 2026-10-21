@@ -67,6 +67,12 @@ export const SchoolListView: React.FC<SchoolListViewProps> = ({
 
   useEffect(() => {
     loadData();
+    // Real-time automatic recalculation interval every 5 seconds
+    const interval = setInterval(() => {
+      loadData(true);
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, [currentUser.email, currentUser.role]);
 
   const handleManualRefresh = () => {
@@ -104,7 +110,14 @@ export const SchoolListView: React.FC<SchoolListViewProps> = ({
 
       studentsList.forEach((s) => {
         sumAttempts += s.totalAttempts || 0;
-        if (s.averageScore > 0) {
+        const completedScores = Object.values(s.moduleScores || {}).filter(
+          (sc): sc is number => typeof sc === 'number' && sc > 0
+        );
+        if (completedScores.length > 0) {
+          const studentAvg = completedScores.reduce((a, b) => a + b, 0) / completedScores.length;
+          sumScore += studentAvg;
+          scoredStudentsCount++;
+        } else if (s.averageScore > 0) {
           sumScore += s.averageScore;
           scoredStudentsCount++;
         }
@@ -367,11 +380,17 @@ export const SchoolListView: React.FC<SchoolListViewProps> = ({
 
         {/* Card 5: Nilai Rata-rata Tertinggi */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Performa Tertinggi
-            </span>
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                Performa Tertinggi
+              </span>
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span>Realtime</span>
+              </span>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
               <BarChart3 className="w-5 h-5" />
             </div>
           </div>

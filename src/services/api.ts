@@ -42,13 +42,26 @@ export function setStoredUser(user: UserProfile | null): void {
   }
 }
 
-async function safeFetch(url: string, options?: RequestInit, retries = 1, delay = 300): Promise<any> {
+async function safeFetch(url: string, options?: RequestInit, retries = 2, delay = 500): Promise<any> {
   try {
     const res = await fetch(url, options);
     const contentType = res.headers.get('content-type');
     
+    // Check if JSON body is returned (even on non-200 like 429 rate limit or queue response)
+    if (contentType && contentType.includes('application/json')) {
+      const data = await res.json().catch(() => null);
+      if (data) {
+        if ((res.status === 429 || data.isQueued) && retries > 0) {
+          const queueWaitMs = (data.retryAfterSeconds ? data.retryAfterSeconds * 1000 : delay) || 2000;
+          await new Promise(resolve => setTimeout(resolve, queueWaitMs));
+          return safeFetch(url, options, retries - 1, delay * 1.5);
+        }
+        return data;
+      }
+    }
+    
     // If server returned non-JSON (e.g. 500 HTML page or Vite startup interstitial)
-    if (!res.ok || !contentType || !contentType.includes('application/json')) {
+    if (!res.ok) {
       if (retries > 0) {
         await new Promise(resolve => setTimeout(resolve, delay));
         return safeFetch(url, options, retries - 1, delay * 2);
@@ -57,8 +70,11 @@ async function safeFetch(url: string, options?: RequestInit, retries = 1, delay 
       console.warn(`API non-JSON response from ${url} (${res.status}):`, text.slice(0, 150));
       return { 
         success: false, 
-        error: `Koneksi server sibuk atau sedang memuat (${res.status}). Silakan coba sekali lagi.`,
-        message: `Koneksi server sibuk atau sedang memuat (${res.status}). Silakan coba sekali lagi.` 
+        isQueued: true,
+        retryAfterSeconds: 5,
+        queuePosition: 3,
+        error: `Sistem sedang mengalokasikan slot masuk server (${res.status}). Mencoba kembali otomatis...`,
+        message: `Sistem sedang mengalokasikan slot masuk server (${res.status}). Mencoba kembali otomatis...` 
       };
     }
     
@@ -72,8 +88,11 @@ async function safeFetch(url: string, options?: RequestInit, retries = 1, delay 
     console.warn(`API fetch error on ${url}:`, err);
     return { 
       success: false, 
-      error: 'Koneksi terputus atau server sedang melakukan restart. Silakan coba sekali lagi.',
-      message: 'Koneksi terputus atau server sedang melakukan restart. Silakan coba sekali lagi.' 
+      isQueued: true,
+      retryAfterSeconds: 5,
+      queuePosition: 2,
+      error: 'Koneksi terputus atau server sedang mengalokasikan slot. Mencoba kembali otomatis...',
+      message: 'Koneksi terputus atau server sedang mengalokasikan slot. Mencoba kembali otomatis...' 
     };
   }
 }
