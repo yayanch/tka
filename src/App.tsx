@@ -20,6 +20,8 @@ import { ContactModal } from './components/ContactModal';
 import { BrandingSettingsModal } from './components/BrandingSettingsModal';
 import { TopScoresModal } from './components/TopScoresModal';
 import { ExamSettingsModal } from './components/ExamSettingsModal';
+import { MaintenanceView, MaintenanceConfig, DEFAULT_MAINTENANCE_CONFIG } from './components/MaintenanceView';
+import { MaintenanceSettingsModal } from './components/MaintenanceSettingsModal';
 import { getExamDurationForWeek } from './utils/examSettingsStorage';
 import { FeedbackNotificationModal } from './components/FeedbackNotificationModal';
 import { HeroConfig, DEFAULT_HERO_CONFIG } from './utils/heroStorage';
@@ -31,7 +33,9 @@ import {
   fetchContactConfig, 
   saveContactConfigToDB, 
   fetchBrandingConfig, 
-  saveBrandingConfigToDB 
+  saveBrandingConfigToDB,
+  fetchMaintenanceConfig,
+  saveMaintenanceConfigToDB
 } from './services/settingsSync';
 import { Theme, getStoredTheme, applyTheme } from './utils/theme';
 
@@ -199,6 +203,9 @@ export default function App() {
   const [brandingConfig, setBrandingConfig] = useState<BrandingConfig>(DEFAULT_BRANDING_CONFIG);
   const [isBrandingSettingsOpen, setIsBrandingSettingsOpen] = useState(false);
   const [isExamSettingsOpen, setIsExamSettingsOpen] = useState(false);
+  const [maintenanceConfig, setMaintenanceConfig] = useState<MaintenanceConfig>(DEFAULT_MAINTENANCE_CONFIG);
+  const [isMaintenanceSettingsOpen, setIsMaintenanceSettingsOpen] = useState(false);
+  const [isMaintenanceAdminBypassed, setIsMaintenanceAdminBypassed] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'register' | 'login'>('register');
 
   // Trigger Kritik & Saran pop-up automatically when entering individual account
@@ -412,23 +419,27 @@ export default function App() {
     let isMounted = true;
     async function loadDbConfigs() {
       try {
-        const [hCfg, cCfg, bCfg] = await Promise.all([
+        const [hCfg, cCfg, bCfg, mCfg] = await Promise.all([
           fetchHeroConfig(),
           fetchContactConfig(),
           fetchBrandingConfig(),
+          fetchMaintenanceConfig(),
         ]);
         if (isMounted) {
           if (hCfg) setHeroConfig(hCfg);
           if (cCfg) setContactConfig(cCfg);
           if (bCfg) setBrandingConfig(bCfg);
+          if (mCfg) setMaintenanceConfig(mCfg);
         }
       } catch (e) {
         console.warn('Error loading remote settings from DB:', e);
       }
     }
     loadDbConfigs();
+    const interval = setInterval(loadDbConfigs, 12000);
     return () => {
       isMounted = false;
+      clearInterval(interval);
     };
   }, []);
 
@@ -903,6 +914,50 @@ export default function App() {
     refreshProgress();
   }, [currentUser?.id, currentUser?.email, refreshProgress]);
 
+  const isMaintenanceActive = 
+    maintenanceConfig.enabled && 
+    !isMaintenanceAdminBypassed && 
+    !(currentUser && (currentUser.role === 'admin' || currentUser.role === 'guru'));
+
+  if (isMaintenanceActive) {
+    return (
+      <MaintenanceView
+        config={maintenanceConfig}
+        onRefreshStatus={async () => {
+          const cfg = await fetchMaintenanceConfig();
+          if (cfg) setMaintenanceConfig(cfg);
+        }}
+        onAdminBypassLogin={async (email, pass) => {
+          try {
+            const res = await fetch('/api/auth/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email, password: pass }),
+            });
+            const data = await res.json();
+            if (res.ok && data.success && data.user) {
+              if (data.user.role === 'admin' || data.user.role === 'guru') {
+                setCurrentUser(data.user);
+                setStoredUser(data.user);
+                setIsMaintenanceAdminBypassed(true);
+                return true;
+              }
+            }
+          } catch {
+            // ignore
+          }
+          if (pass === (maintenanceConfig.secretKey || 'admin123')) {
+            setIsMaintenanceAdminBypassed(true);
+            return true;
+          }
+          return false;
+        }}
+        currentUser={currentUser}
+        onContinueAsAdmin={() => setIsMaintenanceAdminBypassed(true)}
+      />
+    );
+  }
+
   return (
     <div className={`min-h-screen bg-slate-50/60 dark:bg-slate-950 text-slate-900 dark:text-slate-100 ${brandingConfig.fontStyle || 'font-sans'} selection:bg-blue-500 selection:text-white flex flex-col`}>
       {/* Top Navbar */}
@@ -1073,6 +1128,7 @@ export default function App() {
                 onOpenContactSettings={() => setIsContactSettingsOpen(true)}
                 onOpenBrandingSettings={() => setIsBrandingSettingsOpen(true)}
                 onOpenExamSettings={() => setIsExamSettingsOpen(true)}
+                onOpenMaintenanceSettings={() => setIsMaintenanceSettingsOpen(true)}
                 showScoreRecap={true}
                 onNavigateToUsers={() => {
                   setCurrentTab('users');
@@ -1200,6 +1256,17 @@ export default function App() {
       <ExamSettingsModal
         isOpen={isExamSettingsOpen}
         onClose={() => setIsExamSettingsOpen(false)}
+      />
+
+      {/* Maintenance Mode Settings Modal */}
+      <MaintenanceSettingsModal
+        isOpen={isMaintenanceSettingsOpen}
+        onClose={() => setIsMaintenanceSettingsOpen(false)}
+        config={maintenanceConfig}
+        onSave={async (newConfig) => {
+          setMaintenanceConfig(newConfig);
+          await saveMaintenanceConfigToDB(newConfig);
+        }}
       />
 
       {/* Clean Footer */}

@@ -151,8 +151,12 @@ const dbConfig = {
   password: process.env.MYSQL_PASSWORD || '',
   database: process.env.MYSQL_DATABASE || 'tka_smk_tjkt',
   waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
+  connectionLimit: parseInt(process.env.MYSQL_CONNECTION_LIMIT || '50', 10),
+  maxIdle: parseInt(process.env.MYSQL_MAX_IDLE || '25', 10),
+  idleTimeout: parseInt(process.env.MYSQL_IDLE_TIMEOUT || '60000', 10),
+  queueLimit: parseInt(process.env.MYSQL_QUEUE_LIMIT || '0', 10),
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 10000,
 };
 
 let pool: mysql.Pool | null = null;
@@ -2785,6 +2789,11 @@ app.get('/api/status', (_req: Request, res: Response) => {
       port: dbConfig.port,
       database: dbConfig.database,
       user: dbConfig.user,
+      connectionLimit: dbConfig.connectionLimit,
+      maxIdle: dbConfig.maxIdle,
+      idleTimeout: dbConfig.idleTimeout,
+      queueLimit: dbConfig.queueLimit,
+      enableKeepAlive: dbConfig.enableKeepAlive,
     }
   });
 });

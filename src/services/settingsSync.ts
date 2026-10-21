@@ -112,3 +112,50 @@ export async function saveBrandingConfigToDB(config: BrandingConfig): Promise<{ 
     return { success: false, error: e.message || 'Koneksi ke database gagal' };
   }
 }
+
+// ----------------- MAINTENANCE CONFIG -----------------
+const STORAGE_MAINTENANCE_KEY = 'tka_app_maintenance_config_v1';
+
+export async function fetchMaintenanceConfig(): Promise<any> {
+  try {
+    const res = await fetch('/api/settings/maintenance_config');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && data.value) {
+        localStorage.setItem(STORAGE_MAINTENANCE_KEY, JSON.stringify(data.value));
+        return data.value;
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to fetch maintenance config from DB:', e);
+  }
+  try {
+    const local = localStorage.getItem(STORAGE_MAINTENANCE_KEY);
+    if (local) return JSON.parse(local);
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
+export async function saveMaintenanceConfigToDB(config: any): Promise<{ success: boolean; error?: string }> {
+  try {
+    localStorage.setItem(STORAGE_MAINTENANCE_KEY, JSON.stringify(config));
+  } catch {
+    // ignore
+  }
+  try {
+    const res = await fetch('/api/settings/maintenance_config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.success) {
+      return { success: true };
+    }
+    return { success: false, error: data.error || 'Gagal menyimpan konfigurasi pemeliharaan' };
+  } catch (e: any) {
+    return { success: false, error: e.message || 'Gagal terhubung ke server' };
+  }
+}

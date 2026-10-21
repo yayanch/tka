@@ -14,6 +14,7 @@ import {
   Database, 
   RotateCcw,
   Sparkles,
+  Wrench,
   Award,
   ChevronRight,
   ChevronDown,
@@ -54,13 +55,22 @@ import {
   BarChart3,
   Trophy,
   Target,
-  FileText
+  FileText,
+  ExternalLink,
+  Loader2
 } from 'lucide-react';
 import { TeacherClassOverview, TeacherStudentSummary, UserProfile, ServerMetrics } from '../types/auth';
 import { HourlyLoginStatsCard } from './HourlyLoginStatsCard';
 import { SecurityMonitoringView } from './SecurityMonitoringView';
 import { StudentReportModal } from './StudentReportModal';
 import { ItemAnalysisView } from './ItemAnalysisView';
+import { 
+  createAndExportGoogleSheet, 
+  signInWithGoogleSheets, 
+  getGoogleUser,
+  initGoogleAuth,
+  ExportResult 
+} from '../services/googleSheets';
 import { 
   fetchTeacherOverview, 
   deleteStudentAccount,
@@ -320,6 +330,7 @@ interface TeacherDashboardViewProps {
   onOpenContactSettings?: () => void;
   onOpenBrandingSettings?: () => void;
   onOpenExamSettings?: () => void;
+  onOpenMaintenanceSettings?: () => void;
   onNavigateToUsers?: () => void;
   showScoreRecap?: boolean;
 }
@@ -331,6 +342,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
   onOpenContactSettings,
   onOpenBrandingSettings,
   onOpenExamSettings,
+  onOpenMaintenanceSettings,
   onNavigateToUsers,
   showScoreRecap = true
 }) => {
@@ -433,6 +445,46 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
       loadQuestionBank();
     } else {
       alert('Gagal menghapus soal.');
+    }
+  };
+
+  // Google Sheets Export States
+  const [isExportingToSheets, setIsExportingToSheets] = useState(false);
+  const [googleExportSuccess, setGoogleExportSuccess] = useState<ExportResult | null>(null);
+  const [googleExportError, setGoogleExportError] = useState<string | null>(null);
+  const [currentGoogleUser, setCurrentGoogleUser] = useState<any>(() => getGoogleUser());
+
+  useEffect(() => {
+    const unsub = initGoogleAuth(
+      (user) => setCurrentGoogleUser(user),
+      () => setCurrentGoogleUser(null)
+    );
+    return () => unsub();
+  }, []);
+
+  const handleExportToGoogleSheets = async () => {
+    try {
+      setGoogleExportError(null);
+      setIsExportingToSheets(true);
+
+      const title = 'Rekapitulasi Nilai Ujian TKA SMK TJKT (Modul 1 s.d. 8)';
+      const schoolLabel = selectedSchool === 'all' ? 'Semua Sekolah' : selectedSchool;
+      
+      const result = await createAndExportGoogleSheet(title, filteredStudents, schoolLabel);
+      setGoogleExportSuccess(result);
+      
+      if (result.spreadsheetUrl) {
+        window.open(result.spreadsheetUrl, '_blank');
+      }
+    } catch (err: any) {
+      console.error('Export to Google Sheets error:', err);
+      if (err.code === 'auth/popup-closed-by-user') {
+        setGoogleExportError('Proses login Google dibatalkan.');
+      } else {
+        setGoogleExportError(err.message || 'Gagal mengekspor data ke Google Sheets.');
+      }
+    } finally {
+      setIsExportingToSheets(false);
     }
   };
 
@@ -1123,6 +1175,25 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                           <div>
                             <div className="font-bold text-slate-800 dark:text-slate-200">Pengaturan Durasi Ujian</div>
                             <div className="text-[10px] text-slate-400 font-normal">Waktu timer & durasi per modul</div>
+                          </div>
+                        </button>
+                      )}
+
+                      {onOpenMaintenanceSettings && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsActionMenuOpen(false);
+                            onOpenMaintenanceSettings();
+                          }}
+                          className="w-full flex items-center gap-3 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:text-amber-600 dark:hover:text-amber-400 transition-colors cursor-pointer text-left"
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-950/80 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+                            <Wrench className="w-3.5 h-3.5" />
+                          </div>
+                          <div>
+                            <div className="font-bold text-slate-800 dark:text-slate-200">Mode Pemeliharaan (Maintenance)</div>
+                            <div className="text-[10px] text-slate-400 font-normal">Timer countdown & pesan pemeliharaan</div>
                           </div>
                         </button>
                       )}
@@ -2211,43 +2282,31 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => window.open('/api/teacher/export-csv', '_blank')}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3.5 py-1.5 rounded-xl shadow-xs transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
                       title="Unduh Rekap Nilai Format CSV (.csv)"
                     >
                       <Download className="w-3.5 h-3.5" />
-                      <span>Ekspor CSV</span>
+                      <span>CSV</span>
                     </button>
                     <button
-                      onClick={() => {
-                        // Generate TSV data optimized for Google Sheets clipboard copy or import
-                        let tsv = 'No\tNama Siswa\tAsal Sekolah\tEmail\tVerifikasi\tM1\tM2\tM3\tM4\tM5\tM6\tM7\tM8\tRata-Rata\tStatus\n';
-                        filteredStudents.forEach((s, idx) => {
-                          const scores = [1, 2, 3, 4, 5, 6, 7, 8].map(w => s.moduleScores?.[w] !== undefined ? s.moduleScores[w] : '-');
-                          const avg = s.averageScore !== undefined ? s.averageScore.toFixed(1) : '0';
-                          const status = (s.averageScore || 0) >= 75 ? 'KOMPETEN' : 'BELUM KOMPETEN';
-                          tsv += `${idx + 1}\t${s.namaLengkap}\t${s.asalSekolah}\t${s.email}\t${s.isVerified ? 'Aktif' : 'Belum'}\t${scores.join('\t')}\t${avg}\t${status}\n`;
-                        });
-                        
-                        // Copy to clipboard so user can instantly paste into Google Sheets (Ctrl+V)
-                        navigator.clipboard.writeText(tsv).then(() => {
-                          alert('Data rekap nilai berhasil disalin ke Clipboard! \n\nCara Membuka di Google Sheets:\n1. Buat Google Spreadsheet baru (sheets.new)\n2. Klik sel A1, lalu tekan Ctrl+V / Paste.\n\nTabel dan format nilai 8 modul akan langsung tersusun rapi.');
-                        }).catch(() => {
-                          // Fallback download as .tsv file
-                          const blob = new Blob([tsv], { type: 'text/tab-separated-values;charset=utf-8;' });
-                          const url = URL.createObjectURL(blob);
-                          const link = document.createElement('a');
-                          link.href = url;
-                          link.setAttribute('download', `Rekap_Nilai_TKA_SMK_TJKT_GoogleSheets.tsv`);
-                          document.body.appendChild(link);
-                          link.click();
-                          document.body.removeChild(link);
-                        });
-                      }}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-3.5 py-1.5 rounded-xl shadow-xs transition-colors cursor-pointer"
-                      title="Salin data rekap untuk langsung di-paste ke Google Sheets"
+                      onClick={handleExportToGoogleSheets}
+                      disabled={isExportingToSheets}
+                      className="inline-flex items-center gap-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 disabled:opacity-70 px-3.5 py-1.5 rounded-xl shadow-xs transition-all cursor-pointer"
+                      title="Hubungkan langsung menggunakan akun Google dan buat spreadsheet rekap nilai"
                     >
-                      <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                      <span>Ekspor ke Google Sheets</span>
+                      {isExportingToSheets ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Mengekspor ke Google Sheets...</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                          </svg>
+                          <span>{currentGoogleUser ? 'Ekspor ke Google Sheets' : 'Hubungkan Akun Google & Ekspor'}</span>
+                        </>
+                      )}
                     </button>
                   </div>
                   <span className="text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
@@ -2255,6 +2314,20 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                   </span>
                 </div>
               </div>
+              {googleExportError && (
+                <div className="mx-4 sm:mx-6 my-3 p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 flex items-center justify-between animate-fadeIn">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400" />
+                    <span>{googleExportError}</span>
+                  </div>
+                  <button
+                    onClick={() => setGoogleExportError(null)}
+                    className="font-bold underline text-rose-600 dark:text-rose-400 hover:text-rose-800 cursor-pointer ml-3 shrink-0"
+                  >
+                    Tutup
+                  </button>
+                </div>
+              )}
         {/* Tampilan Mobile: Grid Card Layout */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:hidden gap-3 p-4 bg-slate-50/50 dark:bg-slate-900/50">
           {paginatedStudents.length === 0 ? (
@@ -2920,6 +2993,63 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
         }}
         currentUser={currentUser}
       />
+
+      {/* Modal Sukses Ekspor Google Sheets */}
+      {googleExportSuccess && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-md overflow-hidden p-6 text-center space-y-4">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center">
+              <CheckCircle2 className="w-8 h-8" />
+            </div>
+            
+            <div className="space-y-1">
+              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
+                Berhasil Diekspor ke Google Sheets!
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Data rekapitulasi nilai <strong>{googleExportSuccess.totalRows} siswa</strong> telah langsung dibuat di akun Google Spreadsheet Anda.
+              </p>
+            </div>
+
+            <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 text-left text-xs space-y-1.5">
+              <div className="text-[11px] text-slate-400">Akun Google Terhubung:</div>
+              <div className="font-bold text-slate-800 dark:text-slate-200 truncate flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                <span>{currentGoogleUser?.email || 'Akun Google Anda'}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 pt-2">
+              <a
+                href={googleExportSuccess.spreadsheetUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md flex items-center justify-center gap-2 cursor-pointer transition-colors"
+              >
+                <span>Buka di Google Sheets</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(googleExportSuccess.spreadsheetUrl);
+                  alert('Tautan Google Spreadsheet berhasil disalin!');
+                }}
+                className="w-full py-2 px-4 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 transition-colors cursor-pointer"
+              >
+                Salin Tautan Spreadsheet
+              </button>
+              <button
+                type="button"
+                onClick={() => setGoogleExportSuccess(null)}
+                className="w-full py-2 text-xs font-semibold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
