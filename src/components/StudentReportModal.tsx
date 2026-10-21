@@ -274,6 +274,39 @@ export const StudentReportModal: React.FC<StudentReportModalProps> = ({
     year: 'numeric'
   });
 
+  // Determine actual city / regency location for report titimangsa
+  const actualLocation = (() => {
+    let loc = student.kabupatenKota?.trim();
+    if (!loc || loc === '-' || loc.toLowerCase() === 'kabupaten/kota') {
+      if (student.asalSekolah) {
+        const match = student.asalSekolah.match(/\b(Cimahi|Bandung|Jakarta|Surabaya|Semarang|Yogyakarta|Bogor|Bekasi|Depok|Tangerang|Medan|Palembang|Makassar|Malang|Solo|Cirebon|Tasikmalaya|Sukabumi|Serang|Garut|Subang|Sumedang|Purwakarta|Karawang)\b/i);
+        if (match) {
+          loc = match[0];
+        } else {
+          const words = student.asalSekolah.trim().split(/\s+/);
+          const last = words[words.length - 1];
+          if (last && !/^(SMK|SMKN|TJKT|BISA|\d+)$/i.test(last)) {
+            loc = last;
+          }
+        }
+      }
+    }
+    if (!loc || loc === '-' || loc.toLowerCase() === 'kabupaten/kota') {
+      loc = 'Cimahi';
+    }
+    
+    // Format according to standard Indonesian official letters:
+    // "Kota Cimahi" -> "Cimahi"
+    // "Kabupaten Bandung Barat" -> "Kab. Bandung Barat"
+    if (/^Kota\s+/i.test(loc)) {
+      return loc.replace(/^Kota\s+/i, '');
+    }
+    if (/^Kabupaten\s+/i.test(loc)) {
+      return loc.replace(/^Kabupaten\s+/i, 'Kab. ');
+    }
+    return loc;
+  })();
+
   const reportDocNumber = `RAPOR/TKA-TJKT/${new Date().getFullYear()}/${student.userId.replace(/\D/g, '').slice(-5) || '10842'}`;
   const certificateRegNumber = `BNSP-LSP/TJKT-2026/REG-${student.userId.slice(-6).toUpperCase()}`;
 
@@ -1213,7 +1246,7 @@ export const StudentReportModal: React.FC<StudentReportModalProps> = ({
 
               <div className="space-y-16">
                 <div>
-                  <div className="text-slate-500">Kabupaten/Kota, {currentDateFormatted}</div>
+                  <div className="text-slate-500">{actualLocation}, {currentDateFormatted}</div>
                   <div className="font-bold">Guru Pengampu / Wali Kelas</div>
                 </div>
                 <div>
