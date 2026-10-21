@@ -36,7 +36,6 @@ import {
   Lock
 } from 'lucide-react';
 
-import { JadwalHariIniCard } from './JadwalHariIniCard';
 import { MaintenanceConfig } from './MaintenanceView';
 import { ModuleStatusConfig } from './ModuleSettingsModal';
 
@@ -533,13 +532,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <div className="space-y-6 pb-16">
-      {/* Widget Jadwal Hari Ini & Status Operasional Server */}
-      <JadwalHariIniCard
-        progress={progress}
-        maintenanceConfig={maintenanceConfig}
-        onStartExam={onStartExam}
-        onNavigateToModules={onNavigateToModules}
-      />
 
       {/* 8 Modul Pembelajaran Header (when viewMode is 'modules') */}
       {viewMode === 'modules' && (
