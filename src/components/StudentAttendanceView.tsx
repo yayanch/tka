@@ -346,7 +346,7 @@ export const StudentAttendanceView: React.FC<StudentAttendanceViewProps> = ({
                   const currentStatus = attendanceRecords[s.email] || (hasAttempted ? 'HADIR' : 'ALPHA');
 
                   return (
-                    <tr key={s.id || s.email} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+                    <tr key={s.email} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
                       <td className="p-4 text-center font-bold text-slate-500">{idx + 1}</td>
                       <td className="p-4">
                         <div className="font-extrabold text-slate-900 dark:text-white">
