@@ -137,8 +137,17 @@ export const QuizSessionView: React.FC<QuizSessionViewProps> = ({
             </div>
           </div>
 
-          {/* Metrics: Timer, Progress & Actions */}
+          {/* Metrics: Real-time Score, Timer, Actions */}
           <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+            {/* Real-Time Live Score */}
+            <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 rounded-lg px-3 py-1.5 text-center">
+              <span className="text-[10px] uppercase font-semibold text-blue-600 dark:text-blue-400 block tracking-wider">
+                Skor Real-Time
+              </span>
+              <span className="text-sm sm:text-base font-bold text-blue-700 dark:text-blue-300 tabular-nums">
+                {summary.finalScore} <span className="text-xs font-normal text-slate-500">/ 100</span>
+              </span>
+            </div>
 
             {/* Answered Counter */}
             <div className="hidden sm:block text-xs text-slate-600 dark:text-slate-300">
@@ -626,6 +635,10 @@ export const QuizSessionView: React.FC<QuizSessionViewProps> = ({
               <div className="flex justify-between text-slate-600 dark:text-slate-300">
                 <span>Soal Belum Terjawab:</span>
                 <span className="font-bold text-red-500 tabular-nums">{summary.unansweredCount} soal</span>
+              </div>
+              <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex justify-between font-bold text-slate-900 dark:text-white">
+                <span>Estimasi Skor Akhir:</span>
+                <span className="text-blue-600 text-sm tabular-nums">{summary.finalScore} / 100</span>
               </div>
             </div>
 
