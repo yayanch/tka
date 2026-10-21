@@ -32,11 +32,13 @@ import {
   ChevronUp,
   X,
   Sparkles,
-  Trophy
+  Trophy,
+  Lock
 } from 'lucide-react';
 
 import { JadwalHariIniCard } from './JadwalHariIniCard';
 import { MaintenanceConfig } from './MaintenanceView';
+import { ModuleStatusConfig } from './ModuleSettingsModal';
 
 interface DashboardViewProps {
   progress: OverallUserProgress;
@@ -51,6 +53,7 @@ interface DashboardViewProps {
   onNavigateToModules?: () => void;
   viewMode?: 'home' | 'modules' | 'all';
   maintenanceConfig?: MaintenanceConfig;
+  moduleStatusConfig?: ModuleStatusConfig;
 }
 
 const CATEGORY_ICONS: Record<number, React.ReactNode> = {
@@ -493,6 +496,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onNavigateToModules,
   viewMode = 'all',
   maintenanceConfig,
+  moduleStatusConfig,
 }) => {
   // Aggregate stats
   const totalAttempts = progress.totalAttempts;
@@ -858,17 +862,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             };
             const isCompleted = stat.attempts > 0;
             const isMastered = stat.highestScore >= 75;
+            const isModuleDisabled = moduleStatusConfig?.disabledModules?.includes(cat.id);
+            const customNote = moduleStatusConfig?.moduleNotes?.[cat.id];
 
             return (
               <div
                 key={cat.id}
-                className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 hover:border-blue-400 dark:hover:border-blue-500 transition-all flex flex-col justify-between"
+                className={`bg-white dark:bg-slate-900 rounded-xl border p-5 transition-all flex flex-col justify-between ${
+                  isModuleDisabled
+                    ? 'border-rose-300 dark:border-rose-900/60 bg-rose-50/20 dark:bg-rose-950/10'
+                    : 'border-slate-200 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-500'
+                }`}
               >
                 <div className="space-y-3">
                   {/* Card Header */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                        isModuleDisabled ? 'bg-rose-100 dark:bg-rose-950 text-rose-600' : 'bg-slate-100 dark:bg-slate-800'
+                      }`}>
                         {CATEGORY_ICONS[cat.id]}
                       </div>
                       <div>
@@ -885,7 +897,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       </div>
                     </div>
 
-                    {isCompleted ? (
+                    {isModuleDisabled ? (
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 uppercase flex items-center gap-1 shrink-0 border border-rose-200 dark:border-rose-800">
+                        <Lock className="w-3 h-3" />
+                        <span>Ditutup</span>
+                      </span>
+                    ) : isCompleted ? (
                       <div className="text-right shrink-0">
                         <span className="text-[11px] text-slate-400 block">Skor Terbaik</span>
                         <span className={`text-base font-bold tabular-nums ${isMastered ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
@@ -903,6 +920,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
                     {cat.description}
                   </p>
+
+                  {/* Admin Note if disabled */}
+                  {isModuleDisabled && customNote && (
+                    <div className="p-2.5 rounded-xl bg-rose-100/60 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-800 dark:text-rose-300 text-[11px] font-semibold">
+                      📌 {customNote}
+                    </div>
+                  )}
 
                   {/* Composition Breakdown */}
                   <div className="text-[11px] text-slate-400 flex items-center gap-1.5 flex-wrap">
@@ -931,19 +955,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       return (
                         <button
                           key={simNum}
+                          disabled={isModuleDisabled}
                           onClick={() => {
+                            if (isModuleDisabled) return;
                             if (onStartSimulation) {
                               onStartSimulation(cat.id, simNum);
                             } else {
                               onStartExam(cat.id, 'practice');
                             }
                           }}
-                          className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shadow-xs transition-transform hover:scale-110 cursor-pointer ${
-                            isSimCompleted
-                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                              : 'bg-blue-600 hover:bg-blue-700 text-white'
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shadow-xs transition-transform ${
+                            isModuleDisabled
+                              ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-60'
+                              : isSimCompleted
+                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer hover:scale-110'
+                              : 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer hover:scale-110'
                           }`}
-                          title={`Simulasi ${simNum} Modul ${cat.id} (10 Soal). ${isSimCompleted ? 'Status: Selesai (Hijau)' : 'Status: Belum Selesai (Biru)'}`}
+                          title={isModuleDisabled ? 'Modul ini sedang ditutup' : `Simulasi ${simNum} Modul ${cat.id}`}
                         >
                           {simNum}
                         </button>
@@ -965,13 +993,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     </button>
                   ) : null}
 
-                  <button
-                    onClick={() => onStartExam(cat.id, 'exam')}
-                    className="flex-1 px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
-                  >
-                    <Play className="w-3.5 h-3.5 fill-current" />
-                    <span>Mulai Ujian</span>
-                  </button>
+                  {isModuleDisabled ? (
+                    <button
+                      disabled
+                      className="flex-1 px-4 py-2 text-xs font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-1.5 cursor-not-allowed opacity-80 shrink-0"
+                      title="Modul ini sedang dinonaktifkan oleh Guru/Administrator"
+                    >
+                      <Lock className="w-3.5 h-3.5 text-slate-400" />
+                      <span>Modul Ditutup Admin</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => onStartExam(cat.id, 'exam')}
+                      className="flex-1 px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+                    >
+                      <Play className="w-3.5 h-3.5 fill-current" />
+                      <span>Mulai Ujian</span>
+                    </button>
+                  )}
                 </div>
               </div>
             );

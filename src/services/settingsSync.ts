@@ -159,3 +159,50 @@ export async function saveMaintenanceConfigToDB(config: any): Promise<{ success:
     return { success: false, error: e.message || 'Gagal terhubung ke server' };
   }
 }
+
+// ----------------- MODULE STATUS CONFIG -----------------
+const STORAGE_MODULE_STATUS_KEY = 'tka_app_module_status_config_v1';
+
+export async function fetchModuleStatusConfig(): Promise<any> {
+  try {
+    const res = await fetch('/api/settings/module_status_config');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && data.value) {
+        localStorage.setItem(STORAGE_MODULE_STATUS_KEY, JSON.stringify(data.value));
+        return data.value;
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to fetch module status config from DB:', e);
+  }
+  try {
+    const local = localStorage.getItem(STORAGE_MODULE_STATUS_KEY);
+    if (local) return JSON.parse(local);
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
+export async function saveModuleStatusConfigToDB(config: any): Promise<{ success: boolean; error?: string }> {
+  try {
+    localStorage.setItem(STORAGE_MODULE_STATUS_KEY, JSON.stringify(config));
+  } catch {
+    // ignore
+  }
+  try {
+    const res = await fetch('/api/settings/module_status_config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.success) {
+      return { success: true };
+    }
+    return { success: false, error: data.error || 'Gagal menyimpan status modul' };
+  } catch (e: any) {
+    return { success: false, error: e.message || 'Gagal terhubung ke server' };
+  }
+}

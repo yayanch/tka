@@ -22,6 +22,7 @@ import { TopScoresModal } from './components/TopScoresModal';
 import { ExamSettingsModal } from './components/ExamSettingsModal';
 import { MaintenanceView, MaintenanceConfig, DEFAULT_MAINTENANCE_CONFIG } from './components/MaintenanceView';
 import { MaintenanceSettingsModal } from './components/MaintenanceSettingsModal';
+import { ModuleSettingsModal, ModuleStatusConfig, DEFAULT_MODULE_STATUS_CONFIG } from './components/ModuleSettingsModal';
 import { getExamDurationForWeek } from './utils/examSettingsStorage';
 import { FeedbackNotificationModal } from './components/FeedbackNotificationModal';
 import { HeroConfig, DEFAULT_HERO_CONFIG } from './utils/heroStorage';
@@ -35,7 +36,9 @@ import {
   fetchBrandingConfig, 
   saveBrandingConfigToDB,
   fetchMaintenanceConfig,
-  saveMaintenanceConfigToDB
+  saveMaintenanceConfigToDB,
+  fetchModuleStatusConfig,
+  saveModuleStatusConfigToDB
 } from './services/settingsSync';
 import { Theme, getStoredTheme, applyTheme } from './utils/theme';
 
@@ -207,6 +210,8 @@ export default function App() {
   const [isMaintenanceSettingsOpen, setIsMaintenanceSettingsOpen] = useState(false);
   const [isMaintenanceAdminBypassed, setIsMaintenanceAdminBypassed] = useState(false);
   const [isPreviewingMaintenance, setIsPreviewingMaintenance] = useState(false);
+  const [moduleStatusConfig, setModuleStatusConfig] = useState<ModuleStatusConfig>(DEFAULT_MODULE_STATUS_CONFIG);
+  const [isModuleSettingsOpen, setIsModuleSettingsOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'register' | 'login'>('register');
 
   // Trigger Kritik & Saran pop-up automatically when entering individual account
@@ -420,17 +425,19 @@ export default function App() {
     let isMounted = true;
     async function loadDbConfigs() {
       try {
-        const [hCfg, cCfg, bCfg, mCfg] = await Promise.all([
+        const [hCfg, cCfg, bCfg, mCfg, modCfg] = await Promise.all([
           fetchHeroConfig(),
           fetchContactConfig(),
           fetchBrandingConfig(),
           fetchMaintenanceConfig(),
+          fetchModuleStatusConfig(),
         ]);
         if (isMounted) {
           if (hCfg) setHeroConfig(hCfg);
           if (cCfg) setContactConfig(cCfg);
           if (bCfg) setBrandingConfig(bCfg);
           if (mCfg) setMaintenanceConfig(mCfg);
+          if (modCfg) setModuleStatusConfig(modCfg);
         }
       } catch (e) {
         console.warn('Error loading remote settings from DB:', e);
@@ -1000,6 +1007,7 @@ export default function App() {
         onOpenTopScores={() => setIsTopScoresOpen(true)}
         onOpenFeedback={() => setIsFeedbackOpen(true)}
         onOpenMaintenanceSettings={() => setIsMaintenanceSettingsOpen(true)}
+        onOpenModuleSettings={() => setIsModuleSettingsOpen(true)}
         brandingConfig={brandingConfig}
       />
 
@@ -1078,6 +1086,7 @@ export default function App() {
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   onOpenTopScores={() => setIsTopScoresOpen(true)}
+                  moduleStatusConfig={moduleStatusConfig}
                 />
               )
             )}
@@ -1101,6 +1110,7 @@ export default function App() {
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 onOpenTopScores={() => setIsTopScoresOpen(true)}
+                moduleStatusConfig={moduleStatusConfig}
               />
             )}
 
@@ -1153,6 +1163,7 @@ export default function App() {
                 onOpenBrandingSettings={() => setIsBrandingSettingsOpen(true)}
                 onOpenExamSettings={() => setIsExamSettingsOpen(true)}
                 onOpenMaintenanceSettings={() => setIsMaintenanceSettingsOpen(true)}
+                onOpenModuleSettings={() => setIsModuleSettingsOpen(true)}
                 maintenanceConfig={maintenanceConfig}
                 onPreviewMaintenance={() => setIsPreviewingMaintenance(true)}
                 showScoreRecap={true}
@@ -1292,6 +1303,17 @@ export default function App() {
         onSave={async (newConfig) => {
           setMaintenanceConfig(newConfig);
           await saveMaintenanceConfigToDB(newConfig);
+        }}
+      />
+
+      {/* Module Status Settings Modal */}
+      <ModuleSettingsModal
+        isOpen={isModuleSettingsOpen}
+        onClose={() => setIsModuleSettingsOpen(false)}
+        config={moduleStatusConfig}
+        onSave={async (newConfig) => {
+          setModuleStatusConfig(newConfig);
+          await saveModuleStatusConfigToDB(newConfig);
         }}
       />
 

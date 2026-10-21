@@ -31,6 +31,7 @@ interface NavbarProps {
   onOpenTopScores?: () => void;
   onOpenFeedback?: () => void;
   onOpenMaintenanceSettings?: () => void;
+  onOpenModuleSettings?: () => void;
   theme?: Theme;
   onToggleTheme?: () => void;
   onOpenContact?: () => void;

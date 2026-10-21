@@ -332,6 +332,7 @@ interface TeacherDashboardViewProps {
   onOpenBrandingSettings?: () => void;
   onOpenExamSettings?: () => void;
   onOpenMaintenanceSettings?: () => void;
+  onOpenModuleSettings?: () => void;
   maintenanceConfig?: MaintenanceConfig;
   onPreviewMaintenance?: () => void;
   onNavigateToUsers?: () => void;
@@ -346,6 +347,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
   onOpenBrandingSettings,
   onOpenExamSettings,
   onOpenMaintenanceSettings,
+  onOpenModuleSettings,
   maintenanceConfig,
   onPreviewMaintenance,
   onNavigateToUsers,
@@ -1111,6 +1113,19 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
               </button>
             )}
 
+            {/* Direct Standalone Quick Action Button for Module Status Settings */}
+            {!isStudent && onOpenModuleSettings && (
+              <button
+                type="button"
+                onClick={onOpenModuleSettings}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-white/15 hover:bg-white/25 active:bg-white/30 border border-white/25 backdrop-blur-md shadow-xs transition-colors cursor-pointer"
+                title="Kelola & Atur Status Aktif/Nonaktif Modul Pembelajaran (1 s.d. 8)"
+              >
+                <Layers className="w-4 h-4 text-emerald-300" />
+                <span>Status Modul</span>
+              </button>
+            )}
+
             {/* Direct Standalone Quick Action Button for Maintenance Mode */}
             {!isStudent && onOpenMaintenanceSettings && (
               <button
@@ -1247,6 +1262,25 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
                           <div>
                             <div className="font-bold text-slate-800 dark:text-slate-200">Pengaturan Durasi Ujian</div>
                             <div className="text-[10px] text-slate-400 font-normal">Waktu timer & durasi per modul</div>
+                          </div>
+                        </button>
+                      )}
+
+                      {onOpenModuleSettings && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsActionMenuOpen(false);
+                            onOpenModuleSettings();
+                          }}
+                          className="w-full flex items-center gap-3 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-cyan-50 dark:hover:bg-cyan-950/40 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors cursor-pointer text-left"
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-cyan-100 dark:bg-cyan-950/80 flex items-center justify-center text-cyan-600 dark:text-cyan-400 shrink-0">
+                            <Layers className="w-3.5 h-3.5" />
+                          </div>
+                          <div>
+                            <div className="font-bold text-slate-800 dark:text-slate-200">Status Modul (Aktif/Nonaktif)</div>
+                            <div className="text-[10px] text-slate-400 font-normal">Atur akses ketersediaan Modul 1-8</div>
                           </div>
                         </button>
                       )}
