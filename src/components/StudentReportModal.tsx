@@ -295,16 +295,10 @@ export const StudentReportModal: React.FC<StudentReportModalProps> = ({
       loc = 'Cimahi';
     }
     
-    // Format according to standard Indonesian official letters:
-    // "Kota Cimahi" -> "Cimahi"
-    // "Kabupaten Bandung Barat" -> "Kab. Bandung Barat"
-    if (/^Kota\s+/i.test(loc)) {
-      return loc.replace(/^Kota\s+/i, '');
-    }
-    if (/^Kabupaten\s+/i.test(loc)) {
-      return loc.replace(/^Kabupaten\s+/i, 'Kab. ');
-    }
-    return loc;
+    // Strip "Kota", "Kabupaten", "Kab.", "Kab" prefixes completely
+    return loc
+      .replace(/^(Kota|Kabupaten|Kab\.|Kab)\s+/i, '')
+      .trim();
   })();
 
   const reportDocNumber = `RAPOR/TKA-TJKT/${new Date().getFullYear()}/${student.userId.replace(/\D/g, '').slice(-5) || '10842'}`;
