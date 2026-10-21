@@ -952,7 +952,6 @@ export default function App() {
             onDrillWrong={handleDrillWrong}
             onBackToDashboard={handleExitSession}
             onToggleBookmark={handleToggleBookmark}
-            currentUser={currentUser}
           />
         ) : !currentUser ? (
           /* Sebelum Login: Halaman Depan Publik & Autentikasi */
@@ -1203,7 +1202,7 @@ export default function App() {
             <span>Bank Soal 8 Minggu (400 Butir)</span>
           </div>
           <div className="flex items-center gap-4 flex-wrap justify-center">
-            <span className="hidden md:inline">Evaluasi Standar Kelulusan</span>
+            <span className="hidden md:inline">Sistem Skor Real-Time</span>
             <span aria-hidden="true" className="hidden md:inline">·</span>
             <span className="hidden md:inline">Pembahasan Otomatis Sesi</span>
             {currentUser && (
