@@ -25,8 +25,12 @@ import {
   Image as ImageIcon,
   Database,
   Mail,
-  Send
+  Send,
+  Download
 } from 'lucide-react';
+import { UserProfile } from '../types/auth';
+import { getStoredUser } from '../services/api';
+import { CertificateModal } from './CertificateModal';
 
 interface SessionResultViewProps {
   session: ExamSession;
@@ -36,6 +40,7 @@ interface SessionResultViewProps {
   onDrillWrong: (wrongQuestions: Question[]) => void;
   onBackToDashboard: () => void;
   onToggleBookmark: (questionId: string) => void;
+  currentUser?: UserProfile | null;
 }
 
 export const SessionResultView: React.FC<SessionResultViewProps> = ({
@@ -46,9 +51,13 @@ export const SessionResultView: React.FC<SessionResultViewProps> = ({
   onDrillWrong,
   onBackToDashboard,
   onToggleBookmark,
+  currentUser,
 }) => {
   const [filterTab, setFilterTab] = useState<'all' | 'wrong' | 'correct' | 'flagged'>('all');
   const [expandedAll, setExpandedAll] = useState<boolean>(true);
+  const [isCertModalOpen, setIsCertModalOpen] = useState<boolean>(false);
+
+  const userObj = currentUser || getStoredUser();
 
   const finalScore = session.finalScore || 0;
   const isPassed = finalScore >= 75;
@@ -237,6 +246,40 @@ export const SessionResultView: React.FC<SessionResultViewProps> = ({
           </div>
         </div>
 
+        {/* Certificate Card for Passed Students (score >= 75) */}
+        {isPassed && (
+          <div className="mt-6 p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-amber-500/10 via-emerald-500/5 to-slate-900/5 dark:from-amber-950/40 dark:via-emerald-950/20 dark:to-slate-900/60 border-2 border-amber-400/60 dark:border-amber-700/60 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fadeIn">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-black text-xl shadow-md shrink-0">
+                <Award className="w-6 h-6" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                    Sertifikat Kelulusan Standar Kompetensi
+                  </h3>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                    LULUS &amp; KOMPETEN (&ge;75)
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-slate-300">
+                  Selamat! Anda telah resmi melampaui Standar Kelulusan Minimal dengan skor <strong>{finalScore}/100</strong>. Unduh sertifikat resmi dalam format PDF sebagai bukti ketuntasan modul.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+              <button
+                onClick={() => setIsCertModalOpen(true)}
+                className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-xl shadow-md transition-all cursor-pointer"
+              >
+                <Download className="w-4 h-4" />
+                <span>Unduh Sertifikat Kelulusan (PDF)</span>
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Callout Info Email Notification */}
         <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-blue-50/80 via-indigo-50/60 to-blue-50/80 dark:from-blue-950/30 dark:via-indigo-950/20 dark:to-blue-950/30 border border-blue-200/80 dark:border-blue-900/60 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -268,6 +311,16 @@ export const SessionResultView: React.FC<SessionResultViewProps> = ({
           </button>
 
           <div className="flex flex-wrap items-center gap-2.5">
+            {isPassed && (
+              <button
+                onClick={() => setIsCertModalOpen(true)}
+                className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-lg shadow-xs transition-colors cursor-pointer"
+              >
+                <Award className="w-3.5 h-3.5" />
+                <span>Unduh Sertifikat PDF</span>
+              </button>
+            )}
+
             <button
               onClick={handlePrint}
               className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors cursor-pointer"
@@ -565,6 +618,18 @@ export const SessionResultView: React.FC<SessionResultViewProps> = ({
           )}
         </div>
       </section>
+
+      {/* Sertifikat Kelulusan Modal (score >= 75) */}
+      <CertificateModal
+        isOpen={isCertModalOpen}
+        onClose={() => setIsCertModalOpen(false)}
+        studentName={userObj?.namaLengkap || 'Siswa TKA TJKT'}
+        schoolName={userObj?.asalSekolah || 'SMK Negeri 1 Cimahi'}
+        examTitle={session.title || 'Uji Kompetensi Keahlian TJKT'}
+        score={finalScore}
+        weekId={session.weekId}
+        sessionId={session.sessionId}
+      />
     </div>
   );
 };
