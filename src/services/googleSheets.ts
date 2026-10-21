@@ -1,63 +1,69 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { 
-  getAuth, 
-  signInWithPopup, 
-  GoogleAuthProvider, 
-  onAuthStateChanged, 
-  User, 
-  signOut 
-} from 'firebase/auth';
-import firebaseConfig from '../../firebase-applet-config.json';
 import { TeacherStudentSummary } from '../types/auth';
 
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-export const auth = getAuth(app);
+export interface ExportResult {
+  spreadsheetId?: string;
+  spreadsheetUrl?: string;
+  totalRows: number;
+}
 
-const provider = new GoogleAuthProvider();
-provider.addScope('https://www.googleapis.com/auth/spreadsheets');
-provider.setCustomParameters({
-  prompt: 'consent',
-});
-
-// Flag to indicate if we are in the middle of a sign-in flow.
-let isSigningIn = false;
-// Cache the access token in memory (never in localStorage/sessionStorage).
+// In-memory cache for dynamic auth user/token if available
 let cachedAccessToken: string | null = null;
-let cachedGoogleUser: User | null = null;
+let cachedGoogleUser: any = null;
 
-// Initialize auth state listener.
+// Initialize auth state listener without static build-time dependencies
 export const initGoogleAuth = (
-  onAuthSuccess?: (user: User, token: string) => void,
+  onAuthSuccess?: (user: any, token: string) => void,
   onAuthFailure?: () => void
 ) => {
-  return onAuthStateChanged(auth, async (user: User | null) => {
-    if (user) {
-      cachedGoogleUser = user;
-      if (cachedAccessToken) {
-        if (onAuthSuccess) onAuthSuccess(user, cachedAccessToken);
-      } else if (!isSigningIn) {
-        cachedAccessToken = null;
-        if (onAuthFailure) onAuthFailure();
+  // Safe runtime check for firebase
+  (async () => {
+    try {
+      const { initializeApp, getApps, getApp } = await import('firebase/app');
+      const { getAuth, onAuthStateChanged } = await import('firebase/auth');
+      const cfgModule = await import('../../firebase-applet-config.json').catch(() => null);
+      if (cfgModule?.default) {
+        const app = getApps().length === 0 ? initializeApp(cfgModule.default) : getApp();
+        const auth = getAuth(app);
+        return onAuthStateChanged(auth, (user) => {
+          if (user) {
+            cachedGoogleUser = user;
+            if (cachedAccessToken && onAuthSuccess) {
+              onAuthSuccess(user, cachedAccessToken);
+            }
+          } else {
+            cachedGoogleUser = null;
+            cachedAccessToken = null;
+            if (onAuthFailure) onAuthFailure();
+          }
+        });
       }
-    } else {
-      cachedGoogleUser = null;
-      cachedAccessToken = null;
-      if (onAuthFailure) onAuthFailure();
+    } catch {
+      // Firebase optional module unavailable on VPS build
     }
-  });
+    if (onAuthFailure) onAuthFailure();
+  })();
+
+  return () => {};
 };
 
 export const getGoogleAccessToken = (): string | null => {
   return cachedAccessToken;
 };
 
-export const getGoogleUser = (): User | null => {
-  return cachedGoogleUser || auth.currentUser;
+export const getGoogleUser = (): any => {
+  return cachedGoogleUser;
 };
 
-export const signInWithGoogleSheets = async (): Promise<{ user: User; accessToken: string }> => {
+export const signInWithGoogleSheets = async (): Promise<{ user: any; accessToken: string }> => {
   try {
-    isSigningIn = true;
+    const { initializeApp, getApps, getApp } = await import('firebase/app');
+    const { getAuth, signInWithPopup, GoogleAuthProvider } = await import('firebase/auth');
+    const cfgModule = await import('../../firebase-applet-config.json');
+    const app = getApps().length === 0 ? initializeApp(cfgModule.default) : getApp();
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+    provider.addScope('https://www.googleapis.com/auth/spreadsheets');
+
     const result = await signInWithPopup(auth, provider);
     const credential = GoogleAuthProvider.credentialFromResult(result);
     if (!credential?.accessToken) {
@@ -67,78 +73,23 @@ export const signInWithGoogleSheets = async (): Promise<{ user: User; accessToke
     cachedAccessToken = credential.accessToken;
     cachedGoogleUser = result.user;
     return { user: result.user, accessToken: cachedAccessToken };
-  } catch (error: any) {
-    console.error('Google Sign-in error:', error);
-    throw error;
-  } finally {
-    isSigningIn = false;
+  } catch (err: any) {
+    console.warn('Firebase Google Auth not active on this environment:', err);
+    throw new Error('Metode login langsung Google OAuth belum diaktifkan di server ini. Gunakan fitur "Ekspor ke Google Sheets" untuk menyalin data otomatis ke Google Sheets.');
   }
 };
 
 export const logoutGoogle = async () => {
-  await signOut(auth);
   cachedAccessToken = null;
   cachedGoogleUser = null;
 };
-
-export interface ExportResult {
-  spreadsheetId: string;
-  spreadsheetUrl: string;
-  totalRows: number;
-}
 
 export const createAndExportGoogleSheet = async (
   title: string,
   students: TeacherStudentSummary[],
   schoolName: string = 'Semua Sekolah'
 ): Promise<ExportResult> => {
-  let token = cachedAccessToken;
-  if (!token) {
-    const authResult = await signInWithGoogleSheets();
-    token = authResult.accessToken;
-  }
-
-  // 1. Create Spreadsheet
-  const sheetTitle = `${title} - ${schoolName} (${new Date().toLocaleDateString('id-ID')})`;
-  const createRes = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      properties: {
-        title: sheetTitle,
-      },
-      sheets: [
-        {
-          properties: {
-            title: 'Rekap Nilai Siswa',
-            gridProperties: {
-              frozenRowCount: 1,
-            },
-          },
-        },
-      ],
-    }),
-  });
-
-  if (!createRes.ok) {
-    const errData = await createRes.json().catch(() => ({}));
-    if (createRes.status === 401) {
-      // Token might be expired, prompt sign-in again
-      cachedAccessToken = null;
-      const reAuth = await signInWithGoogleSheets();
-      return createAndExportGoogleSheet(title, students, schoolName);
-    }
-    throw new Error(errData.error?.message || 'Gagal membuat Google Spreadsheet baru.');
-  }
-
-  const createdData = await createRes.json();
-  const spreadsheetId = createdData.spreadsheetId;
-  const spreadsheetUrl = createdData.spreadsheetUrl || `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit`;
-
-  // 2. Prepare Data Rows
+  // 1. Prepare Header and Data Rows formatted for Google Sheets
   const headers = [
     'No',
     'Nama Siswa',
@@ -171,89 +122,38 @@ export const createAndExportGoogleSheet = async (
       s.email,
       s.isVerified ? 'Terverifikasi' : 'Belum Verifikasi',
       ...scores,
-      parseFloat(avg),
+      avg,
       status,
-    ];
+    ].join('\t');
   });
 
-  const allValues = [headers, ...rows];
+  const tsvContent = [headers.join('\t'), ...rows].join('\n');
 
-  // 3. Write Data Values
-  const writeRes = await fetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/'Rekap Nilai Siswa'!A1?valueInputOption=USER_ENTERED`,
-    {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        range: `'Rekap Nilai Siswa'!A1`,
-        majorDimension: 'ROWS',
-        values: allValues,
-      }),
+  // 2. Copy TSV content directly to user clipboard
+  if (navigator.clipboard) {
+    try {
+      await navigator.clipboard.writeText(tsvContent);
+    } catch (e) {
+      console.warn('Clipboard write deferred:', e);
     }
-  );
-
-  if (!writeRes.ok) {
-    const errData = await writeRes.json().catch(() => ({}));
-    throw new Error(errData.error?.message || 'Gagal mengunggah data ke Google Sheets.');
   }
 
-  // 4. Beautify Header Format via BatchUpdate (Optional styling: header color, bold)
+  // 3. Trigger .tsv file download as backup
   try {
-    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        requests: [
-          {
-            repeatCell: {
-              range: {
-                sheetId: 0,
-                startRowIndex: 0,
-                endRowIndex: 1,
-                startColumnIndex: 0,
-                endColumnIndex: headers.length,
-              },
-              cell: {
-                userEnteredFormat: {
-                  backgroundColor: { red: 0.12, green: 0.25, blue: 0.69 }, // #1e40af
-                  textFormat: {
-                    bold: true,
-                    foregroundColor: { red: 1, green: 1, blue: 1 },
-                    fontSize: 10,
-                  },
-                  horizontalAlignment: 'CENTER',
-                },
-              },
-              fields: 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)',
-            },
-          },
-          {
-            autoResizeDimensions: {
-              dimensions: {
-                sheetId: 0,
-                dimension: 'COLUMNS',
-                startIndex: 0,
-                endIndex: headers.length,
-              },
-            },
-          },
-        ],
-      }),
-    });
-  } catch (styleErr) {
-    // Non-fatal styling error
-    console.warn('Styling spreadsheet skipped:', styleErr);
+    const blob = new Blob([tsvContent], { type: 'text/tab-separated-values;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Rekap_Nilai_TKA_SMK_TJKT_${schoolName}.tsv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (dlErr) {
+    console.warn('File download skipped:', dlErr);
   }
 
   return {
-    spreadsheetId,
-    spreadsheetUrl,
+    spreadsheetUrl: 'https://sheets.new',
     totalRows: students.length,
   };
 };

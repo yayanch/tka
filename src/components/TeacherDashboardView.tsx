@@ -3032,7 +3032,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  navigator.clipboard.writeText(googleExportSuccess.spreadsheetUrl);
+                  navigator.clipboard.writeText(googleExportSuccess.spreadsheetUrl || '');
                   alert('Tautan Google Spreadsheet berhasil disalin!');
                 }}
                 className="w-full py-2 px-4 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 transition-colors cursor-pointer"
