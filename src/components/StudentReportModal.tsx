@@ -1206,7 +1206,10 @@ export const StudentReportModal: React.FC<StudentReportModalProps> = ({
                   <div className="text-slate-500">Mengetahui,</div>
                   <div className="font-bold">Orang Tua / Wali Siswa</div>
                 </div>
-                <div className="border-b border-slate-400 w-36 mx-auto" />
+                <div className="space-y-1">
+                  <div className="border-b border-slate-400 w-44 mx-auto mb-1" />
+                  <div className="text-[10px] text-transparent select-none font-mono">NIP.</div>
+                </div>
               </div>
 
               <div className="space-y-16">
@@ -1214,20 +1217,20 @@ export const StudentReportModal: React.FC<StudentReportModalProps> = ({
                   <div className="text-slate-500">Kabupaten/Kota, {currentDateFormatted}</div>
                   <div className="font-bold">Guru Pengampu / Wali Kelas</div>
                 </div>
-                <div>
-                  <div className="font-bold text-slate-900">Ir. H. Rahmat Hidayat, M.T.</div>
-                  <div className="text-[10px] text-slate-500 font-mono">NIP. 19780512 200501 1 008</div>
+                <div className="space-y-1">
+                  <div className="border-b border-slate-400 w-44 mx-auto mb-1" />
+                  <div className="text-[10px] text-slate-500 font-mono">NIP. ........................................</div>
                 </div>
               </div>
 
               <div className="space-y-16">
                 <div>
                   <div className="text-slate-500">Mengesahkan,</div>
-                  <div className="font-bold">Kepala Sekolah TJKT</div>
+                  <div className="font-bold">Kepala Sekolah</div>
                 </div>
-                <div>
-                  <div className="font-bold text-slate-900">Dr. Hj. Nurul Fadilah, M.Pd.</div>
-                  <div className="text-[10px] text-slate-500 font-mono">NIP. 19720318 199802 2 003</div>
+                <div className="space-y-1">
+                  <div className="border-b border-slate-400 w-44 mx-auto mb-1" />
+                  <div className="text-[10px] text-slate-500 font-mono">NIP. ........................................</div>
                 </div>
               </div>
             </div>
