@@ -206,6 +206,7 @@ export default function App() {
   const [maintenanceConfig, setMaintenanceConfig] = useState<MaintenanceConfig>(DEFAULT_MAINTENANCE_CONFIG);
   const [isMaintenanceSettingsOpen, setIsMaintenanceSettingsOpen] = useState(false);
   const [isMaintenanceAdminBypassed, setIsMaintenanceAdminBypassed] = useState(false);
+  const [isPreviewingMaintenance, setIsPreviewingMaintenance] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'register' | 'login'>('register');
 
   // Trigger Kritik & Saran pop-up automatically when entering individual account
@@ -953,8 +954,30 @@ export default function App() {
           return false;
         }}
         currentUser={currentUser}
-        onContinueAsAdmin={() => setIsMaintenanceAdminBypassed(true)}
       />
+    );
+  }
+
+  if (isPreviewingMaintenance) {
+    return (
+      <div className="flex flex-col min-h-screen bg-slate-950">
+        <div className="bg-amber-500 text-slate-950 px-4 py-2 text-xs font-black flex items-center justify-between z-50 sticky top-0 shadow-lg">
+          <span>🔍 Mode Pratinjau Layar Pemeliharaan Siswa (Admin Preview)</span>
+          <button
+            onClick={() => setIsPreviewingMaintenance(false)}
+            className="px-3.5 py-1 rounded-lg bg-slate-950 text-amber-300 hover:bg-slate-900 text-xs font-extrabold transition-colors cursor-pointer"
+          >
+            ✕ Tutup Pratinjau &amp; Kembali ke Dashboard Admin
+          </button>
+        </div>
+        <div className="flex-1">
+          <MaintenanceView
+            config={maintenanceConfig}
+            currentUser={currentUser}
+            onContinueAsAdmin={() => setIsPreviewingMaintenance(false)}
+          />
+        </div>
+      </div>
     );
   }
 
@@ -976,6 +999,7 @@ export default function App() {
         onOpenContact={() => setIsContactModalOpen(true)}
         onOpenTopScores={() => setIsTopScoresOpen(true)}
         onOpenFeedback={() => setIsFeedbackOpen(true)}
+        onOpenMaintenanceSettings={() => setIsMaintenanceSettingsOpen(true)}
         brandingConfig={brandingConfig}
       />
 
@@ -1129,6 +1153,8 @@ export default function App() {
                 onOpenBrandingSettings={() => setIsBrandingSettingsOpen(true)}
                 onOpenExamSettings={() => setIsExamSettingsOpen(true)}
                 onOpenMaintenanceSettings={() => setIsMaintenanceSettingsOpen(true)}
+                maintenanceConfig={maintenanceConfig}
+                onPreviewMaintenance={() => setIsPreviewingMaintenance(true)}
                 showScoreRecap={true}
                 onNavigateToUsers={() => {
                   setCurrentTab('users');

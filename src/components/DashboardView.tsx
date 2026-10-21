@@ -35,6 +35,9 @@ import {
   Trophy
 } from 'lucide-react';
 
+import { JadwalHariIniCard } from './JadwalHariIniCard';
+import { MaintenanceConfig } from './MaintenanceView';
+
 interface DashboardViewProps {
   progress: OverallUserProgress;
   onStartExam: (weekId: number, mode: 'exam' | 'practice') => void;
@@ -47,6 +50,7 @@ interface DashboardViewProps {
   onOpenTopScores?: () => void;
   onNavigateToModules?: () => void;
   viewMode?: 'home' | 'modules' | 'all';
+  maintenanceConfig?: MaintenanceConfig;
 }
 
 const CATEGORY_ICONS: Record<number, React.ReactNode> = {
@@ -488,6 +492,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onOpenTopScores,
   onNavigateToModules,
   viewMode = 'all',
+  maintenanceConfig,
 }) => {
   // Aggregate stats
   const totalAttempts = progress.totalAttempts;
@@ -524,6 +529,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <div className="space-y-6 pb-16">
+      {/* Widget Jadwal Hari Ini & Status Operasional Server */}
+      <JadwalHariIniCard
+        progress={progress}
+        maintenanceConfig={maintenanceConfig}
+        onStartExam={onStartExam}
+        onNavigateToModules={onNavigateToModules}
+      />
+
       {/* 8 Modul Pembelajaran Header (when viewMode is 'modules') */}
       {viewMode === 'modules' && (
         <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white border border-blue-600/30 rounded-2xl p-5 sm:p-6 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden">

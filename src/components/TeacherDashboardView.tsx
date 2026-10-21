@@ -62,6 +62,7 @@ import {
 import { TeacherClassOverview, TeacherStudentSummary, UserProfile, ServerMetrics } from '../types/auth';
 import { HourlyLoginStatsCard } from './HourlyLoginStatsCard';
 import { SecurityMonitoringView } from './SecurityMonitoringView';
+import { MaintenanceConfig } from './MaintenanceView';
 import { StudentReportModal } from './StudentReportModal';
 import { ItemAnalysisView } from './ItemAnalysisView';
 import { 
@@ -331,6 +332,8 @@ interface TeacherDashboardViewProps {
   onOpenBrandingSettings?: () => void;
   onOpenExamSettings?: () => void;
   onOpenMaintenanceSettings?: () => void;
+  maintenanceConfig?: MaintenanceConfig;
+  onPreviewMaintenance?: () => void;
   onNavigateToUsers?: () => void;
   showScoreRecap?: boolean;
 }
@@ -343,6 +346,8 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
   onOpenBrandingSettings,
   onOpenExamSettings,
   onOpenMaintenanceSettings,
+  maintenanceConfig,
+  onPreviewMaintenance,
   onNavigateToUsers,
   showScoreRecap = true
 }) => {
@@ -1025,6 +1030,51 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
         </div>
       )}
 
+      {/* Top Banner Warning when Maintenance Mode is ON */}
+      {maintenanceConfig?.enabled && !isStudent && (
+        <div className="bg-gradient-to-r from-amber-600 via-amber-700 to-orange-700 text-white p-4 rounded-3xl shadow-lg flex flex-wrap items-center justify-between gap-4 border border-amber-500/40 animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-black/25 flex items-center justify-center text-amber-200 shrink-0 border border-amber-400/30">
+              <Wrench className="w-5 h-5 animate-pulse" />
+            </div>
+            <div>
+              <div className="font-extrabold text-sm sm:text-base flex items-center gap-2">
+                <span>MODE PEMELIHARAAN (MAINTENANCE) AKTIF</span>
+                <span className="px-2 py-0.5 rounded-full bg-slate-950/80 text-[10px] font-black uppercase text-amber-300 border border-amber-400/40">
+                  Layanan Siswa Ditutup
+                </span>
+              </div>
+              <p className="text-xs text-amber-100/90 mt-0.5">
+                {maintenanceConfig.title || 'Sistem dalam pemeliharaan berkala.'} Sisa countdown timer dapat diatur kapan saja.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {onOpenMaintenanceSettings && (
+              <button
+                type="button"
+                onClick={onOpenMaintenanceSettings}
+                className="px-4 py-2 rounded-xl bg-white text-slate-950 hover:bg-amber-50 text-xs font-black shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <Wrench className="w-3.5 h-3.5 text-amber-600" />
+                <span>Atur Timer / Matikan</span>
+              </button>
+            )}
+            {onPreviewMaintenance && (
+              <button
+                type="button"
+                onClick={onPreviewMaintenance}
+                className="px-3.5 py-2 rounded-xl bg-black/30 hover:bg-black/40 text-amber-100 border border-amber-300/30 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>Pratinjau Layar Siswa</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Container 1: Header Title & Actions Banner */}
       <section className="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white rounded-3xl border border-blue-600/30 p-6 sm:p-8 shadow-md relative overflow-visible">
         {/* Decorative background glow circle */}
@@ -1048,7 +1098,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
             </p>
           </div>
 
-          <div className="flex items-center gap-2 self-start md:self-center shrink-0">
+          <div className="flex items-center gap-2 self-start md:self-center shrink-0 flex-wrap">
             {isStudent && data?.students?.[0] && (
               <button
                 type="button"
@@ -1058,6 +1108,28 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
               >
                 <Award className="w-4 h-4 text-amber-500" />
                 <span>Buka 10 Rancangan Rapor</span>
+              </button>
+            )}
+
+            {/* Direct Standalone Quick Action Button for Maintenance Mode */}
+            {!isStudent && onOpenMaintenanceSettings && (
+              <button
+                type="button"
+                onClick={onOpenMaintenanceSettings}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer ${
+                  maintenanceConfig?.enabled
+                    ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 ring-2 ring-amber-200 animate-pulse'
+                    : 'bg-white/15 hover:bg-white/25 active:bg-white/30 text-white border border-white/25 backdrop-blur-md'
+                }`}
+                title="Kelola & Atur Mode Pemeliharaan Sistem (Maintenance)"
+              >
+                <Wrench className={`w-4 h-4 ${maintenanceConfig?.enabled ? 'text-slate-950' : 'text-amber-300'}`} />
+                <span>Mode Maintenance</span>
+                {maintenanceConfig?.enabled && (
+                  <span className="px-1.5 py-0.5 rounded bg-slate-950 text-amber-400 text-[10px] font-black uppercase">
+                    ON
+                  </span>
+                )}
               </button>
             )}
 

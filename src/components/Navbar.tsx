@@ -14,7 +14,8 @@ import {
   Users,
   Building2,
   Trophy,
-  MessageSquarePlus
+  MessageSquarePlus,
+  Wrench
 } from 'lucide-react';
 import { UserProfile } from '../types/auth';
 import { Theme } from '../utils/theme';
@@ -29,6 +30,7 @@ interface NavbarProps {
   onOpenSettings?: () => void;
   onOpenTopScores?: () => void;
   onOpenFeedback?: () => void;
+  onOpenMaintenanceSettings?: () => void;
   theme?: Theme;
   onToggleTheme?: () => void;
   onOpenContact?: () => void;
@@ -44,6 +46,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenSettings,
   onOpenTopScores,
   onOpenFeedback,
+  onOpenMaintenanceSettings,
   theme,
   onToggleTheme,
   onOpenContact,
@@ -193,6 +196,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <Building2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                   <span>Daftar Sekolah</span>
                 </button>
+
+                {onOpenMaintenanceSettings && (
+                  <button
+                    onClick={onOpenMaintenanceSettings}
+                    className="flex items-center gap-1.5 py-1.5 text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 font-bold transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                    title="Pengaturan Mode Pemeliharaan & Timer Countdown"
+                  >
+                    <Wrench className="w-4 h-4 text-amber-500" />
+                    <span>Maintenance</span>
+                  </button>
+                )}
               </>
             )}
           </nav>
