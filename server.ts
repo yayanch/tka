@@ -2241,10 +2241,19 @@ app.get('/api/teacher/overview', async (req: Request, res: Response) => {
     let allSessions: any[] = [];
 
     if (isMySqlConnected && pool) {
-      const [uRows]: any = await pool.query('SELECT * FROM users ORDER BY created_at DESC');
-      const [sRows]: any = await pool.query('SELECT * FROM exam_sessions ORDER BY created_at DESC');
-      allUsers = uRows || [];
-      allSessions = sRows || [];
+      try {
+        const [uRows]: any = await pool.query('SELECT * FROM users ORDER BY created_at DESC');
+        const [sRows]: any = await pool.query('SELECT * FROM exam_sessions ORDER BY created_at DESC');
+        allUsers = uRows || [];
+        allSessions = sRows || [];
+      } catch (dbErr: any) {
+        if (dbErr.message && (dbErr.message.includes('max_connections_per_hour') || dbErr.message.includes('too many connections') || dbErr.message.includes('ECONNREFUSED'))) {
+          console.warn(`[Database] MySQL connection limit reached (${dbErr.message}). Switching to high-availability in-memory store.`);
+          isMySqlConnected = false;
+        }
+        allUsers = Array.from(memoryStore.users.values());
+        allSessions = memoryStore.examSessions;
+      }
     } else {
       allUsers = Array.from(memoryStore.users.values());
       allSessions = memoryStore.examSessions;

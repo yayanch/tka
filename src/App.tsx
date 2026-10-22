@@ -23,7 +23,6 @@ import { ExamSettingsModal } from './components/ExamSettingsModal';
 import { MaintenanceView, MaintenanceConfig, DEFAULT_MAINTENANCE_CONFIG } from './components/MaintenanceView';
 import { MaintenanceSettingsModal } from './components/MaintenanceSettingsModal';
 import { ModuleSettingsModal, ModuleStatusConfig, DEFAULT_MODULE_STATUS_CONFIG } from './components/ModuleSettingsModal';
-import { LiveChatWidget } from './components/LiveChatWidget';
 import { getExamDurationForWeek } from './utils/examSettingsStorage';
 import { FeedbackNotificationModal } from './components/FeedbackNotificationModal';
 import { HeroConfig, DEFAULT_HERO_CONFIG } from './utils/heroStorage';
@@ -1344,7 +1343,6 @@ export default function App() {
           </div>
         </div>
       </footer>
-      <LiveChatWidget currentUser={currentUser} />
     </div>
   );
 }
