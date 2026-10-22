@@ -51,83 +51,81 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
   const totalSchools = config.totalSchoolsCount || '483';
   const onlineStudents = config.onlineStudentsCount || (liveOnline !== null ? String(liveOnline) : '13');
 
-  // Hero Stats Items Component without fill and border
+  // Hero Stats Items Component without fill and border: Number & Icon at top, Text below
   const renderHeroStatsCards = (isHeroDark = true) => (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-10 w-full">
       {/* Item 1: Total Siswa Terdaftar */}
-      <div className="flex flex-col justify-between py-1 transition-transform duration-300 hover:-translate-y-0.5">
-        <div className="flex items-center justify-between gap-3">
-          <span className={`text-xs sm:text-sm font-bold block leading-tight tracking-wide ${
-            isHeroDark ? 'text-blue-100/80' : 'text-slate-500 dark:text-slate-400'
+      <div className="flex flex-col py-1 transition-transform duration-300 hover:-translate-y-0.5">
+        <div className="flex items-center gap-2.5">
+          <div className={`text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight tabular-nums ${
+            isHeroDark ? 'text-white' : 'text-slate-900 dark:text-white'
           }`}>
-            Total Siswa Terdaftar
-          </span>
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 hover:scale-105 ${
+            {totalStudents}
+          </div>
+          <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 hover:scale-105 ${
             isHeroDark 
               ? 'bg-blue-500/20 text-blue-300'
               : 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'
           }`}>
-            <Users className="w-5 h-5" />
+            <Users className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
           </div>
         </div>
-        <div className={`mt-3 text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight tabular-nums ${
-          isHeroDark ? 'text-white' : 'text-slate-900 dark:text-white'
+        <div className={`mt-1.5 text-xs sm:text-sm font-bold leading-tight tracking-wide ${
+          isHeroDark ? 'text-blue-100/80' : 'text-slate-500 dark:text-slate-400'
         }`}>
-          {totalStudents}
+          Total Siswa Terdaftar
         </div>
       </div>
 
       {/* Item 2: Jumlah Sekolah Terdaftar */}
-      <div className="flex flex-col justify-between py-1 transition-transform duration-300 hover:-translate-y-0.5">
-        <div className="flex items-center justify-between gap-3">
-          <span className={`text-xs sm:text-sm font-bold block leading-tight tracking-wide ${
-            isHeroDark ? 'text-purple-100/80' : 'text-slate-500 dark:text-slate-400'
+      <div className="flex flex-col py-1 transition-transform duration-300 hover:-translate-y-0.5">
+        <div className="flex items-center gap-2.5">
+          <div className={`text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight tabular-nums ${
+            isHeroDark ? 'text-purple-400' : 'text-purple-600 dark:text-purple-400'
           }`}>
-            Jumlah Sekolah Terdaftar
-          </span>
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 hover:scale-105 ${
+            {totalSchools}
+          </div>
+          <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 hover:scale-105 ${
             isHeroDark 
               ? 'bg-purple-500/20 text-purple-300'
               : 'bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400'
           }`}>
-            <School className="w-5 h-5" />
+            <School className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
           </div>
         </div>
-        <div className={`mt-3 text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight tabular-nums ${
-          isHeroDark ? 'text-purple-400' : 'text-purple-600 dark:text-purple-400'
+        <div className={`mt-1.5 text-xs sm:text-sm font-bold leading-tight tracking-wide ${
+          isHeroDark ? 'text-purple-100/80' : 'text-slate-500 dark:text-slate-400'
         }`}>
-          {totalSchools}
+          Jumlah Sekolah Terdaftar
         </div>
       </div>
 
       {/* Item 3: Siswa Sedang Online */}
-      <div className="flex flex-col justify-between py-1 transition-transform duration-300 hover:-translate-y-0.5">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className={`text-xs sm:text-sm font-bold block leading-tight truncate tracking-wide ${
-              isHeroDark ? 'text-emerald-100/80' : 'text-slate-500 dark:text-slate-400'
-            }`}>
-              Siswa Sedang Online
-            </span>
-            <span className="relative flex h-2.5 w-2.5 shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className={`relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400 ${
-                isHeroDark ? 'shadow-[0_0_10px_rgba(52,211,153,0.9)]' : ''
-              }`}></span>
-            </span>
+      <div className="flex flex-col py-1 transition-transform duration-300 hover:-translate-y-0.5">
+        <div className="flex items-center gap-2.5">
+          <div className={`text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight tabular-nums ${
+            isHeroDark ? 'text-emerald-400' : 'text-emerald-600 dark:text-emerald-400'
+          }`}>
+            {onlineStudents}
           </div>
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 hover:scale-105 ${
+          <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 hover:scale-105 ${
             isHeroDark 
               ? 'bg-emerald-500/20 text-emerald-300'
               : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400'
           }`}>
-            <Radio className="w-5 h-5" />
+            <Radio className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
           </div>
         </div>
-        <div className={`mt-3 text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight tabular-nums ${
-          isHeroDark ? 'text-emerald-400' : 'text-emerald-600 dark:text-emerald-400'
+        <div className={`mt-1.5 flex items-center gap-1.5 text-xs sm:text-sm font-bold leading-tight tracking-wide ${
+          isHeroDark ? 'text-emerald-100/80' : 'text-slate-500 dark:text-slate-400'
         }`}>
-          {onlineStudents}
+          <span>Siswa Sedang Online</span>
+          <span className="relative flex h-2 w-2 shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className={`relative inline-flex rounded-full h-2 w-2 bg-emerald-400 ${
+              isHeroDark ? 'shadow-[0_0_8px_rgba(52,211,153,0.9)]' : ''
+            }`}></span>
+          </span>
         </div>
       </div>
     </div>
@@ -222,8 +220,8 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
             {config.description}
           </p>
 
-          {onOpenAuth && (
-            <div className="flex items-center gap-3 pt-2">
+          <div className="flex items-center gap-3 pt-2 flex-wrap">
+            {onOpenAuth && (
               <button
                 onClick={() => onOpenAuth('register')}
                 className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-extrabold text-xs sm:text-sm shadow-xl shadow-blue-600/30 transition-all cursor-pointer transform hover:-translate-y-0.5"
@@ -231,8 +229,18 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
                 <span>Daftar &amp; Mulai Ujian</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
-            </div>
-          )}
+            )}
+
+            {onOpenTopScores && (
+              <button
+                onClick={onOpenTopScores}
+                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-amber-500/25 transition-all cursor-pointer transform hover:-translate-y-0.5"
+              >
+                <Trophy className="w-4 h-4 text-slate-950" />
+                <span>🏆 Top Skor &amp; Leaderboard</span>
+              </button>
+            )}
+          </div>
 
           {/* 3 Main Hero Stats Cards (Total Siswa Terdaftar, Jumlah Sekolah Terdaftar, Siswa Sedang Online) */}
           <div className="pt-2">

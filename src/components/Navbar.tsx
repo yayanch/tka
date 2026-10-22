@@ -205,21 +205,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           </nav>
         )}
 
-        {/* Zone 3: User Auth, Theme Switch & Leaderboard */}
-        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-          {/* Top Skor & Leaderboard Button in Header */}
-          {onOpenTopScores && (
-            <button
-              type="button"
-              onClick={onOpenTopScores}
-              className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-950 font-black text-xs sm:text-sm shadow-md shadow-amber-500/25 transition-all cursor-pointer transform hover:-translate-y-0.5 shrink-0 whitespace-nowrap"
-              title="Lihat Peringkat Top Skor & Leaderboard"
-            >
-              <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950 stroke-[2.5]" />
-              <span className="hidden sm:inline">🏆 Top Skor &amp; Leaderboard</span>
-              <span className="inline sm:hidden">🏆 Top Skor</span>
-            </button>
-          )}
+        {/* Zone 3: User Auth & Theme Switch */}
+        <div className="flex items-center gap-2.5 shrink-0">
           {/* Dark Mode Switch Button */}
           {onToggleTheme && (
             <button

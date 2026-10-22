@@ -75,7 +75,7 @@ export const TopScoresModal: React.FC<TopScoresModalProps> = ({
         {/* Header */}
         <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-amber-500/10 via-blue-500/5 to-transparent">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+            <div className="w-11 h-11 rounded-2xl bg-amber-500/20 border border-amber-500/30 hidden sm:flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
               <Trophy className="w-6 h-6" />
             </div>
             <div>
@@ -131,7 +131,8 @@ export const TopScoresModal: React.FC<TopScoresModalProps> = ({
                   >
                     <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                       <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-black text-xs sm:text-sm shadow-xs shrink-0 ${getRankBadgeStyle(rank)}`}>
-                        {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank}
+                        <span className="hidden sm:inline">{rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank}</span>
+                        <span className="inline sm:hidden">{rank}</span>
                       </div>
 
                       <div className="min-w-0 space-y-0.5">
