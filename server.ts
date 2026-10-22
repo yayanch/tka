@@ -254,18 +254,10 @@ const SAMPLE_SECURITY_LOGS = [
 ];
 SAMPLE_SECURITY_LOGS.forEach(l => memoryStore.securityLogs.push(l));
 
-// Track real-time online presence heartbeats (email -> last heartbeat timestamp)
+// Track real-time online presence heartbeats (identifier -> last heartbeat timestamp)
 const activeHeartbeats = new Map<string, number>();
-// Track when current online session started (email -> start timestamp)
+// Track when current online session started (identifier -> start timestamp)
 const onlineSessionStarts = new Map<string, number>();
-
-// Seed sample active presence for demo students
-const nowInit = Date.now();
-activeHeartbeats.set('budi.raharjo@smk.belajar.id', nowInit);
-onlineSessionStarts.set('budi.raharjo@smk.belajar.id', nowInit - 28 * 60 * 1000); // 28 minutes online
-
-activeHeartbeats.set('siti.aminah@smk.belajar.id', nowInit);
-onlineSessionStarts.set('siti.aminah@smk.belajar.id', nowInit - 74 * 60 * 1000); // 1 hour 14 minutes online
 
 // Seed sample teacher and student so demo starts with rich data if fresh
 const DEFAULT_STUDENTS = [
@@ -1261,23 +1253,24 @@ app.post('/api/auth/register', async (req: Request, res: Response) => {
       if (existing) {
         return res.status(400).json({ error: 'Email sudah terdaftar. Silakan langsung masuk ke akun Anda.' });
       }
-
-      memoryStore.users.set(cleanEmail, {
-        id: userId,
-        nama_lengkap: namaLengkap,
-        provinsi: provinsi,
-        kabupaten_kota: kabupatenKota,
-        asal_sekolah: asalSekolah,
-        email: cleanEmail,
-        password_hash: password || '123456',
-        role: 'siswa',
-        auth_provider: 'local',
-        is_verified: 1,
-        verification_code: null,
-        verification_expires_at: null,
-        created_at: new Date().toISOString(),
-      });
     }
+
+    // Always maintain memory store in sync for fast in-memory lookups
+    memoryStore.users.set(cleanEmail, {
+      id: userId,
+      nama_lengkap: namaLengkap,
+      provinsi: provinsi,
+      kabupaten_kota: kabupatenKota,
+      asal_sekolah: asalSekolah,
+      email: cleanEmail,
+      password_hash: password || '123456',
+      role: 'siswa',
+      auth_provider: 'local',
+      is_verified: 1,
+      verification_code: null,
+      verification_expires_at: null,
+      created_at: new Date().toISOString(),
+    });
 
     return res.json({
       success: true,
@@ -2122,53 +2115,97 @@ app.post('/api/teacher/update-student', async (req: Request, res: Response) => {
   }
 });
 
-// Helper to clean up expired heartbeats (> 2 minutes inactive)
+// Helper to clean up expired heartbeats (> 75s inactive)
 function purgeExpiredHeartbeats() {
   const now = Date.now();
-  for (const [email, timestamp] of activeHeartbeats.entries()) {
-    // Keep sample demo students refreshed so teacher dashboard preview always shows active students
-    if (email === 'budi.raharjo@smk.belajar.id' || email === 'siti.aminah@smk.belajar.id') {
-      activeHeartbeats.set(email, now);
-      continue;
-    }
-    if (now - timestamp >= 120000) {
-      activeHeartbeats.delete(email);
-      onlineSessionStarts.delete(email);
+  for (const [identifier, timestamp] of activeHeartbeats.entries()) {
+    if (now - timestamp >= 75000) {
+      activeHeartbeats.delete(identifier);
+      onlineSessionStarts.delete(identifier);
     }
   }
 }
 
-// Heartbeat endpoint for tracking real-time online status of users
+// Heartbeat endpoint for tracking real-time online status of users & visitors
 app.post('/api/auth/heartbeat', (req: Request, res: Response) => {
-  const email = (req.body.email || '').trim().toLowerCase();
+  const identifier = (req.body.email || req.body.clientId || req.body.visitorId || '').trim().toLowerCase();
   const now = Date.now();
-  if (email) {
-    activeHeartbeats.set(email, now);
-    if (!onlineSessionStarts.has(email)) {
-      onlineSessionStarts.set(email, now);
+  if (identifier) {
+    activeHeartbeats.set(identifier, now);
+    if (!onlineSessionStarts.has(identifier)) {
+      onlineSessionStarts.set(identifier, now);
     }
   }
   purgeExpiredHeartbeats();
-  return res.json({ success: true, timestamp: now });
+  return res.json({ success: true, timestamp: now, onlineCount: activeHeartbeats.size });
 });
 
 // Logout presence endpoint to immediately mark user offline
 app.post('/api/auth/logout-presence', (req: Request, res: Response) => {
-  let email = '';
-  if (typeof req.body === 'object' && req.body?.email) {
-    email = String(req.body.email).trim().toLowerCase();
+  let identifier = '';
+  if (typeof req.body === 'object' && req.body) {
+    identifier = String(req.body.email || req.body.clientId || '').trim().toLowerCase();
   } else if (typeof req.body === 'string') {
     try {
       const parsed = JSON.parse(req.body);
-      email = String(parsed.email || '').trim().toLowerCase();
+      identifier = String(parsed.email || parsed.clientId || '').trim().toLowerCase();
     } catch {}
   }
-  if (email) {
-    activeHeartbeats.delete(email);
-    onlineSessionStarts.delete(email);
+  if (identifier) {
+    activeHeartbeats.delete(identifier);
+    onlineSessionStarts.delete(identifier);
   }
   purgeExpiredHeartbeats();
   return res.json({ success: true });
+});
+
+// Public live stats endpoint for Hero Banner (Total Siswa, Jumlah Sekolah, Siswa Online)
+app.get('/api/public/stats', async (_req: Request, res: Response) => {
+  try {
+    purgeExpiredHeartbeats();
+    let totalStudents = 0;
+    let totalSchools = 0;
+
+    if (isMySqlConnected && pool) {
+      try {
+        const [studentRows]: any = await pool.query(
+          "SELECT COUNT(*) AS count FROM users WHERE role != 'admin'"
+        );
+        totalStudents = Number(studentRows[0]?.count) || 0;
+
+        const [schoolRows]: any = await pool.query(
+          "SELECT COUNT(DISTINCT UPPER(TRIM(asal_sekolah))) AS count FROM users WHERE role != 'admin' AND asal_sekolah IS NOT NULL AND TRIM(asal_sekolah) != ''"
+        );
+        totalSchools = Number(schoolRows[0]?.count) || 0;
+      } catch (dbErr) {
+        console.error('[Public Stats] MySQL count error, falling back to memoryStore:', dbErr);
+      }
+    }
+
+    if (totalStudents === 0 && memoryStore.users.size > 0) {
+      const nonAdminUsers = Array.from(memoryStore.users.values()).filter(u => u.role !== 'admin');
+      totalStudents = nonAdminUsers.length;
+      const schools = new Set(
+        nonAdminUsers
+          .map(u => (u.asal_sekolah || u.asalSekolah || '').trim().toUpperCase())
+          .filter(s => s.length > 0)
+      );
+      totalSchools = schools.size;
+    }
+
+    // Real-time online presence: dynamic count based on active heartbeats
+    const onlineStudents = Math.max(1, activeHeartbeats.size);
+
+    return res.json({
+      success: true,
+      totalStudents,
+      totalSchools,
+      onlineStudents,
+      timestamp: Date.now(),
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 
@@ -2632,6 +2669,7 @@ function getVpsHardwareMetrics(onlineCount: number) {
     uptimeFormatted,
     latencyMs: Math.round(6 + Math.random() * 8),
     activeOnlineStudents: onlineCount,
+    activeOnlineSessions: onlineCount,
     serverStatus,
   };
 }

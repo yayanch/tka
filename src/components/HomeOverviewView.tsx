@@ -23,6 +23,12 @@ interface HomeOverviewViewProps {
   heroConfig?: HeroConfig;
 }
 
+interface LiveStats {
+  totalStudents: number | null;
+  totalSchools: number | null;
+  onlineStudents: number | null;
+}
+
 export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
   currentUser,
   onOpenAuth,
@@ -32,24 +38,53 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
   heroConfig,
 }) => {
   const config = heroConfig || getStoredHeroConfig();
-  const [liveOnline, setLiveOnline] = useState<number | null>(null);
+  const [liveStats, setLiveStats] = useState<LiveStats>({
+    totalStudents: null,
+    totalSchools: null,
+    onlineStudents: null,
+  });
 
   useEffect(() => {
     let isMounted = true;
-    fetch('/api/server/metrics')
-      .then(res => res.json())
-      .then(data => {
-        if (isMounted && data && typeof data.activeOnlineSessions === 'number') {
-          setLiveOnline(data.activeOnlineSessions);
+    const fetchPublicStats = async () => {
+      try {
+        const res = await fetch('/api/public/stats');
+        const data = await res.json();
+        if (isMounted && data && data.success) {
+          setLiveStats({
+            totalStudents: typeof data.totalStudents === 'number' ? data.totalStudents : null,
+            totalSchools: typeof data.totalSchools === 'number' ? data.totalSchools : null,
+            onlineStudents: typeof data.onlineStudents === 'number' ? data.onlineStudents : null,
+          });
         }
-      })
-      .catch(() => {});
-    return () => { isMounted = false; };
+      } catch {
+        // ignore network error
+      }
+    };
+
+    fetchPublicStats();
+    const interval = setInterval(fetchPublicStats, 3000);
+
+    const handleRefresh = () => {
+      fetchPublicStats();
+    };
+
+    window.addEventListener('focus', handleRefresh);
+    window.addEventListener('visibilitychange', handleRefresh);
+    window.addEventListener('tka_stats_refresh', handleRefresh);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+      window.removeEventListener('focus', handleRefresh);
+      window.removeEventListener('visibilitychange', handleRefresh);
+      window.removeEventListener('tka_stats_refresh', handleRefresh);
+    };
   }, []);
 
-  const totalStudents = config.totalStudentsCount || '2315';
-  const totalSchools = config.totalSchoolsCount || '483';
-  const onlineStudents = config.onlineStudentsCount || (liveOnline !== null ? String(liveOnline) : '13');
+  const totalStudents = config.totalStudentsCount || (liveStats.totalStudents !== null ? String(liveStats.totalStudents) : '2315');
+  const totalSchools = config.totalSchoolsCount || (liveStats.totalSchools !== null ? String(liveStats.totalSchools) : '483');
+  const onlineStudents = config.onlineStudentsCount || (liveStats.onlineStudents !== null ? String(liveStats.onlineStudents) : '1');
 
   // Hero Stats Items Component: centered on mobile, left-aligned on desktop
   const renderHeroStatsCards = (isHeroDark = true) => (

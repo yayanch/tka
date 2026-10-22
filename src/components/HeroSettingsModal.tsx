@@ -332,11 +332,12 @@ export const HeroSettingsModal: React.FC<HeroSettingsModalProps> = ({
                   <span className="text-[11px] font-bold text-blue-700 dark:text-blue-300">Total Siswa Terdaftar</span>
                   <input
                     type="text"
-                    value={config.totalStudentsCount ?? '2315'}
+                    value={config.totalStudentsCount ?? ''}
                     onChange={(e) => handleChange('totalStudentsCount', e.target.value)}
                     className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-extrabold outline-none"
-                    placeholder="2315"
+                    placeholder="Otomatis (Database Real-time)"
                   />
+                  <span className="block text-[10px] text-slate-400 leading-tight">Kosongkan untuk otomatis real-time</span>
                 </div>
 
                 {/* Jumlah Sekolah */}
@@ -344,11 +345,12 @@ export const HeroSettingsModal: React.FC<HeroSettingsModalProps> = ({
                   <span className="text-[11px] font-bold text-purple-700 dark:text-purple-300">Jumlah Sekolah Terdaftar</span>
                   <input
                     type="text"
-                    value={config.totalSchoolsCount ?? '483'}
+                    value={config.totalSchoolsCount ?? ''}
                     onChange={(e) => handleChange('totalSchoolsCount', e.target.value)}
                     className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-extrabold outline-none"
-                    placeholder="483"
+                    placeholder="Otomatis (Database Real-time)"
                   />
+                  <span className="block text-[10px] text-slate-400 leading-tight">Kosongkan untuk otomatis real-time</span>
                 </div>
 
                 {/* Siswa Sedang Online */}
@@ -356,11 +358,12 @@ export const HeroSettingsModal: React.FC<HeroSettingsModalProps> = ({
                   <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">Siswa Sedang Online</span>
                   <input
                     type="text"
-                    value={config.onlineStudentsCount ?? '13'}
+                    value={config.onlineStudentsCount ?? ''}
                     onChange={(e) => handleChange('onlineStudentsCount', e.target.value)}
                     className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-extrabold outline-none"
-                    placeholder="13"
+                    placeholder="Otomatis (Sesi Real-time)"
                   />
+                  <span className="block text-[10px] text-slate-400 leading-tight">Kosongkan untuk otomatis real-time</span>
                 </div>
               </div>
             </div>

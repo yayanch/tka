@@ -517,6 +517,37 @@ export default function App() {
     }
   }, [navigateState]);
 
+  // Periodic heartbeat to track real-time online presence (works for logged-in users and guest visitors)
+  useEffect(() => {
+    let clientId = sessionStorage.getItem('tka_client_id');
+    if (!clientId) {
+      clientId = 'guest_' + Math.random().toString(36).substring(2, 9);
+      sessionStorage.setItem('tka_client_id', clientId);
+    }
+
+    const triggerHeartbeat = () => {
+      const targetIdentifier = currentUser?.email || clientId;
+      if (targetIdentifier) {
+        sendHeartbeat(targetIdentifier);
+      }
+    };
+
+    triggerHeartbeat();
+    const interval = setInterval(triggerHeartbeat, 18000);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        triggerHeartbeat();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [currentUser?.email]);
+
   // Auto-sync user progress whenever currentUser changes (login, session restore)
   useEffect(() => {
     if (currentUser?.id || currentUser?.email) {

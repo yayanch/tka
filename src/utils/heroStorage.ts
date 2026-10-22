@@ -31,9 +31,9 @@ export const DEFAULT_HERO_CONFIG: HeroConfig = {
   stat4Label: 'Skor & Pembahasan',
   titleFontSize: 'text-3xl sm:text-5xl lg:text-6xl',
   descFontSize: 'text-base sm:text-lg lg:text-xl',
-  totalStudentsCount: '2315',
-  totalSchoolsCount: '483',
-  onlineStudentsCount: '13',
+  totalStudentsCount: '',
+  totalSchoolsCount: '',
+  onlineStudentsCount: '',
 };
 
 const STORAGE_HERO_KEY = 'tka_hero_config_v3';
@@ -42,7 +42,12 @@ export function getStoredHeroConfig(): HeroConfig {
   try {
     const raw = localStorage.getItem(STORAGE_HERO_KEY);
     if (raw) {
-      return { ...DEFAULT_HERO_CONFIG, ...JSON.parse(raw) };
+      const parsed = JSON.parse(raw);
+      // If stored values are old hardcoded defaults, clear them so live database stats are used
+      if (parsed.totalStudentsCount === '2315') parsed.totalStudentsCount = '';
+      if (parsed.totalSchoolsCount === '483') parsed.totalSchoolsCount = '';
+      if (parsed.onlineStudentsCount === '13') parsed.onlineStudentsCount = '';
+      return { ...DEFAULT_HERO_CONFIG, ...parsed };
     }
   } catch (e) {
     console.error('Error loading hero config:', e);
