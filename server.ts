@@ -274,7 +274,7 @@ const DEFAULT_STUDENTS = [
     nama_lengkap: 'Administrator / Guru Utama TJKT',
     asal_sekolah: 'SMKN 1 Cimahi (Dinas Pendidikan)',
     email: 'admin@smk.belajar.id',
-    password_hash: 'admin123',
+    password_hash: 'Lup@12345*',
     role: 'admin',
     auth_provider: 'local',
     is_verified: 1,
@@ -441,8 +441,48 @@ const SAMPLE_SESSIONS = [
 
 SAMPLE_SESSIONS.forEach(s => memoryStore.examSessions.push(s));
 
+// Guarantee Admin account password state across DB and memory
+async function ensureAdminAccount() {
+  const adminEmail = 'admin@smk.belajar.id';
+  const adminPass = 'Lup@12345*';
+
+  let adminUser = memoryStore.users.get(adminEmail);
+  if (!adminUser) {
+    adminUser = {
+      id: 'usr_admin_1',
+      nama_lengkap: 'Administrator / Guru Utama TJKT',
+      asal_sekolah: 'SMKN 1 Cimahi (Dinas Pendidikan)',
+      email: adminEmail,
+      password_hash: adminPass,
+      role: 'admin',
+      auth_provider: 'local',
+      is_verified: 1,
+    };
+    memoryStore.users.set(adminEmail, adminUser);
+  } else {
+    adminUser.password_hash = adminPass;
+    adminUser.role = 'admin';
+    adminUser.is_verified = 1;
+    memoryStore.users.set(adminEmail, adminUser);
+  }
+
+  if (isMySqlConnected && pool) {
+    try {
+      await pool.query(
+        `INSERT INTO users (id, nama_lengkap, asal_sekolah, email, password_hash, role, auth_provider, is_verified)
+         VALUES ('usr_admin_1', 'Administrator / Guru Utama TJKT', 'SMKN 1 Cimahi (Dinas Pendidikan)', ?, ?, 'admin', 'local', 1)
+         ON DUPLICATE KEY UPDATE password_hash = ?, role = 'admin', is_verified = 1`,
+        [adminEmail, adminPass, adminPass]
+      );
+    } catch (e) {
+      // ignore
+    }
+  }
+}
+
 // Guarantee Yayan Cahyana perfect score state across DB and memory
 async function ensureYayanCahyanaPerfectScores() {
+  await ensureAdminAccount();
   const yayanEmail = 'ya2n.cahyana@gmail.com';
   const yayanName = 'Yayan Cahyana';
   const yayanSchool = 'SMKN 1 Cimahi';
@@ -1217,6 +1257,7 @@ async function initDatabase() {
       options: typeof q.options === 'string' ? JSON.parse(q.options) : q.options,
     }));
 
+    await ensureAdminAccount();
     conn.release();
     console.log('[Database] MySQL tables verified and memory store synchronized successfully.');
   } catch (err: any) {
