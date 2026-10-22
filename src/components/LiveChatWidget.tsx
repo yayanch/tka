@@ -29,6 +29,8 @@ interface LiveChatWidgetProps {
 }
 
 export const LiveChatWidget: React.FC<LiveChatWidgetProps> = ({ currentUser }) => {
+  if (!currentUser) return null;
+
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -109,7 +111,7 @@ export const LiveChatWidget: React.FC<LiveChatWidgetProps> = ({ currentUser }) =
 
   if (!isOpen) {
     return (
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-24 right-6 z-50">
         <button
           onClick={() => setIsOpen(true)}
           className="relative group w-14 h-14 bg-gradient-to-tr from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all transform hover:scale-110 cursor-pointer border-2 border-white/40 dark:border-slate-800 flex items-center justify-center"
@@ -124,7 +126,7 @@ export const LiveChatWidget: React.FC<LiveChatWidgetProps> = ({ currentUser }) =
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-full max-w-sm sm:max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+    <div className="fixed bottom-24 right-6 z-50 w-full max-w-sm sm:max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
       {/* Header */}
       <div className="p-4 bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white flex items-center justify-between">
         <div className="flex items-center gap-3">
