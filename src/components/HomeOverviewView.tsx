@@ -220,18 +220,8 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
             {config.description}
           </p>
 
-          <div className="flex items-center gap-3 pt-2 flex-wrap">
-            {onOpenAuth && (
-              <button
-                onClick={() => onOpenAuth('register')}
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-extrabold text-xs sm:text-sm shadow-xl shadow-blue-600/30 transition-all cursor-pointer transform hover:-translate-y-0.5"
-              >
-                <span>Daftar &amp; Mulai Ujian</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            )}
-
-            {onOpenTopScores && (
+          {onOpenTopScores && (
+            <div className="flex items-center gap-3 pt-2">
               <button
                 onClick={onOpenTopScores}
                 className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-amber-500/25 transition-all cursor-pointer transform hover:-translate-y-0.5"
@@ -239,8 +229,8 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
                 <Trophy className="w-4 h-4 text-slate-950" />
                 <span>🏆 Top Skor &amp; Leaderboard</span>
               </button>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* 3 Main Hero Stats Cards (Total Siswa Terdaftar, Jumlah Sekolah Terdaftar, Siswa Sedang Online) */}
           <div className="pt-2">
