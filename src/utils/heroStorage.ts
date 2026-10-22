@@ -12,6 +12,9 @@ export interface HeroConfig {
   stat4Label: string;
   titleFontSize: string; // e.g. 'text-3xl sm:text-5xl lg:text-6xl'
   descFontSize: string;  // e.g. 'text-base sm:text-lg lg:text-xl'
+  totalStudentsCount?: string;
+  totalSchoolsCount?: string;
+  onlineStudentsCount?: string;
 }
 
 export const DEFAULT_HERO_CONFIG: HeroConfig = {
@@ -28,6 +31,9 @@ export const DEFAULT_HERO_CONFIG: HeroConfig = {
   stat4Label: 'Skor & Pembahasan',
   titleFontSize: 'text-3xl sm:text-5xl lg:text-6xl',
   descFontSize: 'text-base sm:text-lg lg:text-xl',
+  totalStudentsCount: '2315',
+  totalSchoolsCount: '483',
+  onlineStudentsCount: '13',
 };
 
 const STORAGE_HERO_KEY = 'tka_hero_config_v3';

@@ -1,5 +1,16 @@
-import React from 'react';
-import { GraduationCap, ArrowRight, Edit3, Network, Server, Wifi, Trophy } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+  GraduationCap, 
+  ArrowRight, 
+  Edit3, 
+  Network, 
+  Server, 
+  Wifi, 
+  Trophy,
+  Users,
+  School,
+  Radio
+} from 'lucide-react';
 import { UserProfile } from '../types/auth';
 import { HeroConfig, getStoredHeroConfig } from '../utils/heroStorage';
 
@@ -21,8 +32,108 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
   heroConfig,
 }) => {
   const config = heroConfig || getStoredHeroConfig();
+  const [liveOnline, setLiveOnline] = useState<number | null>(null);
 
-  // If user is logged in, show clean role overview or shortcut card instead of public promo hero banner
+  useEffect(() => {
+    let isMounted = true;
+    fetch('/api/server/metrics')
+      .then(res => res.json())
+      .then(data => {
+        if (isMounted && data && typeof data.activeOnlineSessions === 'number') {
+          setLiveOnline(data.activeOnlineSessions);
+        }
+      })
+      .catch(() => {});
+    return () => { isMounted = false; };
+  }, []);
+
+  const totalStudents = config.totalStudentsCount || '2315';
+  const totalSchools = config.totalSchoolsCount || '483';
+  const onlineStudents = config.onlineStudentsCount || (liveOnline !== null ? String(liveOnline) : '13');
+
+  // Hero Stats Items Component without fill and border
+  const renderHeroStatsCards = (isHeroDark = true) => (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-10 w-full">
+      {/* Item 1: Total Siswa Terdaftar */}
+      <div className="flex flex-col justify-between py-1 transition-transform duration-300 hover:-translate-y-0.5">
+        <div className="flex items-center justify-between gap-3">
+          <span className={`text-xs sm:text-sm font-bold block leading-tight tracking-wide ${
+            isHeroDark ? 'text-blue-100/80' : 'text-slate-500 dark:text-slate-400'
+          }`}>
+            Total Siswa Terdaftar
+          </span>
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 hover:scale-105 ${
+            isHeroDark 
+              ? 'bg-blue-500/20 text-blue-300'
+              : 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'
+          }`}>
+            <Users className="w-5 h-5" />
+          </div>
+        </div>
+        <div className={`mt-3 text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight tabular-nums ${
+          isHeroDark ? 'text-white' : 'text-slate-900 dark:text-white'
+        }`}>
+          {totalStudents}
+        </div>
+      </div>
+
+      {/* Item 2: Jumlah Sekolah Terdaftar */}
+      <div className="flex flex-col justify-between py-1 transition-transform duration-300 hover:-translate-y-0.5">
+        <div className="flex items-center justify-between gap-3">
+          <span className={`text-xs sm:text-sm font-bold block leading-tight tracking-wide ${
+            isHeroDark ? 'text-purple-100/80' : 'text-slate-500 dark:text-slate-400'
+          }`}>
+            Jumlah Sekolah Terdaftar
+          </span>
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 hover:scale-105 ${
+            isHeroDark 
+              ? 'bg-purple-500/20 text-purple-300'
+              : 'bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400'
+          }`}>
+            <School className="w-5 h-5" />
+          </div>
+        </div>
+        <div className={`mt-3 text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight tabular-nums ${
+          isHeroDark ? 'text-purple-400' : 'text-purple-600 dark:text-purple-400'
+        }`}>
+          {totalSchools}
+        </div>
+      </div>
+
+      {/* Item 3: Siswa Sedang Online */}
+      <div className="flex flex-col justify-between py-1 transition-transform duration-300 hover:-translate-y-0.5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className={`text-xs sm:text-sm font-bold block leading-tight truncate tracking-wide ${
+              isHeroDark ? 'text-emerald-100/80' : 'text-slate-500 dark:text-slate-400'
+            }`}>
+              Siswa Sedang Online
+            </span>
+            <span className="relative flex h-2.5 w-2.5 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className={`relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400 ${
+                isHeroDark ? 'shadow-[0_0_10px_rgba(52,211,153,0.9)]' : ''
+              }`}></span>
+            </span>
+          </div>
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 hover:scale-105 ${
+            isHeroDark 
+              ? 'bg-emerald-500/20 text-emerald-300'
+              : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400'
+          }`}>
+            <Radio className="w-5 h-5" />
+          </div>
+        </div>
+        <div className={`mt-3 text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight tabular-nums ${
+          isHeroDark ? 'text-emerald-400' : 'text-emerald-600 dark:text-emerald-400'
+        }`}>
+          {onlineStudents}
+        </div>
+      </div>
+    </div>
+  );
+
+  // If user is logged in, show clean role overview and quick hero stats
   if (currentUser) {
     const isAdmin = currentUser.role === 'admin';
     return (
@@ -70,6 +181,9 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
             </button>
           </div>
         </div>
+
+        {/* 3 Main Hero Stats Cards in Logged-in Overview */}
+        {renderHeroStatsCards(false)}
       </div>
     );
   }
@@ -118,6 +232,11 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
             </button>
           </div>
 
+          {/* 3 Main Hero Stats Cards (Total Siswa Terdaftar, Jumlah Sekolah Terdaftar, Siswa Sedang Online) */}
+          <div className="pt-2">
+            {renderHeroStatsCards(true)}
+          </div>
+
           {/* Stats Bar - Positioned at bottom inside full page hero */}
           <div className="pt-8 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-6 text-left">
             <div className="space-y-1">
@@ -142,3 +261,4 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
     </div>
   );
 };
+

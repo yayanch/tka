@@ -319,6 +319,51 @@ export const HeroSettingsModal: React.FC<HeroSettingsModalProps> = ({
                 </div>
               </div>
             </div>
+
+            {/* 3 Main Stat Cards (Siswa Terdaftar, Sekolah Terdaftar, Siswa Online) */}
+            <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200">
+                <BarChart2 className="w-4 h-4 text-emerald-500" />
+                <span>Kartu Metrik Hero (Siswa &amp; Sekolah)</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Total Siswa */}
+                <div className="p-3.5 rounded-2xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-900/40 space-y-1.5">
+                  <span className="text-[11px] font-bold text-blue-700 dark:text-blue-300">Total Siswa Terdaftar</span>
+                  <input
+                    type="text"
+                    value={config.totalStudentsCount ?? '2315'}
+                    onChange={(e) => handleChange('totalStudentsCount', e.target.value)}
+                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-extrabold outline-none"
+                    placeholder="2315"
+                  />
+                </div>
+
+                {/* Jumlah Sekolah */}
+                <div className="p-3.5 rounded-2xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200/60 dark:border-purple-900/40 space-y-1.5">
+                  <span className="text-[11px] font-bold text-purple-700 dark:text-purple-300">Jumlah Sekolah Terdaftar</span>
+                  <input
+                    type="text"
+                    value={config.totalSchoolsCount ?? '483'}
+                    onChange={(e) => handleChange('totalSchoolsCount', e.target.value)}
+                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-extrabold outline-none"
+                    placeholder="483"
+                  />
+                </div>
+
+                {/* Siswa Sedang Online */}
+                <div className="p-3.5 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-900/40 space-y-1.5">
+                  <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">Siswa Sedang Online</span>
+                  <input
+                    type="text"
+                    value={config.onlineStudentsCount ?? '13'}
+                    onChange={(e) => handleChange('onlineStudentsCount', e.target.value)}
+                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-extrabold outline-none"
+                    placeholder="13"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Modal Actions Footer */}
