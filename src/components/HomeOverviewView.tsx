@@ -82,9 +82,22 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
     };
   }, []);
 
-  const totalStudents = config.totalStudentsCount || (liveStats.totalStudents !== null ? String(liveStats.totalStudents) : '2315');
-  const totalSchools = config.totalSchoolsCount || (liveStats.totalSchools !== null ? String(liveStats.totalSchools) : '483');
-  const onlineStudents = config.onlineStudentsCount || (liveStats.onlineStudents !== null ? String(liveStats.onlineStudents) : '1');
+  const getCleanOverride = (val: string | undefined, legacyVal: string) => {
+    if (!val) return '';
+    const trimmed = val.trim();
+    if (trimmed === '' || trimmed === legacyVal || trimmed === '2,315') {
+      return '';
+    }
+    return trimmed;
+  };
+
+  const studentOverride = getCleanOverride(config.totalStudentsCount, '2315');
+  const schoolOverride = getCleanOverride(config.totalSchoolsCount, '483');
+  const onlineOverride = getCleanOverride(config.onlineStudentsCount, '13');
+
+  const totalStudents = studentOverride || (liveStats.totalStudents !== null ? String(liveStats.totalStudents) : '2334');
+  const totalSchools = schoolOverride || (liveStats.totalSchools !== null ? String(liveStats.totalSchools) : '486');
+  const onlineStudents = onlineOverride || (liveStats.onlineStudents !== null ? String(liveStats.onlineStudents) : '1');
 
   // Hero Stats Items Component: centered on mobile, left-aligned on desktop
   const renderHeroStatsCards = (isHeroDark = true) => (

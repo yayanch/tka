@@ -2688,19 +2688,25 @@ const memorySettingsStore = new Map<string, any>();
 app.get('/api/settings/:key', async (req: Request, res: Response) => {
   try {
     const { key } = req.params;
+    let value: any = null;
     if (isMySqlConnected && pool) {
       const [rows]: any = await pool.query('SELECT setting_value FROM app_settings WHERE setting_key = ?', [key]);
       if (rows && rows.length > 0) {
-        return res.json({ success: true, value: JSON.parse(rows[0].setting_value) });
+        value = JSON.parse(rows[0].setting_value);
       }
-      return res.status(404).json({ success: false, error: 'Setting not found' });
     } else {
-      const val = memorySettingsStore.get(key);
-      if (val !== undefined) {
-        return res.json({ success: true, value: val });
-      }
-      return res.status(404).json({ success: false, error: 'Setting not found' });
+      value = memorySettingsStore.get(key);
     }
+
+    if (value) {
+      if (key === 'hero_config' && typeof value === 'object') {
+        if (value.totalStudentsCount === '2315' || value.totalStudentsCount === '2,315') value.totalStudentsCount = '';
+        if (value.totalSchoolsCount === '483') value.totalSchoolsCount = '';
+        if (value.onlineStudentsCount === '13') value.onlineStudentsCount = '';
+      }
+      return res.json({ success: true, value });
+    }
+    return res.status(404).json({ success: false, error: 'Setting not found' });
   } catch (err: any) {
     return res.status(500).json({ success: false, error: err.message });
   }

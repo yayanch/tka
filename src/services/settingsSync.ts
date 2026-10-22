@@ -13,6 +13,9 @@ export async function fetchHeroConfig(): Promise<HeroConfig> {
     const data = await res.json();
     if (data.success && data.value) {
       const merged = { ...DEFAULT_HERO_CONFIG, ...data.value };
+      if (merged.totalStudentsCount === '2315' || merged.totalStudentsCount === '2,315') merged.totalStudentsCount = '';
+      if (merged.totalSchoolsCount === '483') merged.totalSchoolsCount = '';
+      if (merged.onlineStudentsCount === '13') merged.onlineStudentsCount = '';
       localStorage.setItem(STORAGE_HERO_KEY, JSON.stringify(merged));
       return merged;
     }
