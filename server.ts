@@ -2277,8 +2277,8 @@ app.get('/api/teacher/overview', async (req: Request, res: Response) => {
         }
       }
 
-      // RULE: Penjumlahan seluruh nilai 8 modul dibagi 8
-      const avgScore = totalScoreSum / 8;
+      // RULE: Penjumlahan seluruh nilai modul yang dikerjakan dibagi jumlah modul yang dikerjakan
+      const avgScore = completedCount > 0 ? totalScoreSum / completedCount : 0;
       const lastSession = userSessions[0];
 
       // Real-time Online check: active heartbeat within 2 minutes OR currently requesting user
