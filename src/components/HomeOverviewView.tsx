@@ -51,12 +51,12 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
   const totalSchools = config.totalSchoolsCount || '483';
   const onlineStudents = config.onlineStudentsCount || (liveOnline !== null ? String(liveOnline) : '13');
 
-  // Hero Stats Items Component without fill and border: Number & Icon at top, Text below
+  // Hero Stats Items Component: centered on mobile, left-aligned on desktop
   const renderHeroStatsCards = (isHeroDark = true) => (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-10 w-full">
       {/* Item 1: Total Siswa Terdaftar */}
-      <div className="flex flex-col py-1 transition-transform duration-300 hover:-translate-y-0.5">
-        <div className="flex items-center gap-2.5">
+      <div className="flex flex-col items-center sm:items-start text-center sm:text-left py-1 transition-transform duration-300 hover:-translate-y-0.5">
+        <div className="flex items-center justify-center sm:justify-start gap-2.5">
           <div className={`text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight tabular-nums ${
             isHeroDark ? 'text-white' : 'text-slate-900 dark:text-white'
           }`}>
@@ -78,8 +78,8 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
       </div>
 
       {/* Item 2: Jumlah Sekolah Terdaftar */}
-      <div className="flex flex-col py-1 transition-transform duration-300 hover:-translate-y-0.5">
-        <div className="flex items-center gap-2.5">
+      <div className="flex flex-col items-center sm:items-start text-center sm:text-left py-1 transition-transform duration-300 hover:-translate-y-0.5">
+        <div className="flex items-center justify-center sm:justify-start gap-2.5">
           <div className={`text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight tabular-nums ${
             isHeroDark ? 'text-purple-400' : 'text-purple-600 dark:text-purple-400'
           }`}>
@@ -101,8 +101,8 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
       </div>
 
       {/* Item 3: Siswa Sedang Online */}
-      <div className="flex flex-col py-1 transition-transform duration-300 hover:-translate-y-0.5">
-        <div className="flex items-center gap-2.5">
+      <div className="flex flex-col items-center sm:items-start text-center sm:text-left py-1 transition-transform duration-300 hover:-translate-y-0.5">
+        <div className="flex items-center justify-center sm:justify-start gap-2.5">
           <div className={`text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight tabular-nums ${
             isHeroDark ? 'text-emerald-400' : 'text-emerald-600 dark:text-emerald-400'
           }`}>
@@ -116,7 +116,7 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
             <Radio className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
           </div>
         </div>
-        <div className={`mt-1.5 flex items-center gap-1.5 text-xs sm:text-sm font-bold leading-tight tracking-wide ${
+        <div className={`mt-1.5 flex items-center justify-center sm:justify-start gap-1.5 text-xs sm:text-sm font-bold leading-tight tracking-wide ${
           isHeroDark ? 'text-emerald-100/80' : 'text-slate-500 dark:text-slate-400'
         }`}>
           <span>Siswa Sedang Online</span>
@@ -206,7 +206,7 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
           <Wifi className="w-64 h-64 stroke-[1]" />
         </div>
 
-        <div className="relative z-10 max-w-6xl mx-auto w-full space-y-8 my-auto">
+        <div className="relative z-10 max-w-6xl mx-auto w-full space-y-8 my-auto flex flex-col items-center sm:items-start text-center sm:text-left">
           <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold bg-blue-500/20 text-blue-300 border border-blue-400/30 backdrop-blur-xs">
             <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
             <span>{config.badge}</span>
@@ -221,7 +221,7 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
           </p>
 
           {onOpenTopScores && (
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex items-center justify-center sm:justify-start gap-3 pt-2">
               <button
                 onClick={onOpenTopScores}
                 className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-amber-500/25 transition-all cursor-pointer transform hover:-translate-y-0.5"
@@ -233,12 +233,12 @@ export const HomeOverviewView: React.FC<HomeOverviewViewProps> = ({
           )}
 
           {/* 3 Main Hero Stats Cards (Total Siswa Terdaftar, Jumlah Sekolah Terdaftar, Siswa Sedang Online) */}
-          <div className="pt-2">
+          <div className="pt-2 w-full">
             {renderHeroStatsCards(true)}
           </div>
 
           {/* Stats Bar - Positioned at bottom inside full page hero */}
-          <div className="pt-8 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-6 text-left">
+          <div className="pt-8 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center sm:text-left w-full">
             <div className="space-y-1">
               <span className="block text-3xl sm:text-4xl lg:text-5xl font-black text-white">{config.stat1Number}</span>
               <span className="text-xs sm:text-sm text-slate-400 font-medium">{config.stat1Label}</span>
